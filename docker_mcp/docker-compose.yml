@@ -1,0 +1,35 @@
+# Specifies the version of the Docker Compose file format. '3.8' is a common, modern choice.
+version: '3.8'
+
+# This is the main section where you define all your containers (services).
+services:
+
+  # 1. The first service: The Filesystem Server
+  mcp-filesystem:
+    # Tells Docker which image to use for this container. It could be on Docker Hub or another registry.
+    image: some-user/mcp-filesystem:latest
+    # This mounts a directory from your computer (the host) into the container.
+    # This is how the server gets access to your files.
+    # The ":ro" at the end makes it "read-only" for safety.
+    volumes:
+      - /Users/your-name/Documents:/data:ro
+    # This maps a port from the container to your computer.
+    # It exposes the container's port 10733 to your computer's port 10733.
+    ports:
+      - "10733:10733"
+    # A friendly name for the container so you can easily identify it.
+    container_name: mcp_filesystem
+
+  # 2. The second service: The GitHub Server
+  mcp-github:
+    image: another-user/mcp-github:v1.2
+    ports:
+      # We map this to a different host port (10734) to avoid conflict with the filesystem server.
+      - "10734:10733"
+    # This is how you securely pass secrets (like API keys) to the container.
+    # It reads the GITHUB_TOKEN variable from a .env file in the same directory.
+    environment:
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+    container_name: mcp_github
+
+# (You could add more services here for Google Drive, Slack, etc.)
