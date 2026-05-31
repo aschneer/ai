@@ -166,6 +166,35 @@ After all candidate files are written, produce the `summary.md`.
 | Candidate forum transcripts | Local newspapers, civic organizations (League of Women Voters, etc.) often publish Q&A transcripts |
 | News search (broad) | Search both corporate/mainstream outlets and independent journalists and publications; evaluate coverage by how coherent, logical, and well-supported the reporting is — not by the prestige of the source |
 
+## Research Rigor & Citation Standards
+
+Every fact included in a candidate profile must be traceable to a specific, verified source. Do not rely on training data alone — use it to locate sources, then confirm via WebFetch that the information is actually present on the page before citing it.
+
+### Rules
+
+1. **Verify before citing.** For every claim you include in a profile, fetch the specific page and confirm the information is there. If you cannot confirm it, do not include it as fact — note it as unverified or omit it.
+
+2. **Trace to the primary source.** If a page cites another source (e.g. a news article references a campaign finance report), follow that chain as far as possible. If the primary source exists and is accessible online, cite it directly. If it is not available (e.g. a multi-hundred page printed document, a paywalled archive, or an offline record), cite the secondary source but note explicitly that it is a secondary source and that the primary was not directly verified.
+
+3. **Link to the specific page** — and the specific section if possible. Not a homepage, search result, or category page. If the page has anchor links (e.g. permalink headers like `#campaign-finance` or `#section-3`), use the deepest anchor that points directly to the relevant content. Specific anchors are preferred but not required.
+
+4. **Use a consistent citation format** — inline or as a footnote at the bottom of the file:
+   `[Organization, "Title or Description", Year](URL)`
+   Example: `[OpenSecrets, "Andrew Example — 2026 Campaign Finance Summary", 2026](https://opensecrets.org/...)`
+
+5. **Every claim gets a citation.** Funding figures, voting record entries, endorsements, biographical facts, policy positions, legal issues — all of it. If a fact cannot be sourced and verified, flag it explicitly as unconfirmed rather than presenting it as established.
+
+6. **List all sources at the bottom of each candidate file.** The `*Sources: [list]*` footer in the template is mandatory, not optional.
+
+### What "Verified" Means
+
+A source is verified when you have:
+- Fetched the specific URL
+- Confirmed the claimed information is present on that page
+- Confirmed the URL resolves (not a 404 or redirect to a homepage)
+
+If a URL returns an error, a generic page, or doesn't contain the claimed information, find an alternative source or flag the claim as unverified.
+
 ## Rating System
 
 Use this consistently in both candidate files and the summary:
