@@ -55,13 +55,9 @@ Each agent's prompt should instruct it to:
 - Assess **authenticity and substance**: based on interviews, debates, and written statements, does the candidate appear to genuinely understand the issues they speak about? Do they articulate specific policy ideas, or do they rely on platitudes and vague promises? How likely are they to actually follow through?
 - Return all findings as a structured summary
 
-### 3. Write candidate files as results arrive
+### 3. Write files as results arrive; summary last
 
-Write each file as soon as its agent returns — don't wait for all agents to finish.
-
-### 4. Write summary file last
-
-After all candidate files are written, produce the `summary.md`.
+Write each candidate file as its agent returns — don't wait for all to finish. Write `summary.md` only after all candidate files are complete.
 
 ## Candidate File Template
 
@@ -162,38 +158,26 @@ After all candidate files are written, produce the `summary.md`.
 | `govtrack.us` | Congressional voting records (federal races) |
 | State legislature website | Legislative voting records and bill history — search "[State] legislature" or "[State] general assembly" (e.g. `leginfo.legislature.ca.gov`, `legislature.texas.gov`) |
 | State campaign finance authority | Contribution and expenditure records — search "[State] campaign finance" or "[State] secretary of state campaign finance" (e.g. `cal-access.sos.ca.gov`, `ethics.ga.gov`) |
-| YouTube / local news archives | Debate recordings, candidate forum video, interview transcripts — search "[Candidate Name] debate [Year]" or "[Candidate Name] interview [Year]" |
-| Candidate forum transcripts | Local newspapers, civic organizations (League of Women Voters, etc.) often publish Q&A transcripts |
-| News search (broad) | Search both corporate/mainstream outlets and independent journalists and publications; evaluate coverage by how coherent, logical, and well-supported the reporting is — not by the prestige of the source |
+| Debates, forums & interviews | YouTube, local news archives, civic organizations (League of Women Voters, etc.) — search "[Candidate Name] debate [Year]"; local papers often publish Q&A transcripts |
+| News search (broad) | Corporate/mainstream and independent journalism alike; judge by coherence, logic, and evidence — not source prestige |
 
 ## Research Rigor & Citation Standards
 
-Every fact included in a candidate profile must be traceable to a specific, verified source. Do not rely on training data alone — use it to locate sources, then confirm via WebFetch that the information is actually present on the page before citing it.
+All candidate information must come from live research, not training data. Training data may be used as a starting point to find leads or identify where to look, but never as a source of facts — candidates' positions, records, funding, and associations change, and training data goes stale. Even historical facts that predate the model's training cutoff should be verified against live sources.
 
-### Rules
+1. **Verify before citing.** Fetch the specific page and confirm the information is actually there — the URL resolves, is not a 404 or homepage redirect, and the claimed content is present. If you cannot confirm it, flag it as unverified rather than presenting it as fact.
 
-1. **Verify before citing.** For every claim you include in a profile, fetch the specific page and confirm the information is there. If you cannot confirm it, do not include it as fact — note it as unverified or omit it.
+2. **Trace to the primary source.** Follow citation chains as far as possible. If the primary exists and is accessible online, cite it directly. If not (e.g. a printed document, paywalled archive, or offline record), cite the secondary source but note explicitly that the primary was not directly verified.
 
-2. **Trace to the primary source.** If a page cites another source (e.g. a news article references a campaign finance report), follow that chain as far as possible. If the primary source exists and is accessible online, cite it directly. If it is not available (e.g. a multi-hundred page printed document, a paywalled archive, or an offline record), cite the secondary source but note explicitly that it is a secondary source and that the primary was not directly verified.
+3. **Link to the specific page** — and the specific section if possible. Not a homepage, search result, or category page. Use anchor links (e.g. `#campaign-finance`) when available; preferred but not required.
 
-3. **Link to the specific page** — and the specific section if possible. Not a homepage, search result, or category page. If the page has anchor links (e.g. permalink headers like `#campaign-finance` or `#section-3`), use the deepest anchor that points directly to the relevant content. Specific anchors are preferred but not required.
-
-4. **Use a consistent citation format** — inline or as a footnote at the bottom of the file:
+4. **Use a consistent citation format** — inline or as a footnote:
    `[Organization, "Title or Description", Year](URL)`
    Example: `[OpenSecrets, "Andrew Example — 2026 Campaign Finance Summary", 2026](https://opensecrets.org/...)`
 
-5. **Every claim gets a citation.** Funding figures, voting record entries, endorsements, biographical facts, policy positions, legal issues — all of it. If a fact cannot be sourced and verified, flag it explicitly as unconfirmed rather than presenting it as established.
+5. **Every claim gets a citation.** Funding figures, voting records, endorsements, biographical facts, policy positions, legal issues — all of it. Flag anything that cannot be sourced and verified as unconfirmed.
 
-6. **List all sources at the bottom of each candidate file.** The `*Sources: [list]*` footer in the template is mandatory, not optional.
-
-### What "Verified" Means
-
-A source is verified when you have:
-- Fetched the specific URL
-- Confirmed the claimed information is present on that page
-- Confirmed the URL resolves (not a 404 or redirect to a homepage)
-
-If a URL returns an error, a generic page, or doesn't contain the claimed information, find an alternative source or flag the claim as unverified.
+6. **The `*Sources: [list]*` footer is mandatory**, not optional.
 
 ## Rating System
 
@@ -209,8 +193,6 @@ Use this consistently in both candidate files and the summary:
 
 ### Red Flags
 
-Flag these explicitly in candidate profiles — they warrant serious scrutiny:
-
 - **No campaign website** — in any race, any level, a missing website is a hard red flag
 - **Extremely low viability** — polling at or near 0%, no meaningful support, no path to winning; flag as a fringe candidacy not worth deep research
 - **No campaign finance data** — unexplained absence of filings; investigate before concluding
@@ -225,7 +207,7 @@ Flag these explicitly in candidate profiles — they warrant serious scrutiny:
 
 ### Highlight (Not Necessarily a Red Flag)
 
-Note these in the profile and let the voter decide — they provide useful context but are not automatic disqualifiers:
+Note these in the profile and let the voter decide:
 
 - **No voter guide statement filed** — may simply mean the candidate didn't meet the eligibility requirements (which vary by jurisdiction and can include contribution limits or filing fees); explain the local rules if known
 - **Self-funded or unfunded campaign** — could mean the candidate is independently wealthy and deliberately avoiding donor influence; note the funding structure and let the voter assess
@@ -235,9 +217,8 @@ Note these in the profile and let the voter decide — they provide useful conte
 ## Tips
 
 - **Write files as agents return** — don't wait for all to finish before writing any
-- **Voting record**: prioritize voting record over stated positions for any candidate who has held office, not just current incumbents — former officeholders have records too
-- **Website is mandatory**: even in local races with thin online presence, a campaign website is the minimum bar — no website = red flag regardless of race size
-- **Local races**: candidates may have very thin online presence beyond their website — note when info is insufficient, but always check for the website first
+- **Voting record**: for any candidate who has held office, prioritize their record over stated positions
+- **Local races**: candidates may have thin online presence — this is acceptable, but a website is the minimum bar in any race; no website = red flag; note when other info is insufficient
 - **Viability screening**: before deep-diving all candidates, do a quick polling and support check — identify the top contenders (roughly top 5, or fewer if it's a small field) so the voter can focus their attention; flag any candidates with negligible support as low-priority
 - **Strategic voting**: in top-two primaries, note which candidates are actually viable for the general
 - **Cross-reference**: if a candidate's stated positions conflict with their funding sources or voting record, flag it explicitly
