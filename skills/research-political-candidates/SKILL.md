@@ -6,12 +6,14 @@ disable-model-invocation: true
 
 # Research Political Candidates
 
-Produces per-candidate markdown profiles and a comparison/recommendation summary, organized by office, grounded in the voter's values.
+This skill combines live candidate research with the voter's own provided values and priorities to produce a personalized voting guide. It is intentionally partisan to the voter — not politically partisan, but voter-partisan: the research is conducted through the lens of what matters to this specific voter, and all profiles, comparisons, and recommendations are explicitly evaluated against their stated values.
+
+The skill itself embeds no political opinions. The voter's values file is the opinion layer. Without it, this skill is just research infrastructure. With it, the research becomes a decision tool.
 
 ## Setup
 
 Before starting, confirm:
-1. **Voter values file** — path to a markdown file describing the voter's values, priorities, and red flags (e.g. `voting/context.md`)
+1. **Voter values file** — path to a markdown file describing the voter's values, priorities, policy preferences, and red lines (e.g. `voting/context.md`). **Read this file first and keep it in context throughout all research and writing.** Every candidate assessment, alignment rating, and recommendation must be grounded in the specific values this voter has provided — not generic criteria.
 2. **Election** — date and jurisdiction (e.g. "California Primary, June 2, 2026")
 3. **Output folder** — base folder for all research (e.g. `voting/260602_ca_primary/`)
 4. **Candidates** — list of names per office; user provides these
@@ -45,14 +47,14 @@ Create the office subfolder(s) before researching.
 
 For each candidate, launch a background `generalPurpose` subagent. This avoids serial web fetch approval dialogs.
 
-Each agent's prompt should instruct it to:
+Each agent's prompt should include the full contents of the voter values file and instruct it to:
 - Find and fetch the candidate's **campaign website** (no website = major red flag — note it explicitly)
 - Fetch their **Ballotpedia** profile (`ballotpedia.org/[First_Last]`)
 - Check **OpenSecrets** for campaign finance and top donors
 - Check **GovTrack** or the relevant state legislature website for any voting history — not just incumbents; check all candidates who have ever held office
 - Search for **debate recordings, forum transcripts, and notable interviews** (YouTube, local news, League of Women Voters, etc.)
-- Search for **news coverage**, controversies, and endorsements — include both mainstream and independent journalism; evaluate sources by the quality of their reasoning and evidence, not their institutional prestige
-- Assess **authenticity and substance**: based on interviews, debates, and written statements, does the candidate appear to genuinely understand the issues they speak about? Do they articulate specific policy ideas, or do they rely on platitudes and vague promises? How likely are they to actually follow through?
+- Search for **news coverage**, controversies, and endorsements — include both mainstream and independent journalism
+- Note **communication style and substance**: based on interviews, debates, and written statements, describe the candidate's apparent depth of knowledge, how specifically they address issues, and any observable consistency or inconsistency between their stated positions and their record
 - Return all findings as a structured summary
 
 ### 3. Write files as results arrive; summary last
@@ -159,7 +161,7 @@ Write each candidate file as its agent returns — don't wait for all to finish.
 | State legislature website | Legislative voting records and bill history — search "[State] legislature" or "[State] general assembly" (e.g. `leginfo.legislature.ca.gov`, `legislature.texas.gov`) |
 | State campaign finance authority | Contribution and expenditure records — search "[State] campaign finance" or "[State] secretary of state campaign finance" (e.g. `cal-access.sos.ca.gov`, `ethics.ga.gov`) |
 | Debates, forums & interviews | YouTube, local news archives, civic organizations (League of Women Voters, etc.) — search "[Candidate Name] debate [Year]"; local papers often publish Q&A transcripts |
-| News search (broad) | Corporate/mainstream and independent journalism alike; judge by coherence, logic, and evidence — not source prestige |
+| News search (broad) | Corporate/mainstream and independent journalism alike |
 
 ## Research Rigor & Citation Standards
 
@@ -199,16 +201,15 @@ Use this consistently in both candidate files and the summary:
 - **Campaign committee mislabeled or disorganized** — may indicate operational incompetence or compliance issues
 - **Funding from special interests conflicting with stated positions** — note the conflict explicitly
 - **Record of lying or misrepresenting past actions**
-- **Careerism over substance** — pattern of seeking office without a meaningful platform, or a track record of voting with party leadership and special interests rather than in voters' interests in order to preserve their political position
-- **Political platitudes** — vague, feel-good statements ("I support working people", "I care about the environment") with no specific policy substance; a candidate who relies on platitudes instead of demonstrating understanding of issues and proposing concrete solutions is a significant red flag
-- **Word salad / substance evasion** — talking at length without saying anything, using circular language, or giving non-answers to direct questions; assess whether the candidate actually understands and believes what they're saying and whether they are likely to follow through
-- **Rhetorical red flags**: ad hominem attacks, deflection instead of answers, scripted talking points, guilt by association, lack of substantive positions or coherent worldview
+- **Careerism over substance** — pattern of seeking office without a meaningful platform, or evidence of prioritizing personal political survival over the positions and constituents they represent
+- **Rhetorical red flags**: ad hominem attacks, deflection from direct questions, guilt by association
 - **Positions that conflict with the voter's values** — always flag based on the voter's context file; use ⚠️ or 🚫 in the alignment table
 
 ### Highlight (Not Necessarily a Red Flag)
 
 Note these in the profile and let the voter decide:
 
+- **Communication style and policy specificity** — describe how specifically the candidate addresses issues: do they articulate concrete positions and proposals, or speak primarily in broad themes and values statements? Note any pattern of giving non-answers or talking around direct questions. Present what you observe; let the voter assess whether it matters to them.
 - **No voter guide statement filed** — may simply mean the candidate didn't meet the eligibility requirements (which vary by jurisdiction and can include contribution limits or filing fees); explain the local rules if known
 - **Self-funded or unfunded campaign** — could mean the candidate is independently wealthy and deliberately avoiding donor influence; note the funding structure and let the voter assess
 - **Active legal or regulatory issues** — describe the specifics; some legal challenges are legitimate concerns, others may be politically motivated harassment (lawfare); present the facts and let the voter decide
