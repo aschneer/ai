@@ -49,8 +49,10 @@ Each agent's prompt should instruct it to:
 - Find and fetch the candidate's **campaign website** (no website = major red flag — note it explicitly)
 - Fetch their **Ballotpedia** profile (`ballotpedia.org/[First_Last]`)
 - Check **OpenSecrets** for campaign finance and top donors
-- Check **GovTrack** or state legislature records for voting history (incumbents)
-- Search for **news coverage**, controversies, endorsements, notable interviews
+- Check **GovTrack** or the relevant state legislature website for any voting history — not just incumbents; check all candidates who have ever held office
+- Search for **debate recordings, forum transcripts, and notable interviews** (YouTube, local news, League of Women Voters, etc.)
+- Search for **news coverage**, controversies, and endorsements — include both mainstream and independent journalism; evaluate sources by the quality of their reasoning and evidence, not their institutional prestige
+- Assess **authenticity and substance**: based on interviews, debates, and written statements, does the candidate appear to genuinely understand the issues they speak about? Do they articulate specific policy ideas, or do they rely on platitudes and vague promises? How likely are they to actually follow through?
 - Return all findings as a structured summary
 
 ### 3. Write candidate files as results arrive
@@ -156,11 +158,13 @@ After all candidate files are written, produce the `summary.md`.
 |---|---|
 | Candidate website | Stated positions, biography — **always check; missing = red flag** |
 | `ballotpedia.org/[Name]` | Biography, election history, endorsements, candidate surveys |
-| `opensecrets.org` | Campaign finance, top donors, industry funding |
-| `govtrack.us` | Congressional voting records |
-| `leginfo.legislature.ca.gov` | California state legislative records |
-| `fppc.ca.gov` | California state campaign finance |
-| News search | Controversies, interviews, endorsements |
+| `opensecrets.org` | Campaign finance, top donors, industry funding (federal races) |
+| `govtrack.us` | Congressional voting records (federal races) |
+| State legislature website | Legislative voting records and bill history — search "[State] legislature" or "[State] general assembly" (e.g. `leginfo.legislature.ca.gov`, `legislature.texas.gov`) |
+| State campaign finance authority | Contribution and expenditure records — search "[State] campaign finance" or "[State] secretary of state campaign finance" (e.g. `cal-access.sos.ca.gov`, `ethics.ga.gov`) |
+| YouTube / local news archives | Debate recordings, candidate forum video, interview transcripts — search "[Candidate Name] debate [Year]" or "[Candidate Name] interview [Year]" |
+| Candidate forum transcripts | Local newspapers, civic organizations (League of Women Voters, etc.) often publish Q&A transcripts |
+| News search (broad) | Search both corporate/mainstream outlets and independent journalists and publications; evaluate coverage by how coherent, logical, and well-supported the reporting is — not by the prestige of the source |
 
 ## Rating System
 
@@ -174,27 +178,37 @@ Use this consistently in both candidate files and the summary:
 
 ## Red Flag Checklist
 
-Flag these in candidate profiles when found:
+### Red Flags
 
-- No campaign website
-- No voter guide statement filed
-- No campaign finance data / unfunded
-- Never won an election (perennial fringe candidate)
-- Active legal or regulatory issues
-- Campaign committee mislabeled or disorganized
-- Endorsements from concerning sources
-- Funding from special interests conflicting with stated positions
-- Rhetorical red flags: ad hominem, deflection, scripted talking points, guilt by association
-- Woke / identity-first framing
-- Supports new taxes, bans, or coercive policies
-- Captured by government unions
-- Record of lying or misrepresenting past actions
-- Careerism over substance
+Flag these explicitly in candidate profiles — they warrant serious scrutiny:
+
+- **No campaign website** — in any race, any level, a missing website is a hard red flag
+- **Extremely low viability** — polling at or near 0%, no meaningful support, no path to winning; flag as a fringe candidacy not worth deep research
+- **No campaign finance data** — unexplained absence of filings; investigate before concluding
+- **Campaign committee mislabeled or disorganized** — may indicate operational incompetence or compliance issues
+- **Funding from special interests conflicting with stated positions** — note the conflict explicitly
+- **Record of lying or misrepresenting past actions**
+- **Careerism over substance** — pattern of seeking office without a meaningful platform, or a track record of voting with party leadership and special interests rather than in voters' interests in order to preserve their political position
+- **Political platitudes** — vague, feel-good statements ("I support working people", "I care about the environment") with no specific policy substance; a candidate who relies on platitudes instead of demonstrating understanding of issues and proposing concrete solutions is a significant red flag
+- **Word salad / substance evasion** — talking at length without saying anything, using circular language, or giving non-answers to direct questions; assess whether the candidate actually understands and believes what they're saying and whether they are likely to follow through
+- **Rhetorical red flags**: ad hominem attacks, deflection instead of answers, scripted talking points, guilt by association, lack of substantive positions or coherent worldview
+- **Positions that conflict with the voter's values** — always flag based on the voter's context file; use ⚠️ or 🚫 in the alignment table
+
+### Highlight (Not Necessarily a Red Flag)
+
+Note these in the profile and let the voter decide — they provide useful context but are not automatic disqualifiers:
+
+- **No voter guide statement filed** — may simply mean the candidate didn't meet the eligibility requirements (which vary by jurisdiction and can include contribution limits or filing fees); explain the local rules if known
+- **Self-funded or unfunded campaign** — could mean the candidate is independently wealthy and deliberately avoiding donor influence; note the funding structure and let the voter assess
+- **Active legal or regulatory issues** — describe the specifics; some legal challenges are legitimate concerns, others may be politically motivated harassment (lawfare); present the facts and let the voter decide
+- **Endorsements** — list all endorsements for each candidate; what constitutes a "concerning" source is subjective and depends on the voter's values
 
 ## Tips
 
 - **Write files as agents return** — don't wait for all to finish before writing any
-- **Incumbents**: prioritize voting record over stated positions
-- **Local races**: candidates may have very thin online presence — note when info is insufficient
+- **Voting record**: prioritize voting record over stated positions for any candidate who has held office, not just current incumbents — former officeholders have records too
+- **Website is mandatory**: even in local races with thin online presence, a campaign website is the minimum bar — no website = red flag regardless of race size
+- **Local races**: candidates may have very thin online presence beyond their website — note when info is insufficient, but always check for the website first
+- **Viability screening**: before deep-diving all candidates, do a quick polling and support check — identify the top contenders (roughly top 5, or fewer if it's a small field) so the voter can focus their attention; flag any candidates with negligible support as low-priority
 - **Strategic voting**: in top-two primaries, note which candidates are actually viable for the general
 - **Cross-reference**: if a candidate's stated positions conflict with their funding sources or voting record, flag it explicitly
