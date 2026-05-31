@@ -1,5 +1,5 @@
 ---
-name: research-political-candidates
+name: election-research
 description: 'Research political candidates for an election and produce individual candidate profiles plus a comparison summary with voting recommendations. Use when the user wants to research candidates, prepare for an election, analyze candidates against their values, or build a voting guide. Triggers: "research candidates", "help me vote", "who should I vote for", "candidate research", "election research", "voting guide".'
 disable-model-invocation: true
 ---
