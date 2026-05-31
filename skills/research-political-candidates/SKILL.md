@@ -1,0 +1,200 @@
+---
+name: research-political-candidates
+description: Research political candidates for an election and produce individual candidate profiles plus a comparison summary with voting recommendations. Use when the user wants to research candidates, prepare for an election, analyze candidates against their values, or build a voting guide. Triggers: "research candidates", "help me vote", "who should I vote for", "candidate research", "election research", "voting guide".
+disable-model-invocation: true
+---
+
+# Research Political Candidates
+
+Produces per-candidate markdown profiles and a comparison/recommendation summary, organized by office, grounded in the voter's values.
+
+## Setup
+
+Before starting, confirm:
+1. **Voter values file** — path to a markdown file describing the voter's values, priorities, and red flags (e.g. `voting/context.md`)
+2. **Election** — date and jurisdiction (e.g. "California Primary, June 2, 2026")
+3. **Output folder** — base folder for all research (e.g. `voting/260602_ca_primary/`)
+4. **Candidates** — list of names per office; user provides these
+
+## Folder Structure
+
+```
+voting/
+└── [YYMMDD_election_name]/
+    ├── [election]_voting_context.md   ← voter values (user-provided)
+    ├── [office_1]/
+    │   ├── candidate_a.md
+    │   ├── candidate_b.md
+    │   └── summary.md                 ← comparison + recommendation
+    └── [office_2]/
+        ├── ...
+        └── summary.md
+```
+
+- Office folder names: `snake_case`, no spaces (e.g. `lt_governor`, `us_senate`, `state_assembly_15`)
+- Candidate file names: `firstname_lastname.md`
+- One `summary.md` per office
+
+## Research Workflow
+
+### 1. Create folder structure
+
+Create the office subfolder(s) before researching.
+
+### 2. Launch parallel research agents
+
+For each candidate, launch a background `generalPurpose` subagent. This avoids serial web fetch approval dialogs.
+
+Each agent's prompt should instruct it to:
+- Find and fetch the candidate's **campaign website** (no website = major red flag — note it explicitly)
+- Fetch their **Ballotpedia** profile (`ballotpedia.org/[First_Last]`)
+- Check **OpenSecrets** for campaign finance and top donors
+- Check **GovTrack** or state legislature records for voting history (incumbents)
+- Search for **news coverage**, controversies, endorsements, notable interviews
+- Return all findings as a structured summary
+
+### 3. Write candidate files as results arrive
+
+Write each file as soon as its agent returns — don't wait for all agents to finish.
+
+### 4. Write summary file last
+
+After all candidate files are written, produce the `summary.md`.
+
+## Candidate File Template
+
+```markdown
+# [Full Name] — [Office] [Year]
+
+**Party**: [Party]
+**Website**: ✅/⚠️ [URL] — [note if missing: "No website found — RED FLAG"]
+**Background**: [2-line bio]
+**Location**: [City, State]
+
+---
+
+## Background
+
+[3–5 sentences: career, relevant experience, why they're running]
+
+## Policy Positions
+
+- **[Issue]**: [position]
+- **[Issue]**: [position]
+
+## Endorsements
+
+[List or "None identified"]
+
+## Funding
+
+- **Total raised**: $X
+- **Top donors / funding sources**: [list]
+- [Note any concerning funding patterns]
+
+## Red Flags
+
+[Bullet list of anything concerning: legal issues, contradictions, opacity, rhetorical tactics, bad policy positions per the voter's values]
+
+## Alignment with Voter Values
+
+| Value | Rating | Notes |
+|---|---|---|
+| [Value from context file] | ✅/⚠️/🚫 | [brief note] |
+
+## Bottom Line
+
+[2–4 sentences: honest overall assessment]
+
+**Recommendation**: [Vote / Consider / Do not vote] — [one sentence why]
+
+---
+
+*Sources: [list]*
+```
+
+## Summary File Template
+
+```markdown
+# [Office] — [Election] Summary
+
+**Recommendation**: **[Candidate Name]**
+
+---
+
+## Candidate Comparison
+
+| Candidate | Party | Website | Funding | Key Strengths | Key Concerns | Rating |
+|---|---|---|---|---|---|---|
+| [Name] | [Party] | ✅/🚫 | $X | [brief] | [brief] | ⭐⭐⭐ |
+
+---
+
+## Recommendation
+
+**Vote for [Name]** because [2–3 sentences grounded in the voter's values].
+
+### Runner-up
+
+[Name] — [why they're close but not the top pick]
+
+### Do Not Vote For
+
+- **[Name]**: [one-line reason]
+- **[Name]**: [one-line reason]
+
+---
+
+## Notes
+
+[Any caveats, strategic voting considerations, or things to watch]
+```
+
+## Key Research Sources
+
+| Source | What It's Good For |
+|---|---|
+| Candidate website | Stated positions, biography — **always check; missing = red flag** |
+| `ballotpedia.org/[Name]` | Biography, election history, endorsements, candidate surveys |
+| `opensecrets.org` | Campaign finance, top donors, industry funding |
+| `govtrack.us` | Congressional voting records |
+| `leginfo.legislature.ca.gov` | California state legislative records |
+| `fppc.ca.gov` | California state campaign finance |
+| News search | Controversies, interviews, endorsements |
+
+## Rating System
+
+Use this consistently in both candidate files and the summary:
+
+| Symbol | Meaning |
+|---|---|
+| ✅ | Aligns well with voter values |
+| ⚠️ | Mixed, unclear, or minor concern |
+| 🚫 | Conflicts with voter values or disqualifying |
+
+## Red Flag Checklist
+
+Flag these in candidate profiles when found:
+
+- No campaign website
+- No voter guide statement filed
+- No campaign finance data / unfunded
+- Never won an election (perennial fringe candidate)
+- Active legal or regulatory issues
+- Campaign committee mislabeled or disorganized
+- Endorsements from concerning sources
+- Funding from special interests conflicting with stated positions
+- Rhetorical red flags: ad hominem, deflection, scripted talking points, guilt by association
+- Woke / identity-first framing
+- Supports new taxes, bans, or coercive policies
+- Captured by government unions
+- Record of lying or misrepresenting past actions
+- Careerism over substance
+
+## Tips
+
+- **Write files as agents return** — don't wait for all to finish before writing any
+- **Incumbents**: prioritize voting record over stated positions
+- **Local races**: candidates may have very thin online presence — note when info is insufficient
+- **Strategic voting**: in top-two primaries, note which candidates are actually viable for the general
+- **Cross-reference**: if a candidate's stated positions conflict with their funding sources or voting record, flag it explicitly
