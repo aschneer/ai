@@ -5,7 +5,7 @@
 
 ## Overview
 
-A **Cursor skill** that provides a text-native alternative to Microsoft Project Professional Auto Schedule. The schedule lives in human-readable YAML files that a user and an AI agent edit. Deterministic library code performs schedule calculation (critical-path method); the agent handles editing, orchestration, and interpretation. A script generates a static HTML Gantt chart from computed output.
+An **AI agent skill** that provides a text-native alternative to Microsoft Project Professional Auto Schedule. The schedule lives in human-readable YAML files that a user and an AI agent edit. Deterministic library code performs schedule calculation (critical-path method); the agent handles editing, orchestration, and interpretation. A script generates a static HTML Gantt chart from computed output.
 
 ## Design principles
 
@@ -21,7 +21,7 @@ A **Cursor skill** that provides a text-native alternative to Microsoft Project 
 
 ### Deliverable
 
-This project produces a **skill** (`SKILL.md` + supporting libraries and schemas), not a standalone application.
+This project produces an **AI agent skill** (`SKILL.md` + supporting libraries and schemas), not a standalone application.
 
 ### Agent vs deterministic code
 
@@ -322,7 +322,7 @@ Schedule data must be stored in simple, human-readable structured files (indente
 - Both a user and an AI agent can read and edit directly
 - Support version control (git diffs)
 - Show task hierarchy clearly (indentation + optional editor fold/collapse)
-- **Item order is controlled by the user and agent** — not rewritten by tooling
+- **Task order** is controlled by the user and agent — not rewritten by tooling (see **Task order** in CONTEXT.md for recommended convention)
 
 Non-milestone items have **no date fields** in the schedule file (R14). Computed dates appear only in engine output (Gantt, reports).
 

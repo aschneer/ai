@@ -1,6 +1,6 @@
 # Project Scheduling
 
-A text-native alternative to Microsoft Project Auto Schedule — delivered as a Cursor skill with modular library code for deterministic schedule calculation.
+A text-native alternative to Microsoft Project Auto Schedule — delivered as an AI agent skill with modular library code for deterministic schedule calculation.
 
 ## Language
 
@@ -81,8 +81,12 @@ Deterministic library code that validates schedule files, performs CPM schedulin
 _Avoid_: Agent, calculator, solver
 
 **Skill**:
-The deliverable for this project — an agent playbook (`SKILL.md`) for working on schedule files, composing library modules, interpreting results, and regenerating the Gantt. The agent edits files; libraries calculate.
-_Avoid_: App, tool, plugin
+The deliverable for this project — an AI agent playbook (`SKILL.md`) for working on schedule files, composing library modules, interpreting results, and regenerating the Gantt. The agent edits files; libraries calculate.
+_Avoid_: App, tool, plugin, Cursor skill
+
+**Task order**:
+The sequence items appear in the schedule file, controlled by the user and agent — never rewritten by scheduling code. Recommended convention: parent group immediately above its children; siblings sorted by computed start date; top-level groups sorted by earliest child start.
+_Avoid_: WBS order, sort order, row order
 
 **Duration**:
 Working time to complete a task, expressed as days or weeks (`4d`, `2w`). Required on `task` kind only. Counts working days on the calendar.
