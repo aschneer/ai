@@ -1,6 +1,6 @@
 # Project Scheduling
 
-A text-native alternative to Microsoft Project Auto Schedule — tasks, durations, and predecessor dependencies stored in a human-readable file, with dates computed automatically on a working calendar.
+A text-native alternative to Microsoft Project Auto Schedule — delivered as a Cursor skill with modular library code for deterministic schedule calculation.
 
 ## Language
 
@@ -8,12 +8,16 @@ A text-native alternative to Microsoft Project Auto Schedule — tasks, duration
 The complete project plan: tasks, their hierarchy, durations, dependencies, and computed dates.
 _Avoid_: Plan file, project file, Gantt
 
+**Project directory**:
+A folder containing everything for one schedule: the schedule file (any name), calendar file, and generated artifacts such as Gantt HTML.
+_Avoid_: Project folder, workspace
+
 **Schedule file**:
-The durable structured data artifact (e.g. YAML) that is the source of truth for a schedule. Both the user and the agent read and edit this file directly. References a separate calendar file for holidays. Validated against a JSON Schema before scheduling.
+The durable structured data artifact (YAML) that is the source of truth for a schedule. Filename is not prescribed. Edited only by the user and agent — never by scheduling code. References a calendar file by relative path.
 _Avoid_: Database, session state, UI state
 
 **Calendar file**:
-A separate YAML file listing non-working days (holidays) and weekend configuration. Referenced by path from the schedule file. Shared across schedules.
+A separate YAML file in the project directory listing non-working days (holidays) and weekend configuration. Referenced by path from the schedule file.
 _Avoid_: Holiday list, calendar config, inline holidays
 
 **Kind**:
@@ -64,22 +68,22 @@ _Avoid_: Sub-project start, phase gate
 The mode where start and finish dates are computed from durations, predecessors, milestone date anchors, and the working calendar — the user does not manually set dates on tasks or groups.
 _Avoid_: Automatic scheduling, calculated schedule
 
+**CPM (Critical Path Method)**:
+The deterministic algorithm that calculates task dates from durations, predecessor dependencies, and calendar constraints. Identifies the longest dependent chain (critical path) that determines project finish. Always implemented in library code, never by the agent.
+_Avoid_: Critical path analysis, scheduling algorithm
+
 **Working calendar**:
 The real calendar used for scheduling, defined in a calendar file. Weekends and configured holidays are non-working days; durations and lag count working days only.
 _Avoid_: Business calendar, project calendar
 
 **Scheduling engine**:
-Deterministic code (not the LLM) that validates the schedule file, performs critical-path scheduling, and produces computed dates for display.
+Deterministic library code that validates schedule files, performs CPM scheduling, and produces computed output. Read-only — never modifies source files.
 _Avoid_: Agent, calculator, solver
 
 **Skill**:
-The agent playbook for working on schedule files — how to edit items, run the scheduling engine, interpret results, and regenerate visuals.
+The deliverable for this project — an agent playbook (`SKILL.md`) for working on schedule files, composing library modules, interpreting results, and regenerating the Gantt. The agent edits files; libraries calculate.
 _Avoid_: App, tool, plugin
 
-**Task order**:
-The sequence items appear in the schedule file. A parent group appears immediately above its children; siblings at the same level are sorted by computed start date; top-level groups sorted by earliest child start.
-_Avoid_: WBS order, sort order, row order
-
 **Duration**:
-Working time to complete a task, expressed in MS Project style notation (`4d`, `2w`, `8h`). Required on `task` kind only. Counts working days on the calendar.
-_Avoid_: Effort, length, elapsed time
+Working time to complete a task, expressed as days or weeks (`4d`, `2w`). Required on `task` kind only. Counts working days on the calendar.
+_Avoid_: Effort, length, elapsed time, hours

@@ -5,14 +5,64 @@
 
 ## Overview
 
-A text-native alternative to Microsoft Project Professional Auto Schedule. The schedule lives in human-readable structured files that both a user and an AI agent can edit. A deterministic scheduling engine computes dates from durations and predecessor links on a real calendar (weekends and holidays excluded). A Gantt chart is generated as a static (optionally hot-reloaded) visual artifact.
+A **Cursor skill** that provides a text-native alternative to Microsoft Project Professional Auto Schedule. The schedule lives in human-readable YAML files that a user and an AI agent edit. Deterministic library code performs schedule calculation (critical-path method); the agent handles editing, orchestration, and interpretation. A script generates a static HTML Gantt chart from computed output.
 
 ## Design principles
 
 1. **File is source of truth** — not a UI, not chat history
-2. **Agent-native editing** — structured data the LLM can read and write reliably
-3. **Deterministic scheduling** — date math is code, not LLM inference
-4. **Microsoft Project semantics** — especially Auto Schedule, rollup scheduling, predecessor syntax, and duration notation
+2. **Agent-native editing** — the skill teaches the agent to read and write schedule files; the agent does not perform date math
+3. **Deterministic scheduling** — all date calculation is library code, never LLM inference
+4. **Minimal code** — before writing code for any capability, ask whether the skill can instruct the agent to do it instead; prefer code only where correctness requires it
+5. **Modular libraries** — code lives in small, independently callable libraries composed by scripts or the agent
+6. **Read-only engine** — scheduling code validates and computes; it never modifies schedule or calendar files
+7. **Microsoft Project semantics** — Auto Schedule, rollup scheduling, predecessor syntax, and duration notation
+
+## Architecture
+
+### Deliverable
+
+This project produces a **skill** (`SKILL.md` + supporting libraries and schemas), not a standalone application.
+
+### Agent vs deterministic code
+
+| Responsibility | Who |
+|----------------|-----|
+| Edit schedule/calendar YAML | Agent (guided by skill) |
+| Ask user for schedule path | Agent |
+| Validate files against schema | Library |
+| Schedule calculation (CPM) | Library |
+| Calendar / working-day math | Library |
+| Generate HTML Gantt | Library (or thin script composing libraries) |
+| Interpret warnings, suggest fixes | Agent |
+| Decide task order in schedule file | User and agent |
+
+An agent *could* read a schedule file and produce HTML directly, but that risks arithmetic and dependency errors. **Schedule calculation must always be deterministic code.**
+
+Before implementing any new capability, evaluate: *can the skill instruct the agent to do this?* Write library code only when the answer is no — typically validation, graph algorithms, calendar math, and rendering.
+
+### Library structure
+
+All code must be organized as **composable libraries**:
+
+- Each distinct capability lives in its own module (e.g. parse predecessors, validate schema, forward-pass scheduling, calendar lookup, render Gantt)
+- Modules are callable independently — no monolithic pipeline required
+- Thin orchestration scripts (or the agent) compose modules on demand
+- Modules must be unit-testable in isolation
+
+### Project directory
+
+A schedule project lives in a **single directory** containing everything for that schedule:
+
+```
+my-renovation/
+  schedule.yaml       # any filename; user or agent chooses
+  calendar.yaml       # referenced by path from schedule file
+  gantt.html          # generated output (optional)
+```
+
+- The schedule filename is **not prescribed** — the skill asks the user for the schedule file path (or project directory)
+- The `calendar` field in the schedule file uses a path **relative to the schedule file's location**
+- All schedule-related artifacts stay co-located in one folder
 
 ---
 
@@ -255,7 +305,7 @@ Task identifiers must behave like Microsoft Project **Unique ID**:
 
 The system must automatically calculate start and finish dates for all tasks based on:
 
-- Task durations (working days; see R12)
+- Task durations (days and weeks; see R12)
 - Predecessor relationships (including link type and lag/lead)
 - Project start milestone (task 0)
 - Parent predecessor constraints on children (R2)
@@ -272,17 +322,17 @@ Schedule data must be stored in simple, human-readable structured files (indente
 - Both a user and an AI agent can read and edit directly
 - Support version control (git diffs)
 - Show task hierarchy clearly (indentation + optional editor fold/collapse)
-- List tasks in **hybrid order**: parent immediately above its children; siblings sorted by computed start date; top-level groups sorted by earliest child start
+- **Item order is controlled by the user and agent** — not rewritten by tooling
 
-Non-milestone tasks have **no date fields** in the schedule file (R14). The scheduling engine computes dates for display (Gantt, reports) but does not persist `start`/`finish` on regular tasks in the source file.
+Non-milestone items have **no date fields** in the schedule file (R14). Computed dates appear only in engine output (Gantt, reports).
 
 ### R9 — Gantt chart rendering
 
 The schedule must be renderable as a Gantt chart view.
 
+- MVP output: **static HTML** generated by a script composing scheduling and render libraries
 - Live editing of the Gantt is **not** required
-- Static rendered artifact is acceptable (HTML, image, etc.)
-- Regenerated on demand or when the schedule file changes
+- Regenerated on demand when the user or agent runs the generate step
 
 ### R10 — Hot reload (nice to have)
 
@@ -295,7 +345,7 @@ The system must support **milestones** (`kind: milestone`):
 - A milestone has **zero duration** (implicit — no `duration` field) and a user-entered **`date`**
 - A milestone has a stable **Unique ID**
 - A milestone **cannot have predecessors** — it can only *be* a predecessor of other tasks
-- The user-set **`date` is authoritative** — the scheduling engine does not override it; conflicts with computed constraints produce warnings
+- The user-set **`date` is authoritative** — the scheduling engine does not override it
 - **Milestones are the only mechanism** for applying a user-defined date constraint at a specific point in the schedule; other tasks reference that point via predecessor links
 - The project start (ID 0) is a milestone — the special case that anchors the entire project (R0)
 
@@ -309,17 +359,34 @@ In the schedule file, **only milestones** (`kind: milestone`) have a `date` fiel
 
 Schedule files must conform to the **Data model** defined above. See JSON Schema requirements under Schema validation in the Data model section.
 
+### R16 — Read-only scheduling engine
+
+The scheduling engine and all library code must **never modify** schedule or calendar files. On run:
+
+- **Validate** files against JSON Schema — reject with clear errors if invalid
+- **Compute** dates and produce output (stdout, JSON, HTML Gantt, etc.)
+- **Warn** on schedule logic problems (e.g. impossible predecessor chains, tasks that cannot meet a milestone date) — but do not write back to source files
+
+Only the user and agent edit schedule data.
+
+### R17 — Project directory
+
+Each schedule project must live in a dedicated directory containing the schedule file, calendar file, and generated artifacts (Gantt HTML, etc.). The skill asks the user for the schedule file path or project directory. Schedule filename is not prescribed.
+
+### R18 — Schedule inconsistency warnings
+
+Because milestones cannot have predecessors (R11), there is no "milestone date vs predecessor" conflict on the milestone itself. The engine may still **warn** when the computed schedule for *other items* cannot satisfy a milestone date — for example, a task chain implies work finishes after a milestone it must reach. These are schedule logic warnings, not file edits.
+
 ### R12 — Duration notation
 
-Durations and lag/lead values use **Microsoft Project style** suffix notation:
+Durations and lag/lead values use **Microsoft Project style** suffix notation. MVP supports **days and weeks only**:
 
 | Suffix | Meaning |
 |--------|---------|
 | `d` | working days |
-| `w` | weeks |
-| `h` | hours |
+| `w` | weeks (converted to working days via calendar) |
 
-**Examples:** `4d`, `2w`, `8h`, `3d` lag in `5FS+3d`
+**Examples:** `4d`, `2w`, `3d` lag in `5FS+3d`, `1w` lag in `7SS+1w`
 
 All duration arithmetic respects the working calendar (R13) — a duration of `4d` means four working days, skipping weekends and holidays.
 
@@ -332,11 +399,11 @@ The system must map the schedule onto a **real calendar**:
 - Schedule dates are **calendar dates**; durations are **working-day durations**
 - Start/finish calculations skip non-working days when counting duration and applying lag/lead
 
-**Calendar file:** Holidays and calendar configuration live in a **separate file** from the schedule — not inline in the schedule YAML. The schedule file references the calendar file by path. This allows one calendar to be shared across multiple schedules.
+**Calendar file:** Holidays and calendar configuration live in a **separate file** in the same project directory as the schedule. The schedule file references it by path relative to the schedule file's location.
 
 ```yaml
-# schedule file (header)
-calendar: ./calendar.yaml
+# schedule file (any filename; header)
+calendar: calendar.yaml
 ```
 
 ```yaml
@@ -354,7 +421,9 @@ The scheduling engine loads both files and validates each against its schema bef
 ## Out of scope (MVP)
 
 - Interactive Gantt editing (drag bars, drag links)
-- Manual schedule mode (user-fixed dates per task)
+- Manual schedule mode (user-fixed dates per task) — future feature
+- Hour-based durations and lag (`8h`) — days and weeks only
+- Engine rewriting schedule file order or content
 - Cross-project predecessor links (`C:\other.mpp\3FF`)
 - Resource assignment / leveling
 - Cost tracking
@@ -367,7 +436,7 @@ The scheduling engine loads both files and validates each against its schema bef
 
 - [x] File format for predecessors: list of MS Project format strings (uniform schema)
 - [x] Identifier type: stable integer Unique ID; ID 0 reserved for project start
-- [x] Duration units: MS Project style (`4d`, `2w`, `8h`)
+- [x] Duration units: days and weeks only (`4d`, `2w`); hours out of scope
 - [x] Calendar: weekends and holidays excluded for MVP
 - [x] Predecessors on group items: allowed; constrains earliest child start
 - [x] Group children: min 1 child, enforced strictly at schema level
@@ -378,5 +447,9 @@ The scheduling engine loads both files and validates each against its schema bef
 - [x] Predecessor format: inline YAML lists only
 - [x] Milestones: user-entered authoritative `date`; no predecessors; only date constraint mechanism
 - [x] Task kinds: `milestone` / `task` / `group` discriminator with JSON Schema validation
-- [x] Holiday list: separate calendar file, referenced by path from schedule file
-- [ ] Manual schedule mode: needed in v1 or later?
+- [x] Holiday list: separate calendar file in project directory, path relative to schedule file
+- [x] Manual schedule mode: deferred — future feature, not MVP
+- [x] Gantt output: static HTML from script
+- [x] Schedule filename: arbitrary; skill asks user for path
+- [x] Engine: read-only — validate, compute, warn; never edit schedule files
+- [x] Deliverable: skill with modular composable libraries
