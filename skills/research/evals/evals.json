@@ -1,0 +1,23 @@
+{
+  "skill_name": "research",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "What's the current federal minimum wage in the US? I need a cited answer for a memo.",
+      "expected_output": "States the federal minimum wage with a citation to an official government source (e.g. DOL), fetched and verified — not just from training data",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Research the pricing tiers for Cursor Pro and Cursor Business — compare what's included in each. I'll use this to decide which plan to buy.",
+      "expected_output": "Comparison table or structured summary with each price/feature cited to specific pages on cursor.com, URLs verified to exist and contain the claimed info",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "I read somewhere that Python 3.13 removed the GIL. Is that true? Find out and cite your sources.",
+      "expected_output": "Accurate answer about Python 3.13 GIL status, tracing to primary sources (Python docs, PEPs, or official announcements), with unverified claims flagged if any",
+      "files": []
+    }
+  ]
+}
