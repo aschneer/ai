@@ -22,7 +22,7 @@ Every item in the schedule is one of three **kinds**. The `kind` field is the **
 
 ### Kind comparison
 
-| | **Milestone** | **Task** | **Group** (name TBD) |
+| | **Milestone** | **Task** | **Group** |
 |--|---------------|----------|----------------------|
 | **Purpose** | Pin a fixed date in the schedule | Work that takes time | Group children into a roll-up container |
 | **Duration** | Zero (implicit) | User-entered (`4d`, etc.) | Derived from children's span |
@@ -33,9 +33,9 @@ Every item in the schedule is one of three **kinds**. The `kind` field is the **
 
 ### Field constraints by kind
 
-| Field | **Milestone** | **Task** | **Group** (name TBD) |
-|-------|---------------|----------|----------------------|
-| `kind` | `milestone` | `task` | TBD |
+| Field | **Milestone** | **Task** | **Group** |
+|-------|---------------|----------|-------------|
+| `kind` | `milestone` | `task` | `group` |
 | `id` | required | required | required |
 | `name` | required | required | required |
 | `date` | required (user-set) | **forbidden** | **forbidden** |
@@ -63,23 +63,9 @@ The project ships a **JSON Schema** describing the schedule file. The `kind` fie
 - Editor YAML extensions may use the same schema for live squiggles (e.g. Red Hat YAML + `yaml.schemas`)
 - A group with zero children is **invalid at schema level** (`children.minItems: 1`) — not merely a runtime warning
 
-### Naming the group kind
+### Group kind naming
 
-Microsoft Project calls this a **summary task**. That name is accurate but easy to confuse with "summary of the project" or report language. Alternatives:
-
-| Name | Pros | Cons |
-|------|------|------|
-| **`group`** | Short; neutral; reads well (`kind: group`); obvious parent-of-tasks | Generic |
-| **`category`** | Matches your earlier language ("category with subtasks") | Implies classification, not scheduling |
-| **`phase`** | Familiar in project management; implies a stage of work | Suggests temporal sequence when groups can overlap |
-| **`section`** | Clear organizational nesting; outline/WBS feel | Slightly document-centric |
-| **`container`** | Unambiguous parent role | Technical; cold |
-| **`rollup`** | Describes computed date behavior | Jargon; doesn't evoke hierarchy |
-| **`block`** | Compact; a chunk of related work | Informal; ambiguous |
-| **`package`** | Used in some PM methodologies | Enterprise baggage |
-| **`summary`** | Exact MS Project term | Confusing; you don't like it |
-
-**Leading candidate: `group`** — used as the working name in examples below until a final choice is made.
+Microsoft Project calls this a **summary task**. We use **`group`** instead — shorter, avoids confusion with report/summary language, and reads naturally in YAML (`kind: group`). Other names considered and rejected: `category`, `phase`, `section`, `container`, `rollup`, `block`, `package`, `summary`.
 
 ### Examples
 
@@ -167,7 +153,7 @@ Task 0 is a **milestone** (R11) — the special case that anchors the entire pro
 The system must track a list of schedule items. Every item has at minimum:
 
 - A stable integer **Unique ID** (not list position; never renumbered)
-- A **`kind`** discriminator as the **first field** (see Data model) — `milestone`, `task`, or group kind (name TBD)
+- A **`kind`** discriminator as the **first field** (see Data model) — `milestone`, `task`, or `group`
 - A **name** (human-readable label)
 
 Additional fields depend on `kind` (see **Data model**).
@@ -346,7 +332,22 @@ The system must map the schedule onto a **real calendar**:
 - Schedule dates are **calendar dates**; durations are **working-day durations**
 - Start/finish calculations skip non-working days when counting duration and applying lag/lead
 
-The schedule file must include (or reference) a holiday list and calendar configuration sufficient for the scheduling engine to perform this calculation.
+**Calendar file:** Holidays and calendar configuration live in a **separate file** from the schedule — not inline in the schedule YAML. The schedule file references the calendar file by path. This allows one calendar to be shared across multiple schedules.
+
+```yaml
+# schedule file (header)
+calendar: ./calendar.yaml
+```
+
+```yaml
+# calendar.yaml
+weekends: [sat, sun]
+holidays:
+  - 2026-07-04
+  - 2026-12-25
+```
+
+The scheduling engine loads both files and validates each against its schema before calculating.
 
 ---
 
@@ -371,11 +372,11 @@ The schedule file must include (or reference) a holiday list and calendar config
 - [x] Predecessors on group items: allowed; constrains earliest child start
 - [x] Group children: min 1 child, enforced strictly at schema level
 - [x] `kind` is first field; primary discriminator for all validation
-- [ ] Group kind name: `group`, `category`, `phase`, or other? (see Data model)
+- [x] Group kind name: `group`
 - [x] Predecessor listing: immediate predecessors only; `0FS` alone OR other preds without `0FS`; child with no preds lists parent as `SS`
 - [x] Child→parent predecessor link: `{parentId}SS` (start-to-start)
 - [x] Predecessor format: inline YAML lists only
 - [x] Milestones: user-entered authoritative `date`; no predecessors; only date constraint mechanism
-- [x] Task kinds: `milestone` / `task` / group (name TBD) discriminator with JSON Schema validation
-- [ ] Holiday list format: inline in schedule file vs separate calendar file?
+- [x] Task kinds: `milestone` / `task` / `group` discriminator with JSON Schema validation
+- [x] Holiday list: separate calendar file, referenced by path from schedule file
 - [ ] Manual schedule mode: needed in v1 or later?

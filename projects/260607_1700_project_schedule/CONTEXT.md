@@ -9,11 +9,15 @@ The complete project plan: tasks, their hierarchy, durations, dependencies, and 
 _Avoid_: Plan file, project file, Gantt
 
 **Schedule file**:
-The durable structured data artifact (e.g. YAML) that is the source of truth for a schedule. Both the user and the agent read and edit this file directly. Validated against a JSON Schema before scheduling.
+The durable structured data artifact (e.g. YAML) that is the source of truth for a schedule. Both the user and the agent read and edit this file directly. References a separate calendar file for holidays. Validated against a JSON Schema before scheduling.
 _Avoid_: Database, session state, UI state
 
+**Calendar file**:
+A separate YAML file listing non-working days (holidays) and weekend configuration. Referenced by path from the schedule file. Shared across schedules.
+_Avoid_: Holiday list, calendar config, inline holidays
+
 **Kind**:
-The required first field on every schedule item. Primary discriminator — all other fields are validated against it. Values: `milestone`, `task`, or group kind (name TBD, leading candidate: `group`).
+The required first field on every schedule item. Primary discriminator — all other fields are validated against it. Values: `milestone`, `task`, or `group`.
 _Avoid_: Type, category, class
 
 **Milestone** (`kind: milestone`):
@@ -24,8 +28,8 @@ _Avoid_: Checkpoint, marker, event
 A leaf work item with a `duration` and `predecessors` list. No `date`, no `children`. Timing is computed.
 _Avoid_: Activity, item, row
 
-**Group** (`kind: group`, name TBD):
-A parent item that groups children. Has `predecessors` and `children` (minimum one child, schema-strict). No `date`, no `duration` — dates and duration span are derived from descendants. Microsoft Project calls this a summary task; we are choosing a different `kind` name.
+**Group** (`kind: group`):
+A parent item that groups children. Has `predecessors` and `children` (minimum one child, schema-strict). No `date`, no `duration` — dates and duration span are derived from descendants. Microsoft Project equivalent: summary task.
 _Avoid_: Summary, category, folder, epic
 
 **Unique ID**:
@@ -37,7 +41,7 @@ The milestone at Unique ID 0. Anchors the entire project.
 _Avoid_: Day zero, kickoff task
 
 **Date**:
-The single user-entered calendar date on a milestone. Authoritative — the scheduling engine does not override it. Forbidden on `task` and `summary` kinds.
+The single user-entered calendar date on a milestone. Authoritative — the scheduling engine does not override it. Forbidden on `task` and `group` kinds.
 _Avoid_: Start date, finish date, end date
 
 **Milestone predecessor equivalence**:
@@ -57,11 +61,11 @@ The role a parent group plays for its children — no child may start before the
 _Avoid_: Sub-project start, phase gate
 
 **Auto Schedule**:
-The mode where start and finish dates are computed from durations, predecessors, milestone date anchors, and the working calendar — the user does not manually set dates on tasks or summaries.
+The mode where start and finish dates are computed from durations, predecessors, milestone date anchors, and the working calendar — the user does not manually set dates on tasks or groups.
 _Avoid_: Automatic scheduling, calculated schedule
 
 **Working calendar**:
-The real calendar used for scheduling. Weekends and configured holidays are non-working days; durations and lag count working days only.
+The real calendar used for scheduling, defined in a calendar file. Weekends and configured holidays are non-working days; durations and lag count working days only.
 _Avoid_: Business calendar, project calendar
 
 **Scheduling engine**:
