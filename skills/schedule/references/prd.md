@@ -324,7 +324,7 @@ Schedule data must be stored in simple, human-readable structured files (indente
 - Both a user and an AI agent can read and edit directly
 - Support version control (git diffs)
 - Show task hierarchy clearly (indentation + optional editor fold/collapse)
-- **Task order** is controlled by the user and agent — not rewritten by tooling (see **Task order** in CONTEXT.md for recommended convention)
+- **Task order** is controlled by the user and agent — not rewritten by tooling (see **Task order** in context.md for recommended convention)
 
 Non-milestone items have **no date fields** in the schedule file (R14). Computed dates appear only in engine output (Gantt, reports).
 

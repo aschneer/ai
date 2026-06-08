@@ -85,8 +85,8 @@ Deterministic library code that validates schedule files, performs CPM schedulin
 _Avoid_: Agent, calculator, solver
 
 **Skill**:
-The deliverable for this project — an AI agent playbook (`SKILL.md`) for working on schedule files, composing library modules, interpreting results, and regenerating the Gantt. The agent edits files; libraries calculate.
-_Avoid_: App, tool, plugin, Cursor skill
+The Schedule AI agent skill (`skills/schedule/SKILL.md`) — playbook for working on schedule files, composing library modules, interpreting results, and regenerating the Gantt. The agent edits files; libraries calculate.
+_Avoid_: App, tool, plugin
 
 **Task order**:
 The sequence items appear in the schedule file, controlled by the user and agent — never rewritten by scheduling code. Recommended convention: parent group immediately above its children; siblings sorted by computed start date; top-level groups sorted by earliest child start.

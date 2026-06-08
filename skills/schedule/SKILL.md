@@ -13,7 +13,7 @@ A text-native alternative to Microsoft Project Auto Schedule. The schedule lives
 
 | Agent | Library code |
 |-------|----------------|
-| Edit schedule and calendar YAML | Validate against JSON Schema |
+| Edit schedule and calendar YAML | Validate against JSON Schema (authored in YAML) |
 | Ask user for schedule/project path | CPM schedule calculation |
 | Add tasks, groups, milestones, predecessors | Working-day calendar math |
 | Assign stable Unique IDs | Render static HTML Gantt |
@@ -42,7 +42,7 @@ The schedule filename is not fixed. Ask the user for the **schedule file path** 
 
 If the user gives a directory, find the schedule YAML (ask if multiple). If they give a file path, use its parent as the project directory.
 
-Read `references/CONTEXT.md` before editing — it defines domain terms. Read `references/data-model.md` when creating or structurally changing items.
+Read `references/context.md` before editing — it defines domain terms. Read `references/data_model.md` when creating or structurally changing items.
 
 ### 2. Edit the schedule (agent)
 
@@ -84,7 +84,7 @@ Listing rules:
 Compose scripts as needed — each module is independently callable:
 
 ```bash
-# Validate schedule + calendar against JSON Schema
+# Validate schedule + calendar against JSON Schema (schemas/*.schema.yaml)
 python scripts/validate.py <schedule-file>
 
 # Compute dates (CPM); prints JSON to stdout; warns on logic problems
@@ -108,10 +108,10 @@ Present computed dates, critical path, warnings, and Gantt path. Explain warning
 
 ## References
 
-- `references/CONTEXT.md` — domain glossary (read before editing)
-- `references/data-model.md` — kind constraints, examples, predecessor rules
-- `references/PRD.md` — full product requirements
-- `schemas/` — JSON Schema for schedule and calendar files
+- `references/context.md` — domain glossary (read before editing)
+- `references/data_model.md` — kind constraints, examples, predecessor rules
+- `references/prd.md` — full product requirements
+- `schemas/` — JSON Schema files **written in YAML** (e.g. `schedule.schema.yaml`, `calendar.schema.yaml`). JSON Schema is the validation standard; YAML is the authoring format. The same schema validates schedule data files in the editor (Red Hat YAML + `yaml.schemas`) and in library code.
 
 ## Adding library code
 
@@ -122,4 +122,4 @@ New code must be modular and composable:
 - Unit-testable in isolation
 - Thin scripts compose modules; the agent may also compose them step by step
 
-Full specification: `references/PRD.md`.
+Full specification: `references/prd.md`.
