@@ -6,7 +6,7 @@ from typing import Any
 import yaml
 from jsonschema import Draft202012Validator
 
-from .paths_lib import calendar_schema_path, schedule_schema_path
+from schedule.paths_lib import calendar_schema_path, schedule_schema_path
 
 
 def load_schema(path: Path) -> dict[str, Any]:

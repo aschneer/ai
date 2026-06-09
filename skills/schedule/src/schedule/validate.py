@@ -1,3 +1,10 @@
+"""Validate schedule and calendar YAML against JSON Schema.
+
+Usage (from skills/schedule/):
+    uv sync
+    uv run schedule-validate <schedule-file>
+"""
+
 from __future__ import annotations
 
 import argparse
@@ -6,8 +13,8 @@ from pathlib import Path
 
 import yaml
 
-from schedule_lib.io_lib import calendar_path_for_schedule, load_yaml
-from schedule_lib.validate_lib import validate_calendar_file, validate_schedule_file
+from schedule.io_lib import calendar_path_for_schedule, load_yaml
+from schedule.validate_lib import validate_calendar_file, validate_schedule_file
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -55,3 +62,7 @@ def main(argv: list[str] | None = None) -> int:
     if calendar_path.is_file():
         print(f"ok: {calendar_path.name}")
     return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -91,13 +91,13 @@ uv sync
 uv run schedule-validate <schedule-file>
 
 # Compute dates (CPM); prints JSON to stdout; warns on logic problems
-uv run python scripts/compute_schedule.py <schedule-file>
+uv run schedule-compute <schedule-file>
 
 # Generate static HTML Gantt from computed output
-uv run python scripts/render_gantt.py <schedule-file> -o gantt.html
+uv run schedule-render <schedule-file> -o gantt.html
 ```
 
-If scripts are not yet implemented, say so and do not substitute agent arithmetic for schedule calculation. `schedule-validate` is available; `compute_schedule.py` and `render_gantt.py` are placeholders.
+If scripts are not yet implemented, say so and do not substitute agent arithmetic for schedule calculation. `schedule-validate` is available; `schedule-compute` and `schedule-render` are placeholders.
 
 ### 4. Report results (agent)
 
@@ -118,7 +118,7 @@ Present computed dates, critical path, warnings, and Gantt path. Explain warning
 
 ## Adding library code
 
-Library modules live in `schedule_lib/` (not `lib/` — that name is gitignored). Each module file uses the `_lib.py` suffix (e.g. `validate_lib.py`, `io_lib.py`). Thin scripts in `scripts/` compose them. Python dependencies are managed with **uv** — `pyproject.toml` and `uv.lock` live in this skill directory.
+Python code lives in `src/schedule/`. Library modules use the `_lib.py` suffix (e.g. `validate_lib.py`, `io_lib.py`). Runnable binaries (`validate.py`, `compute_schedule.py`, `render_gantt.py`) live in the same package and are exposed as uv entry points (`schedule-validate`, `schedule-compute`, `schedule-render`). Tests live in `tests/`. Dependencies are managed with **uv** — `pyproject.toml` and `uv.lock` in this skill directory.
 
 New code must be modular and composable:
 

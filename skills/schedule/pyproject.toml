@@ -9,11 +9,19 @@ dependencies = [
 ]
 
 [project.scripts]
-schedule-validate = "schedule_lib.validate_cli_lib:main"
+schedule-validate = "schedule.validate:main"
+schedule-compute = "schedule.compute_schedule:main"
+schedule-render = "schedule.render_gantt:main"
+
+[dependency-groups]
+dev = ["pytest>=8.0"]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["schedule_lib"]
+packages = ["src/schedule"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
