@@ -4,13 +4,18 @@ Quick reference for editing schedule YAML. Full requirements: `prd.md`. Glossary
 
 ## Schedule file header
 
-Optional calendar reference at the top of the schedule file (path relative to schedule file):
+Optional calendar reference (path relative to schedule file). Schedule items live under `items`:
 
 ```yaml
 calendar: calendar.yaml
+items:
+  - kind: milestone
+    id: 0
+    name: Project start
+    date: 2026-06-09
+  - kind: task
+    ...
 ```
-
-Items follow as an indented YAML list (see examples below).
 
 ## Three kinds
 
@@ -111,13 +116,13 @@ holidays:
 
 ```yaml
 calendar: calendar.yaml
+items:
+  - kind: milestone
+    id: 0
+    name: Project start
+    date: 2026-06-09
 
-- kind: milestone
-  id: 0
-  name: Project start
-  date: 2026-06-09
-
-- kind: group
+  - kind: group
   id: 10
   name: Update the landscaping
   predecessors: ["3FS"]
@@ -139,33 +144,34 @@ calendar: calendar.yaml
       duration: 3d
       predecessors: ["13FS"]
 
-- kind: task
-  id: 20
-  name: Install pavers
-  duration: 4d
-  predecessors: ["0FS"]
+  - kind: task
+    id: 20
+    name: Install pavers
+    duration: 4d
+    predecessors: ["0FS"]
 ```
 
 ## Invalid examples
 
 ```yaml
-# milestone: no predecessors, duration, or children
-- kind: milestone
-  id: 99
-  date: 2026-06-15
-  predecessors: ["12FS"]
+items:
+  # milestone: no predecessors, duration, or children
+  - kind: milestone
+    id: 99
+    date: 2026-06-15
+    predecessors: ["12FS"]
 
-# task: no date
-- kind: task
-  id: 100
-  duration: 2d
-  date: 2026-06-15
-  predecessors: ["0FS"]
+  # task: no date
+  - kind: task
+    id: 100
+    duration: 2d
+    date: 2026-06-15
+    predecessors: ["0FS"]
 
-# group: must have at least one child
-- kind: group
-  id: 101
-  name: Empty group
-  predecessors: ["0FS"]
-  children: []
+  # group: must have at least one child
+  - kind: group
+    id: 101
+    name: Empty group
+    predecessors: ["0FS"]
+    children: []
 ```

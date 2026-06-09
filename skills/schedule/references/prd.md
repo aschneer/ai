@@ -124,65 +124,68 @@ Microsoft Project calls this a **summary task**. We use **`group`** instead — 
 **Valid:**
 
 ```yaml
-- kind: milestone
-  id: 0
-  name: Project start
-  date: 2026-06-09
+calendar: calendar.yaml
+items:
+  - kind: milestone
+    id: 0
+    name: Project start
+    date: 2026-06-09
 
-- kind: group
-  id: 10
-  name: Update the landscaping
-  predecessors: ["3FS"]
-  children:
-    - kind: task
-      id: 11
-      name: Trim the hedges
-      duration: 2d
-      predecessors: ["10SS"]
+  - kind: group
+    id: 10
+    name: Update the landscaping
+    predecessors: ["3FS"]
+    children:
+      - kind: task
+        id: 11
+        name: Trim the hedges
+        duration: 2d
+        predecessors: ["10SS"]
 
-    - kind: milestone
-      id: 13
-      name: Permit approved
-      date: 2026-06-20
+      - kind: milestone
+        id: 13
+        name: Permit approved
+        date: 2026-06-20
 
-    - kind: task
-      id: 14
-      name: Re-landscape beds
-      duration: 3d
-      predecessors: ["13FS"]
+      - kind: task
+        id: 14
+        name: Re-landscape beds
+        duration: 3d
+        predecessors: ["13FS"]
 
-- kind: task
-  id: 20
-  name: Install pavers
-  duration: 4d
-  predecessors: ["0FS"]
+  - kind: task
+    id: 20
+    name: Install pavers
+    duration: 4d
+    predecessors: ["0FS"]
 ```
 
 **Invalid (rejected by schema):**
 
 ```yaml
-# INVALID: milestone cannot have predecessors, duration, or children
-- kind: milestone
-  id: 99
-  name: Bad milestone
-  date: 2026-06-15
-  duration: 0d
-  predecessors: ["12FS"]
+items:
+  # INVALID: milestone cannot have predecessors, duration, or children
+  - kind: milestone
+    id: 99
+    name: Bad milestone
+    date: 2026-06-15
+    duration: 0d
+    predecessors: ["12FS"]
 
-# INVALID: task cannot have date or children
-- kind: task
-  id: 100
-  name: Bad task
-  duration: 2d
-  date: 2026-06-15
-  predecessors: ["0FS"]
+  # INVALID: task cannot have date or children
+  - kind: task
+    id: 100
+    name: Bad task
+    duration: 2d
+    date: 2026-06-15
+    predecessors: ["0FS"]
 
-# INVALID: group must have at least one child
-- kind: group
-  id: 101
-  name: Empty group
-  predecessors: ["0FS"]
-  children: []
+  # INVALID: group must have at least one child
+  - kind: group
+    id: 101
+    name: Empty group
+    predecessors: ["0FS"]
+    children: []
 ```
 
 ---
@@ -404,8 +407,11 @@ The system must map the schedule onto a **real calendar**:
 **Calendar file:** Holidays and calendar configuration live in a **separate file** in the same project directory as the schedule. The schedule file references it by path relative to the schedule file's location.
 
 ```yaml
-# schedule file (any filename; header)
+# schedule file (any filename)
 calendar: calendar.yaml
+items:
+  - kind: milestone
+    ...
 ```
 
 ```yaml

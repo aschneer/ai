@@ -1,0 +1,34 @@
+calendar: calendar.yaml
+items:
+  - kind: milestone
+    id: 0
+    name: Project start
+    date: 2026-06-09
+
+  - kind: group
+    id: 10
+    name: Update the landscaping
+    predecessors: ["0FS"]
+    children:
+      - kind: task
+        id: 11
+        name: Trim the hedges
+        duration: 2d
+        predecessors: ["10SS"]
+
+      - kind: milestone
+        id: 13
+        name: Permit approved
+        date: 2026-06-20
+
+      - kind: task
+        id: 14
+        name: Re-landscape beds
+        duration: 3d
+        predecessors: ["13FS"]
+
+  - kind: task
+    id: 20
+    name: Install pavers
+    duration: 4d
+    predecessors: ["10FS"]

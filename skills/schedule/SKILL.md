@@ -94,7 +94,7 @@ python scripts/compute_schedule.py <schedule-file>
 python scripts/render_gantt.py <schedule-file> -o gantt.html
 ```
 
-If scripts are not yet implemented, say so and do not substitute agent arithmetic for schedule calculation.
+If scripts are not yet implemented, say so and do not substitute agent arithmetic for schedule calculation. `validate.py` is available; `compute_schedule.py` and `render_gantt.py` are placeholders.
 
 ### 4. Report results (agent)
 
@@ -114,6 +114,8 @@ Present computed dates, critical path, warnings, and Gantt path. Explain warning
 - `schemas/` — JSON Schema files **written in YAML** (e.g. `schedule.schema.yaml`, `calendar.schema.yaml`). JSON Schema is the validation standard; YAML is the authoring format. The same schema validates schedule data files in the editor (Red Hat YAML + `yaml.schemas`) and in library code.
 
 ## Adding library code
+
+Library modules live in `schedule_lib/` (not `lib/` — that name is gitignored). Each module file uses the `_lib.py` suffix (e.g. `validate_lib.py`, `io_lib.py`). Thin scripts in `scripts/` compose them.
 
 New code must be modular and composable:
 

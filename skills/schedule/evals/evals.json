@@ -1,0 +1,29 @@
+{
+  "skill_name": "schedule",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I'm renovating my backyard — grading, new patio pavers, and replanting beds. Create a project schedule in YAML with a landscaping group, a permit milestone on June 20, and tasks linked with predecessors. Put it in ~/renovation/schedule.yaml with a calendar file.",
+      "expected_output": "Valid schedule YAML with kind-first items, id 0 project-start milestone, groups/tasks/milestones following data_model rules, predecessors as MS Project strings, separate calendar.yaml, no dates on non-milestone items",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "This schedule has a task with a date field on it — that's wrong for our format. Fix the YAML so it validates.\n\n```yaml\ncalendar: calendar.yaml\nitems:\n  - kind: milestone\n    id: 0\n    name: Project start\n    date: 2026-06-09\n  - kind: task\n    id: 5\n    name: Pour concrete\n    duration: 3d\n    date: 2026-06-12\n    predecessors: [\"0FS\"]\n```",
+      "expected_output": "Removes date from the task (only milestones have dates), keeps predecessors and duration, explains the kind constraint",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Run validation on skills/schedule/examples/landscaping/schedule.yaml and tell me if anything is wrong.",
+      "expected_output": "Runs validate.py (or equivalent), reports ok for schedule and calendar, does not hand-compute dates",
+      "files": ["skills/schedule/examples/landscaping/schedule.yaml", "skills/schedule/examples/landscaping/calendar.yaml"]
+    },
+    {
+      "id": 4,
+      "prompt": "Add a new task 'Install irrigation' (4 days) after 'Re-landscape beds' in the landscaping example schedule. Assign the next available ID and wire predecessors correctly.",
+      "expected_output": "Edits schedule YAML only — adds task with duration 4d, predecessor 14FS (or equivalent immediate pred), stable new id, does not write computed dates onto the task",
+      "files": ["skills/schedule/examples/landscaping/schedule.yaml"]
+    }
+  ]
+}

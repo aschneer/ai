@@ -1,0 +1,96 @@
+# yaml-language-server: $schema=https://json-schema.org/draft/2020-12/schema
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: schedule.schema.yaml
+title: Project schedule
+description: YAML schedule file validated by JSON Schema (authored in YAML).
+type: object
+additionalProperties: false
+required:
+  - items
+properties:
+  calendar:
+    type: string
+    minLength: 1
+    description: Path to calendar.yaml, relative to this schedule file.
+  items:
+    type: array
+    minItems: 1
+    items:
+      $ref: '#/$defs/schedule_item'
+
+$defs:
+  duration:
+    type: string
+    pattern: ^\d+[dw]$
+
+  predecessor:
+    type: string
+    pattern: ^\d+(FS|SS|FF|SF)([+-]\d+[dw])?$
+
+  predecessors:
+    type: array
+    minItems: 1
+    items:
+      $ref: '#/$defs/predecessor'
+
+  milestone:
+    type: object
+    additionalProperties: false
+    required: [kind, id, name, date]
+    properties:
+      kind:
+        const: milestone
+      id:
+        type: integer
+        minimum: 0
+      name:
+        type: string
+        minLength: 1
+      date:
+        type: string
+        format: date
+
+  task:
+    type: object
+    additionalProperties: false
+    required: [kind, id, name, duration, predecessors]
+    properties:
+      kind:
+        const: task
+      id:
+        type: integer
+        minimum: 1
+      name:
+        type: string
+        minLength: 1
+      duration:
+        $ref: '#/$defs/duration'
+      predecessors:
+        $ref: '#/$defs/predecessors'
+
+  group:
+    type: object
+    additionalProperties: false
+    required: [kind, id, name, predecessors, children]
+    properties:
+      kind:
+        const: group
+      id:
+        type: integer
+        minimum: 1
+      name:
+        type: string
+        minLength: 1
+      predecessors:
+        $ref: '#/$defs/predecessors'
+      children:
+        type: array
+        minItems: 1
+        items:
+          $ref: '#/$defs/schedule_item'
+
+  schedule_item:
+    oneOf:
+      - $ref: '#/$defs/milestone'
+      - $ref: '#/$defs/task'
+      - $ref: '#/$defs/group'
