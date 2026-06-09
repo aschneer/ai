@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Render a static HTML Gantt chart from a schedule file.
 
-Usage:
-    render_gantt.py <schedule-file> -o gantt.html
+Usage (from skills/schedule/):
+    uv run python scripts/render_gantt.py <schedule-file> -o gantt.html
 
 Not yet implemented — HTML rendering will live in schedule_lib/.
 """

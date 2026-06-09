@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Compute schedule dates (CPM) and print JSON to stdout.
 
-Usage:
-    compute_schedule.py <schedule-file>
+Usage (from skills/schedule/):
+    uv run python scripts/compute_schedule.py <schedule-file>
 
 Not yet implemented — deterministic CPM calculation will live in schedule_lib/.
 """

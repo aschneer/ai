@@ -16,7 +16,7 @@
     {
       "id": 3,
       "prompt": "Run validation on skills/schedule/examples/landscaping/schedule.yaml and tell me if anything is wrong.",
-      "expected_output": "Runs validate.py (or equivalent), reports ok for schedule and calendar, does not hand-compute dates",
+      "expected_output": "Runs schedule-validate (or uv run from skills/schedule/) and reports ok for schedule and calendar; does not hand-compute dates",
       "files": ["skills/schedule/examples/landscaping/schedule.yaml", "skills/schedule/examples/landscaping/calendar.yaml"]
     },
     {

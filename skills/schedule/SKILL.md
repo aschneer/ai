@@ -81,20 +81,23 @@ Listing rules:
 
 ### 3. Run the toolchain (library)
 
-Compose scripts as needed — each module is independently callable:
+Run from `skills/schedule/` (uv project — run `uv sync` once to install dependencies):
 
 ```bash
+cd skills/schedule
+uv sync
+
 # Validate schedule + calendar against JSON Schema (schemas/*.schema.yaml)
-python scripts/validate.py <schedule-file>
+uv run schedule-validate <schedule-file>
 
 # Compute dates (CPM); prints JSON to stdout; warns on logic problems
-python scripts/compute_schedule.py <schedule-file>
+uv run python scripts/compute_schedule.py <schedule-file>
 
 # Generate static HTML Gantt from computed output
-python scripts/render_gantt.py <schedule-file> -o gantt.html
+uv run python scripts/render_gantt.py <schedule-file> -o gantt.html
 ```
 
-If scripts are not yet implemented, say so and do not substitute agent arithmetic for schedule calculation. `validate.py` is available; `compute_schedule.py` and `render_gantt.py` are placeholders.
+If scripts are not yet implemented, say so and do not substitute agent arithmetic for schedule calculation. `schedule-validate` is available; `compute_schedule.py` and `render_gantt.py` are placeholders.
 
 ### 4. Report results (agent)
 
@@ -115,7 +118,7 @@ Present computed dates, critical path, warnings, and Gantt path. Explain warning
 
 ## Adding library code
 
-Library modules live in `schedule_lib/` (not `lib/` — that name is gitignored). Each module file uses the `_lib.py` suffix (e.g. `validate_lib.py`, `io_lib.py`). Thin scripts in `scripts/` compose them.
+Library modules live in `schedule_lib/` (not `lib/` — that name is gitignored). Each module file uses the `_lib.py` suffix (e.g. `validate_lib.py`, `io_lib.py`). Thin scripts in `scripts/` compose them. Python dependencies are managed with **uv** — `pyproject.toml` and `uv.lock` live in this skill directory.
 
 New code must be modular and composable:
 
