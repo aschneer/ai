@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Schedule</title>
+  <style>
+    :root {
+      --bg: #fafafa;
+      --grid: #e8e8e8;
+      --text: #1a1a1a;
+      --muted: #666;
+      --task: #4a7fd4;
+      --group: #7a9e7a;
+      --milestone: #c45c26;
+      --label-width: 16rem;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      font-size: 14px;
+      color: var(--text);
+      background: var(--bg);
+    }
+    header {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--grid);
+      background: #fff;
+    }
+    header h1 {
+      margin: 0 0 0.25rem;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    header p {
+      margin: 0;
+      color: var(--muted);
+    }
+    .error {
+      margin: 1rem 1.25rem;
+      color: #a33;
+    }
+    .gantt {
+      overflow-x: auto;
+      padding: 0 0 1rem;
+    }
+    .gantt-inner {
+      min-width: 48rem;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: var(--label-width) 1fr;
+      border-bottom: 1px solid var(--grid);
+      min-height: 2rem;
+      background: #fff;
+    }
+    .row.header {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: #f3f3f3;
+      font-size: 0.75rem;
+      color: var(--muted);
+      min-height: 1.75rem;
+    }
+    .label {
+      padding: 0.35rem 0.75rem;
+      border-right: 1px solid var(--grid);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .label .kind {
+      color: var(--muted);
+      font-size: 0.7rem;
+      margin-right: 0.35rem;
+    }
+    .timeline {
+      position: relative;
+      min-height: 2rem;
+    }
+    .timeline-header {
+      display: flex;
+      height: 100%;
+    }
+    .week {
+      flex: 1;
+      border-right: 1px solid var(--grid);
+      padding: 0.25rem 0.35rem;
+      text-align: center;
+    }
+    .bar-area {
+      position: absolute;
+      inset: 0.3rem 0;
+    }
+    .bar {
+      position: absolute;
+      top: 0.25rem;
+      height: calc(100% - 0.5rem);
+      border-radius: 3px;
+      min-width: 2px;
+    }
+    .bar.task { background: var(--task); }
+    .bar.group { background: var(--group); opacity: 0.85; }
+    .bar.milestone {
+      width: 10px !important;
+      min-width: 10px;
+      margin-left: -5px;
+      background: var(--milestone);
+      border-radius: 50%;
+      top: 50%;
+      height: 10px;
+      transform: translateY(-50%);
+    }
+    .dates {
+      font-size: 0.7rem;
+      color: var(--muted);
+      padding-left: 0.75rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1 id="title">Schedule</h1>
+    <p id="project-finish">Project finish: —</p>
+  </header>
+  <p id="error" class="error" hidden></p>
+  <div class="gantt">
+    <div class="gantt-inner" id="gantt-root"></div>
+  </div>
+  <script src="gantt.js"></script>
+</body>
+</html>

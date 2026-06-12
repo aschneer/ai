@@ -91,16 +91,16 @@ cd skills/schedule
 uv sync
 
 # Validate schedule + calendar (JSON Schema + logic rules)
-uv run schedule-validate <schedule-file>
+uv run validate <schedule-file>
 
-# Compute dates (CPM); prints JSON to stdout (runs validation first)
-uv run schedule-compute <schedule-file>
+# Compute, write gantt-data.json, deploy Gantt viewer, print JSON, serve locally
+uv run compute <schedule-file>
 
-# Generate static HTML Gantt (validate + compute + render)
-uv run schedule-render <schedule-file> -o gantt.html
+# Non-default: file only, no terminal JSON, no server
+uv run compute <schedule-file> --no-stdout --no-serve
 ```
 
-`schedule-validate`, `schedule-compute`, and `schedule-render` are available.
+**`compute`** validates, runs CPM, writes **`gantt-data.json`**, copies **`gantt.html`** and **`gantt.js`** into the project directory, prints JSON to stdout (default), and starts a local server (default) at `http://127.0.0.1:8000/gantt.html`. Use **`--no-serve`** for CI or when you only need the files.
 
 When validation fails, read **all** error messages. Do not patch the skill library to bypass a rule.
 
@@ -115,7 +115,7 @@ The library never writes these fixes for you — that is always the agent's job,
 
 ### 4. Report results (agent)
 
-Present computed dates, critical path, and Gantt path.
+Present computed dates (from JSON or stdout), critical path, and Gantt URL (`http://127.0.0.1:8000/gantt.html` when serving).
 
 If validation failed and you have not yet fixed the file: list every error and your planned YAML changes — do not edit until the user has seen the plan (unless they already asked you to fix it).
 
@@ -138,7 +138,7 @@ Do not fix validation problems by writing computed `start`/`finish` dates onto n
 
 ## Adding library code
 
-Python code lives in `src/schedule/`. Library modules use the `_lib.py` suffix (e.g. `validate_lib.py`, `io_lib.py`). Runnable binaries (`validate.py`, `compute_schedule.py`, `render_gantt.py`) live in the same package and are exposed as uv entry points (`schedule-validate`, `schedule-compute`, `schedule-render`). Tests live in `tests/`. Dependencies are managed with **uv** — `pyproject.toml` and `uv.lock` in this skill directory.
+Python code lives in `src/schedule/`. Library modules use the `_lib.py` suffix (e.g. `validate_lib.py`, `io_lib.py`). Runnable entry points (`validate.py`, `compute.py`) live in the same package and are exposed as uv commands (`validate`, `compute`). Static Gantt assets live in `src/schedule/assets/`. Tests live in `tests/`. Dependencies are managed with **uv** — `pyproject.toml` and `uv.lock` in this skill directory.
 
 New code must be modular and composable:
 

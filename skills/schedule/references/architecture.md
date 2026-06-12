@@ -36,7 +36,7 @@ schedule: item 20: must not include 0FS when other predecessors are listed
 |------|-------------|
 | Schedule and calendar YAML in the **user's project directory** | `skills/schedule/` library code, schemas, tests, or SKILL.md |
 
-When `schedule-validate` or `schedule-compute` fails, fix the **schedule file** — never patch the skill to bypass a validation rule.
+When `validate` or `compute` fails, fix the **schedule file** — never patch the skill to bypass a validation rule.
 
 When the agent fixes validation errors, it must **list every error and its planned YAML fix for the user before editing** (unless the user already asked it to fix the file). The library never writes schedule files; only the agent does, and the user should see the plan first.
 
@@ -54,11 +54,13 @@ src/schedule/
   logic_validate_lib.py # Semantic / graph rules
   io_lib.py             # Load YAML, run both validation layers
   compute_lib.py        # CPM only
+  gantt_lib.py          # Write JSON, deploy assets, serve
   calendar_lib.py       # Working-day math
   predecessors_lib.py   # Parse predecessor strings
+  assets/               # gantt.html + gantt.js (static viewer)
 ```
 
-CLIs (`schedule-validate`, `schedule-compute`) load through `io_lib.load_schedule_project()`, which runs structural + logical validation before compute.
+CLIs (`validate`, `compute`) load through `io_lib.load_schedule_project()`, which runs structural + logical validation before compute. **`compute`** also writes `gantt-data.json`, deploys Gantt viewer assets, and optionally serves the project directory.
 
 ## Adding a new rule
 

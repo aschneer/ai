@@ -9,9 +9,8 @@ dependencies = [
 ]
 
 [project.scripts]
-schedule-validate = "schedule.validate:main"
-schedule-compute = "schedule.compute_schedule:main"
-schedule-render = "schedule.render_gantt:main"
+validate = "schedule.validate:main"
+compute = "schedule.compute:main"
 
 [dependency-groups]
 dev = ["pytest>=8.0"]
@@ -22,6 +21,10 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/schedule"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"src/schedule/assets/gantt.html" = "schedule/assets/gantt.html"
+"src/schedule/assets/gantt.js" = "schedule/assets/gantt.js"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

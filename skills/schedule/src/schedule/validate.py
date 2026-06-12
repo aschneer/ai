@@ -2,7 +2,7 @@
 
 Usage (from skills/schedule/):
     uv sync
-    uv run schedule-validate <schedule-file>
+    uv run validate <schedule-file>
 """
 
 from __future__ import annotations
