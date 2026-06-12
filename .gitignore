@@ -205,3 +205,10 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Playwright (MCP plugin + test runner artifacts)
+.playwright-mcp/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
