@@ -9,7 +9,7 @@ from importlib.resources import as_file, files
 from pathlib import Path
 from typing import Any
 
-GANTT_DATA_FILENAME = "gantt-data.json"
+GANTT_DATA_FILENAME = "gantt_data.json"
 GANTT_HTML_FILENAME = "gantt.html"
 GANTT_JS_FILENAME = "gantt.js"
 ASSET_NAMES = (GANTT_HTML_FILENAME, GANTT_JS_FILENAME)

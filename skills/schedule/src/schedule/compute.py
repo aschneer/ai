@@ -23,7 +23,7 @@ from schedule.io_lib import load_schedule_project
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Validate, compute, write gantt-data.json, deploy viewer, print JSON, and serve."""
+    """Validate, compute, write gantt_data.json, deploy viewer, print JSON, and serve."""
     parser = argparse.ArgumentParser(description="Compute schedule and publish Gantt viewer.")
     parser.add_argument("schedule_file", type=Path, help="Path to schedule YAML file")
     parser.add_argument(

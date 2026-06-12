@@ -60,7 +60,7 @@ src/schedule/
   assets/               # gantt.html + gantt.js (static viewer)
 ```
 
-CLIs (`validate`, `compute`) load through `io_lib.load_schedule_project()`, which runs structural + logical validation before compute. **`compute`** also writes `gantt-data.json`, deploys Gantt viewer assets, and optionally serves the project directory.
+CLIs (`validate`, `compute`) load through `io_lib.load_schedule_project()`, which runs structural + logical validation before compute. **`compute`** also writes `gantt_data.json`, deploys Gantt viewer assets, and optionally serves the project directory.
 
 ## Adding a new rule
 

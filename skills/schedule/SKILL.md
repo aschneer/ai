@@ -93,14 +93,14 @@ uv sync
 # Validate schedule + calendar (JSON Schema + logic rules)
 uv run validate <schedule-file>
 
-# Compute, write gantt-data.json, deploy Gantt viewer, print JSON, serve locally
+# Compute, write gantt_data.json, deploy Gantt viewer, print JSON, serve locally
 uv run compute <schedule-file>
 
 # Non-default: file only, no terminal JSON, no server
 uv run compute <schedule-file> --no-stdout --no-serve
 ```
 
-**`compute`** validates, runs CPM, writes **`gantt-data.json`**, copies **`gantt.html`** and **`gantt.js`** into the project directory, prints JSON to stdout (default), and starts a local server (default) at `http://127.0.0.1:8000/gantt.html`. Use **`--no-serve`** for CI or when you only need the files.
+**`compute`** validates, runs CPM, writes **`gantt_data.json`**, copies **`gantt.html`** and **`gantt.js`** into the project directory, prints JSON to stdout (default), and starts a local server (default) at `http://127.0.0.1:8000/gantt.html`. Use **`--no-serve`** for CI or when you only need the files.
 
 When validation fails, read **all** error messages. Do not patch the skill library to bypass a rule.
 

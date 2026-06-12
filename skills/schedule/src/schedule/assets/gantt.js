@@ -1,6 +1,6 @@
-/** Load gantt-data.json and render the chart. */
+/** Load gantt_data.json and render the chart. */
 
-const DATA_URL = "gantt-data.json";
+const DATA_URL = "gantt_data.json";
 
 function parseDate(value) {
   const [year, month, day] = value.split("-").map(Number);
