@@ -12,6 +12,11 @@
 - Remove unused imports
 - **Exception:** Imports may be placed elsewhere in the file only if there is a specific functional reason that makes it impossible to place them at the top (e.g., avoiding circular imports). In such cases, document why the import cannot be at the top.
 
+## File and Directory Naming
+
+- Prefer `snake_case` for file and directory names
+- Defer to idiomatic conventions when they differ — e.g. follow the existing repo layout, or language norms like Go package naming — and stay consistent within the project
+
 ## File Structure
 
 - Keep files focused and small (< 500 lines when possible)
@@ -19,6 +24,12 @@
 - Group related functionality together
 - Order: constants, data structures, helper functions, main functions, entry points
 - Related functions should be close to each other
+
+## Libraries and Entry Points
+
+- Put reusable logic in library modules; keep binaries, CLI scripts, and other entry points thin — they should call into libraries or orchestrate pieces of them, not hold core logic
+- Name library modules with an `_lib` suffix when no language or repo convention already defines a pattern (e.g. `validate_lib.py`, `compute_lib.py`)
+- Entry-point files name the action or tool (`validate.py`, `compute_schedule.py`), not the domain logic they delegate to
 
 ## Error Handling
 

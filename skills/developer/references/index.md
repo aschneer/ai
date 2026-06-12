@@ -8,14 +8,14 @@ Read only the files relevant to the task. Universal standards apply to all langu
 |------|--------|
 | `core_principles.md` | Functions, classes, naming, complexity, DRY |
 | `code_smells.md` | Warning signs to flag in review or refactor |
-| `organization.md` | Imports, file structure, errors, function order |
+| `organization.md` | Imports, file/directory naming, libraries vs entry points, file structure, errors, function order |
 | `best_practices.md` | YAGNI, readability, extraction heuristics, Boy Scout Rule |
 
 ## Task-specific
 
 | File | When to read |
 |------|--------------|
-| `testing.md` | Writing or reviewing tests |
+| `testing.md` | Test file naming, writing and reviewing tests |
 | `code_review.md` | Performing a structured code review |
 | `formatting.md` | Setting up or enforcing formatters |
 | `performance.md` | Performance-sensitive code or optimization discussions |

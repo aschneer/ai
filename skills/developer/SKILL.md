@@ -15,6 +15,8 @@ description: >-
 
 Read `references/index.md`, then load only the reference files it points to for the task. Do not load every file by default.
 
+**Re-evaluate as the thread evolves.** The right references depend on what you're doing *now*, not what you loaded at the start. When the work shifts — e.g. from writing new code to refactoring a smell, adding tests, or doing a review — go back to `references/index.md` and load any additional files that newly apply. You don't need to announce each load unless the user asked; just read and apply them.
+
 Standards in `references/` are defaults. When the target codebase already has an established pattern, match the codebase first and note any intentional deviation.
 
 ## When NOT to use
