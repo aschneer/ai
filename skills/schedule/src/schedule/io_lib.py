@@ -55,35 +55,16 @@ def load_schedule_project(
 ) -> tuple[ScheduleProject | None, list[str]]:
     """Load schedule YAML, optionally load calendar, and validate both against schema."""
     schedule_path = schedule_path.resolve()
-    errors: list[str] = []
+    schedule_data, errors = _load_schedule_file(schedule_path)
+    if schedule_data is None:
+        return None, errors
 
-    if not schedule_path.is_file():
-        return None, [f"error: schedule file not found: {schedule_path}"]
-
-    try:
-        schedule_data = load_yaml(schedule_path)
-    except yaml.YAMLError as exc:
-        return None, [f"error: invalid YAML in {schedule_path}: {exc}"]
-
-    if not isinstance(schedule_data, dict):
-        return None, [
-            f"error: schedule file must be a mapping with an items list: {schedule_path}"
-        ]
-
-    errors.extend(validate_schedule_file(schedule_path, schedule_data))
     calendar_path = calendar_path_for_schedule(schedule_path, schedule_data)
     calendar_data: dict[str, Any] | None = None
 
     if calendar_path.is_file():
-        try:
-            calendar_data = load_yaml(calendar_path)
-        except yaml.YAMLError as exc:
-            errors.append(f"error: invalid YAML in {calendar_path}: {exc}")
-        else:
-            if not isinstance(calendar_data, dict):
-                errors.append(f"error: calendar file must be a mapping: {calendar_path}")
-            else:
-                errors.extend(validate_calendar_file(calendar_path, calendar_data))
+        calendar_data, calendar_errors = _load_calendar_file(calendar_path)
+        errors.extend(calendar_errors)
     elif require_calendar or schedule_data.get("calendar"):
         errors.append(f"calendar: referenced file not found: {calendar_path}")
 
@@ -100,3 +81,39 @@ def load_schedule_project(
         [],
     )
 
+
+def _load_schedule_file(schedule_path: Path) -> tuple[dict[str, Any] | None, list[str]]:
+    """Load and validate one schedule YAML file."""
+    if not schedule_path.is_file():
+        return None, [f"error: schedule file not found: {schedule_path}"]
+
+    try:
+        schedule_data = load_yaml(schedule_path)
+    except yaml.YAMLError as exc:
+        return None, [f"error: invalid YAML in {schedule_path}: {exc}"]
+
+    if not isinstance(schedule_data, dict):
+        return None, [
+            f"error: schedule file must be a mapping with an items list: {schedule_path}"
+        ]
+
+    errors = validate_schedule_file(schedule_path, schedule_data)
+    if errors:
+        return None, errors
+    return schedule_data, []
+
+
+def _load_calendar_file(calendar_path: Path) -> tuple[dict[str, Any] | None, list[str]]:
+    """Load and validate one calendar YAML file."""
+    try:
+        calendar_data = load_yaml(calendar_path)
+    except yaml.YAMLError as exc:
+        return None, [f"error: invalid YAML in {calendar_path}: {exc}"]
+
+    if not isinstance(calendar_data, dict):
+        return None, [f"error: calendar file must be a mapping: {calendar_path}"]
+
+    errors = validate_calendar_file(calendar_path, calendar_data)
+    if errors:
+        return None, errors
+    return calendar_data, []

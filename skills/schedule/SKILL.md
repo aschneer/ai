@@ -113,6 +113,7 @@ Present computed dates, critical path, warnings, and Gantt path. Explain warning
 
 - `references/context.md` — domain glossary (read before editing)
 - `references/data_model.md` — kind constraints, examples, predecessor rules
+- `references/scheduling_algorithm.md` — CPM compute steps and predecessor semantics
 - `references/prd.md` — full product requirements
 - `schemas/` — JSON Schema files **written in YAML** (e.g. `schedule.schema.yaml`, `calendar.schema.yaml`). JSON Schema is the validation standard; YAML is the authoring format. The same schema validates schedule data files in the editor (Red Hat YAML + `yaml.schemas`) and in library code.
 
