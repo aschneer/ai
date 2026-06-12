@@ -10,6 +10,7 @@ PREDECESSOR_PATTERN = re.compile(
     r"^(?P<task_id>\d+)(?:(?P<link_type>FS|SS|FF|SF)(?P<lag>[+-]\d+[dw])?)?$"
 )
 DURATION_PATTERN = re.compile(r"^(?P<sign>[+-]?)(?P<amount>\d+)(?P<unit>[dw])$")
+WORKING_DAYS_PER_WEEK = 5
 
 
 class LinkType(str, Enum):
@@ -56,5 +57,5 @@ def parse_duration_to_working_days(value: str) -> int:
     sign = -1 if match.group("sign") == "-" else 1
     amount = int(match.group("amount"))
     unit = match.group("unit")
-    working_days = amount * 5 if unit == "w" else amount
+    working_days = amount * WORKING_DAYS_PER_WEEK if unit == "w" else amount
     return sign * working_days

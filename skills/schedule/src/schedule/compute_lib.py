@@ -9,24 +9,17 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date
-from enum import Enum
 from typing import Any
 
 from schedule.calendar_lib import WorkingCalendar
+from schedule.kinds_lib import ItemKind
 from schedule.predecessors_lib import (
     LinkType,
     PredecessorLink,
     parse_duration_to_working_days,
     parse_predecessors,
 )
-
-
-class ItemKind(str, Enum):
-    """Schedule item discriminator — matches the ``kind`` field in YAML."""
-
-    MILESTONE = "milestone"
-    TASK = "task"
-    GROUP = "group"
+from schedule.warnings_lib import ScheduleWarning, WarningCode
 
 
 @dataclass
@@ -47,15 +40,6 @@ class ScheduleItem:
     def is_scheduled(self) -> bool:
         """True when both start and finish have been computed."""
         return self.start is not None and self.finish is not None
-
-
-@dataclass(frozen=True)
-class ScheduleWarning:
-    """Non-fatal schedule logic problem detected during computation."""
-
-    code: str
-    message: str
-    item_id: int | None = None
 
 
 @dataclass
@@ -97,15 +81,14 @@ def compute_schedule(
     """Run CPM forward-pass scheduling and return computed dates plus warnings."""
     calendar = WorkingCalendar.from_dict(calendar_data)
     items = flatten_schedule_items(schedule_data.get("items", []))
-    by_id = {item.id: item for item in items}
-    warnings: list[ScheduleWarning] = []
+    by_id, warnings = _index_items(items)
 
     for item in items:
         for link in item.predecessors:
             if link.task_id not in by_id:
                 warnings.append(
                     ScheduleWarning(
-                        code="unknown_predecessor",
+                        code=WarningCode.UNKNOWN_PREDECESSOR,
                         message=f"item {item.id} references unknown predecessor {link.task_id}",
                         item_id=item.id,
                     )
@@ -120,7 +103,7 @@ def compute_schedule(
         if not calendar.is_working_day(milestone.milestone_date):
             warnings.append(
                 ScheduleWarning(
-                    code="milestone_non_working_day",
+                    code=WarningCode.MILESTONE_NON_WORKING_DAY,
                     message=(
                         f"milestone {milestone.id} date {milestone.milestone_date} "
                         f"falls on a non-working day"
@@ -143,6 +126,7 @@ def compute_schedule(
         if not changed:
             break
 
+    warnings.extend(_check_unscheduled_items(items))
     warnings.extend(_check_predecessor_constraints(items, by_id, calendar))
     warnings.extend(_check_milestone_warnings(items, by_id))
 
@@ -169,10 +153,27 @@ def computed_schedule_to_dict(result: ComputedSchedule) -> dict[str, Any]:
         ],
         "project_finish": result.project_finish.isoformat() if result.project_finish else None,
         "warnings": [
-            {"code": warning.code, "message": warning.message, "item_id": warning.item_id}
+            {"code": warning.code.value, "message": warning.message, "item_id": warning.item_id}
             for warning in result.warnings
         ],
     }
+
+
+def _index_items(items: list[ScheduleItem]) -> tuple[dict[int, ScheduleItem], list[ScheduleWarning]]:
+    """Build id index and warn on duplicate IDs (last occurrence wins)."""
+    by_id: dict[int, ScheduleItem] = {}
+    warnings: list[ScheduleWarning] = []
+    for item in items:
+        if item.id in by_id:
+            warnings.append(
+                ScheduleWarning(
+                    code=WarningCode.DUPLICATE_ITEM_ID,
+                    message=f"duplicate item id {item.id}: {by_id[item.id].name!r} and {item.name!r}",
+                    item_id=item.id,
+                )
+            )
+        by_id[item.id] = item
+    return by_id, warnings
 
 
 def _groups_by_depth(items: list[ScheduleItem], by_id: dict[int, ScheduleItem]) -> list[ScheduleItem]:
@@ -292,7 +293,6 @@ def _pred_anchors(
     pred: ScheduleItem,
     by_id: dict[int, ScheduleItem],
     calendar: WorkingCalendar,
-    link_type: LinkType,
 ) -> tuple[date | None, date | None]:
     """Start/finish anchors available from a predecessor for the given link type."""
     if pred.kind == ItemKind.MILESTONE:
@@ -302,10 +302,8 @@ def _pred_anchors(
     if pred.is_scheduled:
         return pred.start, pred.finish
     if pred.kind == ItemKind.GROUP:
-        start = _group_anchor_start(pred, by_id, calendar)
-        if link_type in {LinkType.FS, LinkType.FF}:
-            return start, None
-        return start, None
+        # Finish is unknown until children roll up; FS/FF wait on finish, SS/SF use anchor start.
+        return _group_anchor_start(pred, by_id, calendar), None
     return None, None
 
 
@@ -317,7 +315,7 @@ def _constraint_start(
     by_id: dict[int, ScheduleItem],
 ) -> date | None:
     """Earliest allowed start for a successor given one predecessor link."""
-    anchor_start, anchor_finish = _pred_anchors(pred, by_id, calendar, link.link_type)
+    anchor_start, anchor_finish = _pred_anchors(pred, by_id, calendar)
 
     if link.link_type == LinkType.FS:
         if anchor_finish is None:
@@ -348,6 +346,22 @@ def _start_for_finish(required_finish: date, duration: str, calendar: WorkingCal
     return calendar.add_working_days(required_finish, -(working_days - 1))
 
 
+def _check_unscheduled_items(items: list[ScheduleItem]) -> list[ScheduleWarning]:
+    """Warn when tasks or groups could not be scheduled."""
+    warnings: list[ScheduleWarning] = []
+    for item in items:
+        if item.kind == ItemKind.MILESTONE or item.is_scheduled:
+            continue
+        warnings.append(
+            ScheduleWarning(
+                code=WarningCode.UNSCHEDULED_ITEM,
+                message=f"item {item.id} ({item.kind.value}) could not be scheduled",
+                item_id=item.id,
+            )
+        )
+    return warnings
+
+
 def _check_predecessor_constraints(
     items: list[ScheduleItem],
     by_id: dict[int, ScheduleItem],
@@ -369,7 +383,7 @@ def _check_predecessor_constraints(
             if item.start < required_start:
                 warnings.append(
                     ScheduleWarning(
-                        code="constraint_not_met",
+                        code=WarningCode.CONSTRAINT_NOT_MET,
                         message=(
                             f"item {item.id} starts {item.start} but predecessor "
                             f"{link.task_id}{link.link_type.value} requires {required_start}"
@@ -393,7 +407,7 @@ def _check_milestone_warnings(items: list[ScheduleItem], by_id: dict[int, Schedu
             if link.link_type in {LinkType.FF, LinkType.SF} and item.finish and item.finish < pred.start:
                 warnings.append(
                     ScheduleWarning(
-                        code="milestone_constraint",
+                        code=WarningCode.MILESTONE_CONSTRAINT,
                         message=(
                             f"task {item.id} finishes {item.finish} before milestone "
                             f"{pred.id} date {pred.start} via {link.task_id}{link.link_type.value}"
@@ -404,7 +418,7 @@ def _check_milestone_warnings(items: list[ScheduleItem], by_id: dict[int, Schedu
             if link.link_type in {LinkType.FS, LinkType.SS} and item.start and item.start < pred.start:
                 warnings.append(
                     ScheduleWarning(
-                        code="milestone_constraint",
+                        code=WarningCode.MILESTONE_CONSTRAINT,
                         message=(
                             f"task {item.id} starts {item.start} before milestone "
                             f"{pred.id} date {pred.start} via {link.task_id}{link.link_type.value}"

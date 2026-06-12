@@ -1,6 +1,11 @@
 import pytest
 
-from schedule.predecessors_lib import LinkType, parse_duration_to_working_days, parse_predecessor
+from schedule.predecessors_lib import (
+    LinkType,
+    WORKING_DAYS_PER_WEEK,
+    parse_duration_to_working_days,
+    parse_predecessor,
+)
 
 
 def test_parse_predecessor_defaults_to_fs() -> None:
@@ -21,6 +26,10 @@ def test_parse_duration_days_and_weeks() -> None:
     assert parse_duration_to_working_days("4d") == 4
     assert parse_duration_to_working_days("2w") == 10
     assert parse_duration_to_working_days("-1d") == -1
+
+
+def test_weeks_use_working_days_per_week_constant() -> None:
+    assert parse_duration_to_working_days("2w") == 2 * WORKING_DAYS_PER_WEEK
 
 
 def test_parse_predecessor_rejects_invalid() -> None:
