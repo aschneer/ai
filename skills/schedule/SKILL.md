@@ -13,13 +13,15 @@ A text-native alternative to Microsoft Project Auto Schedule. The schedule lives
 
 | Agent | Library code |
 |-------|----------------|
-| Edit schedule and calendar YAML | Validate against JSON Schema (authored in YAML) |
+| Edit schedule and calendar YAML in the **user's project** | Validate against JSON Schema and logic rules |
 | Ask user for schedule/project path | CPM schedule calculation |
 | Add tasks, groups, milestones, predecessors | Working-day calendar math |
 | Assign stable Unique IDs | Render static HTML Gantt |
-| Interpret warnings, suggest fixes | Detect schedule logic problems |
+| Fix validation errors in the schedule file | Report all validation errors at once |
 
-Scheduling code is **read-only** — it validates, computes, and warns. It never modifies schedule or calendar files.
+Scheduling code is **read-only** — it validates and computes. It reads schedule and calendar files but **never writes or back-modifies** them. Only the agent (or user) edits `schedule.yaml` and `calendar.yaml`.
+
+**Do not modify skill code.** The agent edits the user's schedule and calendar YAML only. Never change `skills/schedule/` (library code, schemas, tests, SKILL.md) unless the user explicitly asks to change the skill itself. When validation or compute fails, fix the **schedule file** — not the tool.
 
 Before adding library code for a new capability, ask: *can the skill instruct the agent to do this instead?* Prefer code only where correctness requires it.
 
@@ -42,7 +44,7 @@ The schedule filename is not fixed. Ask the user for the **schedule file path** 
 
 If the user gives a directory, find the schedule YAML (ask if multiple). If they give a file path, use its parent as the project directory.
 
-Read `references/context.md` before editing — it defines domain terms. Read `references/data_model.md` when creating or structurally changing items.
+Read `references/context.md` before editing — it defines domain terms. Read `references/data_model.md` when creating or structurally changing items. Read `references/architecture.md` for how validation and compute fit together.
 
 ### 2. Edit the schedule (agent)
 
@@ -52,11 +54,11 @@ Edit YAML directly. Rules that matter most:
 
 | Kind | Key fields | Forbidden |
 |------|------------|-----------|
-| `milestone` | `date` (user-set) | `duration`, `predecessors`, `children` |
+| `milestone` | `date` (user-set, must be a working day) | `duration`, `predecessors`, `children` |
 | `task` | `duration`, `predecessors` | `date`, `children` |
 | `group` | `predecessors`, `children` (min 1) | `date`, `duration` |
 
-**ID 0** is reserved for the project start milestone. IDs are stable — never renumber when reordering items.
+**ID 0** is reserved for the project start milestone. IDs are stable and **must be unique** — never renumber when reordering items.
 
 **Predecessors** — inline list of MS Project strings only:
 
@@ -72,12 +74,13 @@ Listing rules:
 - Child with no other preds → `["{parentId}SS"]` only
 - Otherwise list specific preds — **never** mix in `0FS`
 - Milestones cannot have predecessors
+- No cyclic predecessor dependencies
 
 **Durations and lag:** days and weeks only (`4d`, `2w`). No hours.
 
 **Task order:** controlled by user and agent. Scheduling code does not rewrite file order. Convention: parent group above its children; siblings by computed start date when practical.
 
-**Milestones** are the only user-defined date constraints. Their `date` is authoritative. Other items reference milestones via predecessor links.
+**Milestones** are the only user-defined date constraints. Their `date` is authoritative and must fall on a working day in the calendar file.
 
 ### 3. Run the toolchain (library)
 
@@ -87,10 +90,10 @@ Run from `skills/schedule/` (uv project — run `uv sync` once to install depend
 cd skills/schedule
 uv sync
 
-# Validate schedule + calendar against JSON Schema (schemas/*.schema.yaml)
+# Validate schedule + calendar (JSON Schema + logic rules)
 uv run schedule-validate <schedule-file>
 
-# Compute dates (CPM); prints JSON to stdout; warns on logic problems
+# Compute dates (CPM); prints JSON to stdout (runs validation first)
 uv run schedule-compute <schedule-file>
 
 # Generate static HTML Gantt from computed output
@@ -99,9 +102,24 @@ uv run schedule-render <schedule-file> -o gantt.html
 
 If scripts are not yet implemented, say so and do not substitute agent arithmetic for schedule calculation. `schedule-validate` and `schedule-compute` are available; `schedule-render` is a placeholder.
 
+When validation fails, read **all** error messages. Do not patch the skill library to bypass a rule.
+
+**Before editing YAML to fix validation errors**, present to the user:
+
+1. **Every validation error** — quote or list each message from the tool output
+2. **Planned fix for each** — what you will change in the schedule or calendar file and why
+
+Wait for the user to confirm (or proceed if they already asked you to fix it). Then edit the schedule/calendar YAML, re-run validate, and repeat until clean.
+
+The library never writes these fixes for you — that is always the agent's job, and the user should see the plan first.
+
 ### 4. Report results (agent)
 
-Present computed dates, critical path, warnings, and Gantt path. Explain warnings in plain language and suggest YAML edits — do not fix by writing dates onto non-milestone items.
+Present computed dates, critical path, and Gantt path.
+
+If validation failed and you have not yet fixed the file: list every error and your planned YAML changes — do not edit until the user has seen the plan (unless they already asked you to fix it).
+
+Do not fix validation problems by writing computed `start`/`finish` dates onto non-milestone items — only milestones have user-set dates.
 
 ## When NOT to use
 
@@ -112,6 +130,7 @@ Present computed dates, critical path, warnings, and Gantt path. Explain warning
 ## References
 
 - `references/context.md` — domain glossary (read before editing)
+- `references/architecture.md` — validate-first design, agent boundaries, module layout
 - `references/data_model.md` — kind constraints, examples, predecessor rules
 - `references/scheduling_algorithm.md` — CPM compute steps and predecessor semantics
 - `references/prd.md` — full product requirements

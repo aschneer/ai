@@ -81,7 +81,7 @@ The real calendar used for scheduling, defined in a calendar file. Weekends and 
 _Avoid_: Business calendar, project calendar
 
 **Scheduling engine**:
-Deterministic library code that validates schedule files, performs CPM scheduling, and produces computed output. Read-only — never modifies source files.
+Deterministic library code that validates schedule files, performs CPM scheduling, and produces computed output. Read-only — never modifies source files. Validates all input before compute; see `architecture.md`.
 _Avoid_: Agent, calculator, solver
 
 **Skill**:

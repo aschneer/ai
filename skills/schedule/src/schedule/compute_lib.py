@@ -1,9 +1,6 @@
 """CPM forward-pass scheduling for YAML schedule files.
 
-Flattens nested schedule items, applies milestone dates, computes task and group
-start/finish from predecessors and the working calendar, and emits warnings for
-logic problems (R18).
-
+Expects validated input — run ``logic_validate_lib.validate_schedule_logic`` first.
 Algorithm overview: ``references/scheduling_algorithm.md``.
 """
 
@@ -21,7 +18,6 @@ from schedule.predecessors_lib import (
     parse_duration_to_working_days,
     parse_predecessors,
 )
-from schedule.warnings_lib import ScheduleWarning, WarningCode
 
 
 @dataclass
@@ -50,7 +46,6 @@ class ComputedSchedule:
 
     items: list[ScheduleItem]
     project_finish: date | None
-    warnings: list[ScheduleWarning]
 
 
 @dataclass
@@ -80,26 +75,19 @@ def compute_schedule(
     schedule_data: dict[str, Any],
     calendar_data: dict[str, Any],
 ) -> ComputedSchedule:
-    """Run CPM forward-pass scheduling and return computed dates plus warnings."""
+    """Run CPM forward-pass scheduling and return computed dates."""
     # Flatten nested items, index by ID, and partition tasks, groups, and milestones.
-    ctx, warnings = _build_scheduling_context(schedule_data, calendar_data)
+    ctx = _build_scheduling_context(schedule_data, calendar_data)
 
-    # Flag predecessor links that reference missing item IDs.
-    warnings.extend(_unknown_predecessor_warnings(ctx))
-
-    # Copy milestone dates to start/finish; warn when a milestone falls on a non-working day.
-    warnings.extend(_apply_milestone_dates(ctx))
+    # Copy milestone dates to start/finish.
+    _apply_milestone_dates(ctx)
 
     # Iteratively schedule tasks and roll up groups until dates stop changing.
     _run_until_fixed_point(ctx)
 
-    # Warn on unscheduled items, constraint violations, and milestone conflicts.
-    warnings.extend(_collect_post_schedule_warnings(ctx))
-
     return ComputedSchedule(
         items=ctx.items,
         project_finish=_project_finish(ctx.items),
-        warnings=warnings,
     )
 
 
@@ -120,10 +108,6 @@ def computed_schedule_to_dict(result: ComputedSchedule) -> dict[str, Any]:
             for item in result.items
         ],
         "project_finish": result.project_finish.isoformat() if result.project_finish else None,
-        "warnings": [
-            {"code": warning.code.value, "message": warning.message, "item_id": warning.item_id}
-            for warning in result.warnings
-        ],
     }
 
 
@@ -146,12 +130,12 @@ def _schedule_item_from_raw(raw: dict[str, Any], parent_id: int | None) -> Sched
 def _build_scheduling_context(
     schedule_data: dict[str, Any],
     calendar_data: dict[str, Any],
-) -> tuple[SchedulingContext, list[ScheduleWarning]]:
+) -> SchedulingContext:
     """Parse schedule data and build shared scheduling state."""
     calendar = WorkingCalendar.from_dict(calendar_data)
     items = flatten_schedule_items(schedule_data.get("items", []))
-    by_id, warnings = _index_items(items)
-    ctx = SchedulingContext(
+    by_id = _index_items(items)
+    return SchedulingContext(
         calendar=calendar,
         items=items,
         by_id=by_id,
@@ -159,45 +143,15 @@ def _build_scheduling_context(
         groups=_groups_by_depth(items, by_id),
         milestones=[item for item in items if item.kind == ItemKind.MILESTONE],
     )
-    return ctx, warnings
 
 
-def _unknown_predecessor_warnings(ctx: SchedulingContext) -> list[ScheduleWarning]:
-    """Warn when an item references a predecessor ID that does not exist."""
-    warnings: list[ScheduleWarning] = []
-    for item in ctx.items:
-        for link in item.predecessors:
-            if link.task_id not in ctx.by_id:
-                warnings.append(
-                    ScheduleWarning(
-                        code=WarningCode.UNKNOWN_PREDECESSOR,
-                        message=f"item {item.id} references unknown predecessor {link.task_id}",
-                        item_id=item.id,
-                    )
-                )
-    return warnings
-
-
-def _apply_milestone_dates(ctx: SchedulingContext) -> list[ScheduleWarning]:
+def _apply_milestone_dates(ctx: SchedulingContext) -> None:
     """Set milestone start/finish from authoritative dates."""
-    warnings: list[ScheduleWarning] = []
     for milestone in ctx.milestones:
         if milestone.milestone_date is None:
             continue
         milestone.start = milestone.milestone_date
         milestone.finish = milestone.milestone_date
-        if not ctx.calendar.is_working_day(milestone.milestone_date):
-            warnings.append(
-                ScheduleWarning(
-                    code=WarningCode.MILESTONE_NON_WORKING_DAY,
-                    message=(
-                        f"milestone {milestone.id} date {milestone.milestone_date} "
-                        f"falls on a non-working day"
-                    ),
-                    item_id=milestone.id,
-                )
-            )
-    return warnings
 
 
 def _run_until_fixed_point(ctx: SchedulingContext) -> None:
@@ -214,36 +168,15 @@ def _run_until_fixed_point(ctx: SchedulingContext) -> None:
             break
 
 
-def _collect_post_schedule_warnings(ctx: SchedulingContext) -> list[ScheduleWarning]:
-    """Run all post-scheduling validation passes."""
-    warnings: list[ScheduleWarning] = []
-    warnings.extend(_check_unscheduled_items(ctx.items))
-    warnings.extend(_check_predecessor_constraints(ctx))
-    warnings.extend(_check_milestone_warnings(ctx.items, ctx.by_id))
-    return warnings
-
-
 def _project_finish(items: list[ScheduleItem]) -> date | None:
     """Return the latest finish date among scheduled items."""
     scheduled = [item for item in items if item.is_scheduled]
     return max((item.finish for item in scheduled if item.finish is not None), default=None)
 
 
-def _index_items(items: list[ScheduleItem]) -> tuple[dict[int, ScheduleItem], list[ScheduleWarning]]:
-    """Build id index and warn on duplicate IDs (last occurrence wins)."""
-    by_id: dict[int, ScheduleItem] = {}
-    warnings: list[ScheduleWarning] = []
-    for item in items:
-        if item.id in by_id:
-            warnings.append(
-                ScheduleWarning(
-                    code=WarningCode.DUPLICATE_ITEM_ID,
-                    message=f"duplicate item id {item.id}: {by_id[item.id].name!r} and {item.name!r}",
-                    item_id=item.id,
-                )
-            )
-        by_id[item.id] = item
-    return by_id, warnings
+def _index_items(items: list[ScheduleItem]) -> dict[int, ScheduleItem]:
+    """Build id index (IDs are unique — enforced by logic validation)."""
+    return {item.id: item for item in items}
 
 
 def _item_depth(item: ScheduleItem, by_id: dict[int, ScheduleItem]) -> int:
@@ -355,7 +288,6 @@ def _pred_anchors(
     if pred.is_scheduled:
         return pred.start, pred.finish
     if pred.kind == ItemKind.GROUP:
-        # Finish is unknown until children roll up; FS/FF wait on finish, SS/SF use anchor start.
         return _group_anchor_start(pred, ctx), None
     return None, None
 
@@ -434,82 +366,3 @@ def _start_for_finish(required_finish: date, duration: str, calendar: WorkingCal
     """Back-calculate task start so it finishes on required_finish."""
     working_days = max(parse_duration_to_working_days(duration), 1)
     return calendar.add_working_days(required_finish, -(working_days - 1))
-
-
-def _check_unscheduled_items(items: list[ScheduleItem]) -> list[ScheduleWarning]:
-    """Warn when tasks or groups could not be scheduled."""
-    warnings: list[ScheduleWarning] = []
-    for item in items:
-        if item.kind == ItemKind.MILESTONE or item.is_scheduled:
-            continue
-        warnings.append(
-            ScheduleWarning(
-                code=WarningCode.UNSCHEDULED_ITEM,
-                message=f"item {item.id} ({item.kind.value}) could not be scheduled",
-                item_id=item.id,
-            )
-        )
-    return warnings
-
-
-def _check_predecessor_constraints(ctx: SchedulingContext) -> list[ScheduleWarning]:
-    """Verify computed dates satisfy all predecessor links."""
-    warnings: list[ScheduleWarning] = []
-    for item in ctx.items:
-        if item.kind == ItemKind.MILESTONE or not item.is_scheduled:
-            continue
-        duration = item.duration or "1d"
-        for link in item.predecessors:
-            pred = ctx.by_id.get(link.task_id)
-            if pred is None or not pred.is_scheduled or item.start is None:
-                continue
-            required_start = _constraint_start(link, pred, duration, ctx)
-            if required_start is None:
-                continue
-            if item.start < required_start:
-                warnings.append(
-                    ScheduleWarning(
-                        code=WarningCode.CONSTRAINT_NOT_MET,
-                        message=(
-                            f"item {item.id} starts {item.start} but predecessor "
-                            f"{link.task_id}{link.link_type.value} requires {required_start}"
-                        ),
-                        item_id=item.id,
-                    )
-                )
-    return warnings
-
-
-def _check_milestone_warnings(items: list[ScheduleItem], by_id: dict[int, ScheduleItem]) -> list[ScheduleWarning]:
-    """Emit R18 warnings when computed dates conflict with milestone constraints."""
-    warnings: list[ScheduleWarning] = []
-    for item in items:
-        if not item.is_scheduled or item.kind != ItemKind.TASK:
-            continue
-        for link in item.predecessors:
-            pred = by_id.get(link.task_id)
-            if pred is None or pred.kind != ItemKind.MILESTONE or pred.start is None:
-                continue
-            if link.link_type in {LinkType.FF, LinkType.SF} and item.finish and item.finish < pred.start:
-                warnings.append(
-                    ScheduleWarning(
-                        code=WarningCode.MILESTONE_CONSTRAINT,
-                        message=(
-                            f"task {item.id} finishes {item.finish} before milestone "
-                            f"{pred.id} date {pred.start} via {link.task_id}{link.link_type.value}"
-                        ),
-                        item_id=item.id,
-                    )
-                )
-            if link.link_type in {LinkType.FS, LinkType.SS} and item.start and item.start < pred.start:
-                warnings.append(
-                    ScheduleWarning(
-                        code=WarningCode.MILESTONE_CONSTRAINT,
-                        message=(
-                            f"task {item.id} starts {item.start} before milestone "
-                            f"{pred.id} date {pred.start} via {link.task_id}{link.link_type.value}"
-                        ),
-                        item_id=item.id,
-                    )
-                )
-    return warnings

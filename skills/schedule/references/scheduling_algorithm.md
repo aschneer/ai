@@ -1,8 +1,17 @@
 # Scheduling Algorithm
 
-High-level steps performed by `compute_schedule()` in `compute_lib.py`. The engine is read-only: it validates input, computes dates, and emits warnings — it never writes back to YAML files.
+High-level steps performed by `compute_schedule()` in `compute_lib.py`. **Validation runs first** — see `architecture.md`. Compute assumes clean input and never writes back to YAML files.
 
 Implementation: `src/schedule/compute_lib.py`. Calendar math: `calendar_lib.py`. Predecessor parsing: `predecessors_lib.py`.
+
+## Prerequisites
+
+Before compute runs, `load_schedule_project()` (or equivalent) must pass:
+
+1. **JSON Schema validation** — shape and field constraints
+2. **Logic validation** — unique IDs, valid predecessor refs, acyclic graph, listing rules, milestones on working days
+
+If validation fails, compute is not run. Fix the schedule file and re-validate.
 
 ## Inputs
 
@@ -15,20 +24,14 @@ Implementation: `src/schedule/compute_lib.py`. Calendar math: `calendar_lib.py`.
 
 - Parse the working calendar from calendar data
 - Flatten nested groups into a single item list (each item keeps its `parent_id`)
-- Index items by ID; warn on duplicate IDs (last occurrence wins)
+- Index items by ID
 - Partition items into tasks, groups (deepest-first for rollup order), and milestones
 
-### 2. Check predecessor references
-
-- For every predecessor link on every item, warn if the referenced task ID does not exist
-
-### 3. Apply milestone dates
+### 2. Apply milestone dates
 
 - For each milestone, copy the authoritative `date` to both `start` and `finish`
-- Warn when a milestone date falls on a non-working day (the date is **not** moved)
-- Successors linked via FS/SS normalize their computed **start** to the next working day after the constraint
 
-### 4. Fixed-point scheduling pass
+### 3. Fixed-point scheduling pass
 
 Repeat until no item dates change (or iteration limit reached):
 
@@ -41,15 +44,9 @@ Repeat until no item dates change (or iteration limit reached):
    - Start = max(child start, predecessor-implied start)
    - Finish = latest child finish
 
-Tasks and groups with missing predecessor anchors (e.g. cyclic dependencies, predecessor not yet scheduled) are skipped until a later iteration or left unscheduled.
+Tasks and groups waiting on predecessor anchors that are not yet scheduled are skipped until a later iteration.
 
-### 5. Post-scheduling warnings
-
-- **Unscheduled items** — tasks or groups that never received dates
-- **Constraint not met** — computed start is earlier than a predecessor link requires
-- **Milestone constraint** — task dates conflict with a linked milestone's authoritative date
-
-### 6. Project finish
+### 4. Project finish
 
 - Latest `finish` date among all scheduled items
 
@@ -74,4 +71,3 @@ When an item has multiple predecessors, the **latest** required start date appli
 
 - Flat list of items with computed `start` and `finish`
 - `project_finish` date
-- List of warnings (non-fatal logic problems)

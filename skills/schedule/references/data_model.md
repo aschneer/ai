@@ -93,7 +93,7 @@ Only **immediate** predecessors. No transitive chain.
 
 **Milestone targets:** all link types resolve to the milestone's single `date`.
 
-**Milestone on a non-working day:** the milestone `date` is authoritative and is never moved. The engine emits a `milestone_non_working_day` warning. Successors with FS/SS links normalize their **start** to the next working day after the constraint — e.g. milestone on Saturday June 20 → task with `13FS` starts Monday June 22.
+**Milestone on a working day:** milestone `date` values must fall on a working day in the calendar file. Validation fails with an error if not — move the date to a working day before computing.
 
 ## Durations
 
@@ -138,7 +138,7 @@ items:
     - kind: milestone
       id: 13
       name: Permit approved
-      date: 2026-06-20
+      date: 2026-06-22
 
     - kind: task
       id: 14

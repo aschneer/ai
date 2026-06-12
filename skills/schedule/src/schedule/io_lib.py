@@ -9,6 +9,7 @@ from typing import Any
 
 import yaml
 
+from schedule.logic_validate_lib import validate_schedule_logic
 from schedule.validate_lib import validate_calendar_file, validate_schedule_file
 
 
@@ -67,6 +68,9 @@ def load_schedule_project(
         errors.extend(calendar_errors)
     elif require_calendar or schedule_data.get("calendar"):
         errors.append(f"calendar: referenced file not found: {calendar_path}")
+
+    if not errors:
+        errors.extend(validate_schedule_logic(schedule_data, calendar_data))
 
     if errors:
         return None, errors

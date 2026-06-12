@@ -19,7 +19,7 @@ items:
       - kind: milestone
         id: 13
         name: Permit approved
-        date: 2026-06-20
+        date: 2026-06-22
 
       - kind: task
         id: 14
