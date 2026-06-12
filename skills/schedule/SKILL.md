@@ -96,11 +96,11 @@ uv run schedule-validate <schedule-file>
 # Compute dates (CPM); prints JSON to stdout (runs validation first)
 uv run schedule-compute <schedule-file>
 
-# Generate static HTML Gantt from computed output
+# Generate static HTML Gantt (validate + compute + render)
 uv run schedule-render <schedule-file> -o gantt.html
 ```
 
-If scripts are not yet implemented, say so and do not substitute agent arithmetic for schedule calculation. `schedule-validate` and `schedule-compute` are available; `schedule-render` is a placeholder.
+`schedule-validate`, `schedule-compute`, and `schedule-render` are available.
 
 When validation fails, read **all** error messages. Do not patch the skill library to bypass a rule.
 
