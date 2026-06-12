@@ -31,4 +31,10 @@ Read only the files relevant to the task. Universal standards apply to all langu
 | `cpp.md` | C++ source or headers |
 | `go.md` | Go source |
 
-For a full review of new code in a known language, read `core_principles.md`, `organization.md`, the language file, and any task-specific files that apply (e.g. `testing.md` if tests changed).
+## Getting started
+
+**Most coding tasks:** `core_principles.md`, `organization.md`, and the language file if known.
+
+**Also load when relevant:** `code_smells.md` and `best_practices.md` (refactors), `code_review.md` (reviews), plus any task-specific files from the tables below.
+
+For a full review of new code in a known language, read the universal files above, the language file, and any task-specific files that apply (e.g. `testing.md` if tests changed).
