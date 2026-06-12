@@ -18,6 +18,7 @@ from schedule.validate_lib import validate_calendar_file, validate_schedule_file
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Validate schedule and optional calendar; print ok or errors to stderr."""
     parser = argparse.ArgumentParser(description="Validate schedule and calendar YAML files.")
     parser.add_argument("schedule_file", type=Path, help="Path to schedule YAML file")
     args = parser.parse_args(argv)

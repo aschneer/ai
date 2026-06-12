@@ -1,8 +1,16 @@
+"""CPM forward-pass scheduling for YAML schedule files.
+
+Flattens nested schedule items, applies milestone dates, computes task and group
+start/finish from predecessors and the working calendar, and emits warnings for
+logic problems (R18).
+"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date
-from typing import Any, Literal
+from enum import Enum
+from typing import Any
 
 from schedule.calendar_lib import WorkingCalendar
 from schedule.predecessors_lib import (
@@ -12,11 +20,19 @@ from schedule.predecessors_lib import (
     parse_predecessors,
 )
 
-ItemKind = Literal["milestone", "task", "group"]
+
+class ItemKind(str, Enum):
+    """Schedule item discriminator — matches the ``kind`` field in YAML."""
+
+    MILESTONE = "milestone"
+    TASK = "task"
+    GROUP = "group"
 
 
 @dataclass
 class ScheduleItem:
+    """One schedulable row from a schedule file, with computed dates filled in."""
+
     id: int
     kind: ItemKind
     name: str
@@ -29,11 +45,14 @@ class ScheduleItem:
 
     @property
     def is_scheduled(self) -> bool:
+        """True when both start and finish have been computed."""
         return self.start is not None and self.finish is not None
 
 
 @dataclass(frozen=True)
 class ScheduleWarning:
+    """Non-fatal schedule logic problem detected during computation."""
+
     code: str
     message: str
     item_id: int | None = None
@@ -41,17 +60,20 @@ class ScheduleWarning:
 
 @dataclass
 class ComputedSchedule:
+    """Full result of a CPM forward pass."""
+
     items: list[ScheduleItem]
     project_finish: date | None
     warnings: list[ScheduleWarning]
 
 
 def flatten_schedule_items(items: list[dict[str, Any]], parent_id: int | None = None) -> list[ScheduleItem]:
+    """Walk nested YAML items and return a flat list with parent IDs attached."""
     flat: list[ScheduleItem] = []
     for raw in items:
-        kind = raw["kind"]
-        predecessors = parse_predecessors(raw.get("predecessors", [])) if kind != "milestone" else []
-        milestone_date = date.fromisoformat(raw["date"]) if kind == "milestone" else None
+        kind = ItemKind(raw["kind"])
+        predecessors = parse_predecessors(raw.get("predecessors", [])) if kind != ItemKind.MILESTONE else []
+        milestone_date = date.fromisoformat(raw["date"]) if kind == ItemKind.MILESTONE else None
         flat.append(
             ScheduleItem(
                 id=raw["id"],
@@ -63,31 +85,16 @@ def flatten_schedule_items(items: list[dict[str, Any]], parent_id: int | None = 
                 milestone_date=milestone_date,
             )
         )
-        if kind == "group":
+        if kind == ItemKind.GROUP:
             flat.extend(flatten_schedule_items(raw.get("children", []), raw["id"]))
     return flat
-
-
-def _groups_by_depth(items: list[ScheduleItem], by_id: dict[int, ScheduleItem]) -> list[ScheduleItem]:
-    def depth(item: ScheduleItem) -> int:
-        level = 0
-        parent_id = item.parent_id
-        while parent_id is not None:
-            level += 1
-            parent = by_id.get(parent_id)
-            if parent is None:
-                break
-            parent_id = parent.parent_id
-        return level
-
-    groups = [item for item in items if item.kind == "group"]
-    return sorted(groups, key=depth, reverse=True)
 
 
 def compute_schedule(
     schedule_data: dict[str, Any],
     calendar_data: dict[str, Any],
 ) -> ComputedSchedule:
+    """Run CPM forward-pass scheduling and return computed dates plus warnings."""
     calendar = WorkingCalendar.from_dict(calendar_data)
     items = flatten_schedule_items(schedule_data.get("items", []))
     by_id = {item.id: item for item in items}
@@ -104,7 +111,7 @@ def compute_schedule(
                     )
                 )
 
-    milestones = [item for item in items if item.kind == "milestone"]
+    milestones = [item for item in items if item.kind == ItemKind.MILESTONE]
     for milestone in milestones:
         if milestone.milestone_date is None:
             continue
@@ -122,16 +129,16 @@ def compute_schedule(
                 )
             )
 
-    tasks = [item for item in items if item.kind == "task"]
+    tasks = [item for item in items if item.kind == ItemKind.TASK]
     groups = _groups_by_depth(items, by_id)
 
     for _ in range(len(items) + 1):
         changed = False
         for task in tasks:
-            if _schedule_task(task, by_id, calendar, warnings):
+            if _schedule_task(task, by_id, calendar):
                 changed = True
         for group in groups:
-            if _schedule_group(group, by_id, calendar, warnings):
+            if _schedule_group(group, by_id, calendar):
                 changed = True
         if not changed:
             break
@@ -144,12 +151,54 @@ def compute_schedule(
     return ComputedSchedule(items=items, project_finish=project_finish, warnings=warnings)
 
 
+def computed_schedule_to_dict(result: ComputedSchedule) -> dict[str, Any]:
+    """Serialize a computed schedule to JSON-friendly dicts."""
+    return {
+        "items": [
+            {
+                "id": item.id,
+                "kind": item.kind.value,
+                "name": item.name,
+                "parent_id": item.parent_id,
+                "start": item.start.isoformat() if item.start else None,
+                "finish": item.finish.isoformat() if item.finish else None,
+                "duration": item.duration,
+                "milestone_date": item.milestone_date.isoformat() if item.milestone_date else None,
+            }
+            for item in result.items
+        ],
+        "project_finish": result.project_finish.isoformat() if result.project_finish else None,
+        "warnings": [
+            {"code": warning.code, "message": warning.message, "item_id": warning.item_id}
+            for warning in result.warnings
+        ],
+    }
+
+
+def _groups_by_depth(items: list[ScheduleItem], by_id: dict[int, ScheduleItem]) -> list[ScheduleItem]:
+    """Return groups deepest-first so nested rollups schedule correctly."""
+
+    def depth(item: ScheduleItem) -> int:
+        level = 0
+        parent_id = item.parent_id
+        while parent_id is not None:
+            level += 1
+            parent = by_id.get(parent_id)
+            if parent is None:
+                break
+            parent_id = parent.parent_id
+        return level
+
+    groups = [item for item in items if item.kind == ItemKind.GROUP]
+    return sorted(groups, key=depth, reverse=True)
+
+
 def _schedule_task(
     task: ScheduleItem,
     by_id: dict[int, ScheduleItem],
     calendar: WorkingCalendar,
-    warnings: list[ScheduleWarning],
 ) -> bool:
+    """Compute start/finish for one task. Returns True if dates changed."""
     if task.duration is None:
         return False
 
@@ -173,8 +222,8 @@ def _schedule_group(
     group: ScheduleItem,
     by_id: dict[int, ScheduleItem],
     calendar: WorkingCalendar,
-    warnings: list[ScheduleWarning],
 ) -> bool:
+    """Roll up group dates from children and predecessor constraints. Returns True if dates changed."""
     children = [item for item in by_id.values() if item.parent_id == group.id]
     if not children or not all(child.is_scheduled for child in children):
         return False
@@ -197,9 +246,10 @@ def _parent_earliest_start(
     by_id: dict[int, ScheduleItem],
     calendar: WorkingCalendar,
 ) -> date | None:
+    """Earliest start allowed for children under a parent (R2)."""
     if parent.start is not None:
         return parent.start
-    if parent.kind == "group":
+    if parent.kind == ItemKind.GROUP:
         return _group_anchor_start(parent, by_id, calendar)
     return None
 
@@ -209,6 +259,7 @@ def _group_anchor_start(
     by_id: dict[int, ScheduleItem],
     calendar: WorkingCalendar,
 ) -> date | None:
+    """Group start from predecessors only, before children are rolled up."""
     if group.start is not None:
         return group.start
     return _minimum_start_from_predecessors(group, by_id, calendar, "1d")
@@ -220,6 +271,7 @@ def _minimum_start_from_predecessors(
     calendar: WorkingCalendar,
     duration: str,
 ) -> date | None:
+    """Latest minimum start date implied by all predecessor links."""
     if not item.predecessors:
         return None
 
@@ -242,13 +294,14 @@ def _pred_anchors(
     calendar: WorkingCalendar,
     link_type: LinkType,
 ) -> tuple[date | None, date | None]:
-    if pred.kind == "milestone":
+    """Start/finish anchors available from a predecessor for the given link type."""
+    if pred.kind == ItemKind.MILESTONE:
         if pred.start is None:
             return None, None
         return pred.start, pred.start
     if pred.is_scheduled:
         return pred.start, pred.finish
-    if pred.kind == "group":
+    if pred.kind == ItemKind.GROUP:
         start = _group_anchor_start(pred, by_id, calendar)
         if link_type in {LinkType.FS, LinkType.FF}:
             return start, None
@@ -263,6 +316,7 @@ def _constraint_start(
     calendar: WorkingCalendar,
     by_id: dict[int, ScheduleItem],
 ) -> date | None:
+    """Earliest allowed start for a successor given one predecessor link."""
     anchor_start, anchor_finish = _pred_anchors(pred, by_id, calendar, link.link_type)
 
     if link.link_type == LinkType.FS:
@@ -289,6 +343,7 @@ def _constraint_start(
 
 
 def _start_for_finish(required_finish: date, duration: str, calendar: WorkingCalendar) -> date:
+    """Back-calculate task start so it finishes on required_finish."""
     working_days = max(parse_duration_to_working_days(duration), 1)
     return calendar.add_working_days(required_finish, -(working_days - 1))
 
@@ -298,9 +353,10 @@ def _check_predecessor_constraints(
     by_id: dict[int, ScheduleItem],
     calendar: WorkingCalendar,
 ) -> list[ScheduleWarning]:
+    """Verify computed dates satisfy all predecessor links."""
     warnings: list[ScheduleWarning] = []
     for item in items:
-        if item.kind == "milestone" or not item.is_scheduled:
+        if item.kind == ItemKind.MILESTONE or not item.is_scheduled:
             continue
         duration = item.duration or "1d"
         for link in item.predecessors:
@@ -325,13 +381,14 @@ def _check_predecessor_constraints(
 
 
 def _check_milestone_warnings(items: list[ScheduleItem], by_id: dict[int, ScheduleItem]) -> list[ScheduleWarning]:
+    """Emit R18 warnings when computed dates conflict with milestone constraints."""
     warnings: list[ScheduleWarning] = []
     for item in items:
-        if not item.is_scheduled or item.kind != "task":
+        if not item.is_scheduled or item.kind != ItemKind.TASK:
             continue
         for link in item.predecessors:
             pred = by_id.get(link.task_id)
-            if pred is None or pred.kind != "milestone" or pred.start is None:
+            if pred is None or pred.kind != ItemKind.MILESTONE or pred.start is None:
                 continue
             if link.link_type in {LinkType.FF, LinkType.SF} and item.finish and item.finish < pred.start:
                 warnings.append(
@@ -356,26 +413,3 @@ def _check_milestone_warnings(items: list[ScheduleItem], by_id: dict[int, Schedu
                     )
                 )
     return warnings
-
-
-def computed_schedule_to_dict(result: ComputedSchedule) -> dict[str, Any]:
-    return {
-        "items": [
-            {
-                "id": item.id,
-                "kind": item.kind,
-                "name": item.name,
-                "parent_id": item.parent_id,
-                "start": item.start.isoformat() if item.start else None,
-                "finish": item.finish.isoformat() if item.finish else None,
-                "duration": item.duration,
-                "milestone_date": item.milestone_date.isoformat() if item.milestone_date else None,
-            }
-            for item in result.items
-        ],
-        "project_finish": result.project_finish.isoformat() if result.project_finish else None,
-        "warnings": [
-            {"code": warning.code, "message": warning.message, "item_id": warning.item_id}
-            for warning in result.warnings
-        ],
-    }

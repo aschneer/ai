@@ -14,6 +14,7 @@ from pathlib import Path
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Render Gantt HTML (not yet implemented). Exit 2 until render_lib exists."""
     parser = argparse.ArgumentParser(description="Render static HTML Gantt from schedule YAML.")
     parser.add_argument("schedule_file", type=Path, help="Path to schedule YAML file")
     parser.add_argument("-o", "--output", type=Path, default=Path("gantt.html"), help="Output HTML path")

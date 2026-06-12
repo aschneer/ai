@@ -19,6 +19,7 @@ from schedule.validate_lib import validate_calendar_file, validate_schedule_file
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Validate, compute CPM dates, and print JSON to stdout."""
     parser = argparse.ArgumentParser(description="Compute schedule dates from YAML (CPM).")
     parser.add_argument("schedule_file", type=Path, help="Path to schedule YAML file")
     args = parser.parse_args(argv)
