@@ -1,0 +1,23 @@
+{
+  "skill_name": "code-style-guide",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Review this Python function for style issues and suggest fixes:\n\ndef proc(d, f, t, x, y):\n    if d:\n        if f:\n            if t:\n                if x > 0:\n                    return y / x\n    return None",
+      "expected_output": "Flags deep nesting (>3), generic name proc, too many parameters, magic behavior; suggests guard clauses, rename, parameter object, type hints",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Refactor this Go handler to follow our coding standards — keep behavior the same:\nfunc handle(w http.ResponseWriter, r *http.Request) {\n    id := r.URL.Query().Get(\"id\")\n    u, _ := db.GetUser(id)\n    if u == nil {\n        w.WriteHeader(404)\n        return\n    }\n    json.NewEncoder(w).Encode(u)\n}",
+      "expected_output": "Handles ignored error from GetUser, clearer naming, early returns preserved, follows Go error-handling conventions",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "I'm adding a new module to our repo in src/payments/refund.py — write the file skeleton with proper import sections (stdlib, third-party, local) and a stub RefundProcessor class.",
+      "expected_output": "Three-section imports at top, snake_case, PascalCase class, type hints on public API, focused small class",
+      "files": []
+    }
+  ]
+}
