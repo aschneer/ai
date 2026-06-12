@@ -97,7 +97,7 @@ uv run schedule-compute <schedule-file>
 uv run schedule-render <schedule-file> -o gantt.html
 ```
 
-If scripts are not yet implemented, say so and do not substitute agent arithmetic for schedule calculation. `schedule-validate` is available; `schedule-compute` and `schedule-render` are placeholders.
+If scripts are not yet implemented, say so and do not substitute agent arithmetic for schedule calculation. `schedule-validate` and `schedule-compute` are available; `schedule-render` is a placeholder.
 
 ### 4. Report results (agent)
 
