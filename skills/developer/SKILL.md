@@ -1,5 +1,5 @@
 ---
-name: code-style-guide
+name: developer
 description: >-
   Apply clean-code standards when writing, refactoring, or reviewing code in any
   language. Use whenever the user asks you to write new code, improve readability,
@@ -11,7 +11,7 @@ description: >-
   "best practices", "readable code", "maintainable code".
 ---
 
-# Code Style Guide
+# Developer
 
 If this skill is invoked, read `references/index.md` first, then load only the reference files relevant to the task. Do not load every file by default — progressive disclosure keeps context focused.
 
