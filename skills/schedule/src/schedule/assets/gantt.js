@@ -3,11 +3,13 @@
 const DATA_URL = "gantt_data.json";
 
 const LINK_ANCHORS = {
-  FS: { from: "finish", to: "start" },
-  SS: { from: "start", to: "start" },
-  FF: { from: "finish", to: "finish" },
-  SF: { from: "start", to: "finish" },
+  FS: { from: { edge: "finish", v: "center" }, to: { edge: "start", v: "top" } },
+  SS: { from: { edge: "start", v: "top" }, to: { edge: "start", v: "top" } },
+  FF: { from: { edge: "finish", v: "bottom" }, to: { edge: "finish", v: "bottom" } },
+  SF: { from: { edge: "start", v: "center" }, to: { edge: "finish", v: "bottom" } },
 };
+
+const LINK_ARROW_INDENT = 8;
 
 function parseDate(value) {
   const [year, month, day] = value.split("-").map(Number);
@@ -68,24 +70,55 @@ function weekColumns(rangeStart, rangeEnd) {
   return columns;
 }
 
-function barEdgePct(metrics, edge) {
-  if (metrics.kind === "milestone") {
-    return metrics.leftPct;
+function barAnchor(rowEl, edge, vertical, timelineRect, containerRect) {
+  const bar = rowEl.querySelector(".bar");
+  if (!bar) {
+    return null;
   }
-  return edge === "start" ? metrics.leftPct : metrics.leftPct + metrics.widthPct;
+  const barRect = bar.getBoundingClientRect();
+  let x = (edge === "start" ? barRect.left : barRect.right) - timelineRect.left;
+  if (edge === "start") {
+    x += LINK_ARROW_INDENT;
+  }
+  let y = barRect.top;
+  if (vertical === "center") {
+    y = barRect.top + barRect.height / 2;
+  } else if (vertical === "bottom") {
+    y = barRect.bottom;
+  }
+  y -= containerRect.top;
+  return { x, y };
 }
 
-function rowCenterY(rowEl) {
-  return rowEl.offsetTop + rowEl.offsetHeight / 2;
-}
-
-function elbowPath(x1, y1, x2, y2) {
-  const gap = 8;
+/** MS Project-style: horizontal to target column, vertical into top/bottom anchor. */
+function dependencyPath(x1, y1, x2, y2) {
   if (Math.abs(y1 - y2) < 1) {
     return `M ${x1} ${y1} H ${x2}`;
   }
-  const bendX = Math.max(x1, x2) + gap;
-  return `M ${x1} ${y1} H ${bendX} V ${y2} H ${x2}`;
+  return `M ${x1} ${y1} H ${x2} V ${y2}`;
+}
+
+function addDependencyArrowMarkers(svg) {
+  const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+  for (const [id, fill] of [
+    ["dependency-arrow", "#aaa"],
+    ["dependency-arrow-critical", "#c0392b"],
+  ]) {
+    const marker = document.createElementNS("http://www.w3.org/2000/svg", "marker");
+    marker.setAttribute("id", id);
+    marker.setAttribute("markerWidth", "8");
+    marker.setAttribute("markerHeight", "8");
+    marker.setAttribute("refX", "8");
+    marker.setAttribute("refY", "4");
+    marker.setAttribute("orient", "auto");
+    marker.setAttribute("markerUnits", "userSpaceOnUse");
+    const head = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    head.setAttribute("d", "M0,0 L8,4 L0,8 Z");
+    head.setAttribute("fill", fill);
+    marker.appendChild(head);
+    defs.appendChild(marker);
+  }
+  svg.appendChild(defs);
 }
 
 function renderRow(item, byId, rangeStart, totalDays) {
@@ -151,8 +184,10 @@ function renderDependencyLines(items, rowEntries, container) {
   }
 
   const timeline = drawable[0].row.querySelector(".timeline");
-  const timelineWidth = timeline.offsetWidth;
-  const containerHeight = container.offsetHeight;
+  const timelineRect = timeline.getBoundingClientRect();
+  const timelineWidth = timelineRect.width;
+  const containerRect = container.getBoundingClientRect();
+  const containerHeight = containerRect.height;
   if (!timelineWidth || !containerHeight) {
     return;
   }
@@ -162,6 +197,7 @@ function renderDependencyLines(items, rowEntries, container) {
   svg.setAttribute("width", String(timelineWidth));
   svg.setAttribute("height", String(containerHeight));
   svg.setAttribute("viewBox", `0 0 ${timelineWidth} ${containerHeight}`);
+  addDependencyArrowMarkers(svg);
 
   const byId = new Map(drawable.map((entry) => [entry.item.id, entry]));
 
@@ -179,14 +215,33 @@ function renderDependencyLines(items, rowEntries, container) {
       }
 
       const anchors = LINK_ANCHORS[pred.link_type] || LINK_ANCHORS.FS;
-      const x1 = (barEdgePct(predEntry.metrics, anchors.from) / 100) * timelineWidth;
-      const x2 = (barEdgePct(succEntry.metrics, anchors.to) / 100) * timelineWidth;
-      const y1 = rowCenterY(predEntry.row);
-      const y2 = rowCenterY(succEntry.row);
+      const from = barAnchor(
+        predEntry.row,
+        anchors.from.edge,
+        anchors.from.v,
+        timelineRect,
+        containerRect,
+      );
+      const to = barAnchor(
+        succEntry.row,
+        anchors.to.edge,
+        anchors.to.v,
+        timelineRect,
+        containerRect,
+      );
+      if (!from || !to) {
+        continue;
+      }
 
       const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      path.setAttribute("d", elbowPath(x1, y1, x2, y2));
-      if (predEntry.item.is_critical && succEntry.item.is_critical) {
+      path.setAttribute("d", dependencyPath(from.x, from.y, to.x, to.y));
+      const isCritical =
+        predEntry.item.is_critical && succEntry.item.is_critical;
+      path.setAttribute(
+        "marker-end",
+        isCritical ? "url(#dependency-arrow-critical)" : "url(#dependency-arrow)",
+      );
+      if (isCritical) {
         path.classList.add("critical");
       }
       svg.appendChild(path);
