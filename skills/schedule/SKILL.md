@@ -142,6 +142,7 @@ Do not fix validation problems by writing computed `start`/`finish` dates onto n
 - `references/prd.md` — product requirements and schedule file format (hard requirements)
 - `references/data_model.md` — YAML examples and editing cheat sheet
 - `references/decisions.md` — architecture decisions (ADR-style) and resolved product decisions
+- `references/live_refresh.md` — shelved plan for browser poll + `compute --watch` (PRD R10)
 - `schemas/` — JSON Schema files **written in YAML** (e.g. `schedule.schema.yaml`, `calendar.schema.yaml`). JSON Schema is the validation standard; YAML is the authoring format. The same schema validates schedule data files in the editor (Red Hat YAML + `yaml.schemas`) and in library code.
 
 ## Adding library code

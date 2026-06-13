@@ -64,9 +64,9 @@
 
 ### 8. Gantt hot reload (PRD R10)
 
-- **What:** Page auto-updates when schedule/data changes during development.
-- **Minimal approach:** Poll `gantt_data.json` every N seconds in `gantt.js`, re-render on change.
-- **Full loop:** File watcher + re-run `compute` on `schedule.yaml` change (separate dev tool; optional).
+- **Status:** Shelved — see `skills/schedule/references/live_refresh.md`
+- **Why:** Manual refresh after re-running `compute` is enough for MVP; full loop (browser poll + `compute --watch`) is dev-only polish.
+- **When to revisit:** Frequent local iterate-on-YAML + Gantt sessions become a common pain point.
 
 ### 9. Validate milestone working days without full calendar requirement
 
@@ -102,7 +102,7 @@ From `references/prd.md`:
 3. ~~Task timing modes~~
 4. ~~Stricter listing validation~~
 5. PRD sync (validate-first drift)
-6. Hot reload (optional polish)
+6. ~~Hot reload~~ — shelved (`live_refresh.md`)
 7. Evals + gitignore + push
 
 ---
@@ -116,4 +116,5 @@ From `references/prd.md`:
 | Listing validation | `logic_validate_lib.py`, `test_logic_validate_lib.py`, `data_model.md` |
 | Task timing modes | `task_timing_modes.md`, schema, `logic_validate_lib.py`, `compute_lib.py`, tests, examples |
 | PRD sync | `references/prd.md`, `projects/.../PRD.md` |
-| Hot reload | `assets/gantt.js` |
+| Live refresh (shelved) | `references/live_refresh.md` |
+| Hot reload (if implemented) | `src/schedule/assets/gantt.js`, `watch_lib.py`, `compute.py` |

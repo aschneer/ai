@@ -60,7 +60,7 @@ The Gantt viewer is static HTML/JS served over HTTP. Users run `compute` locally
 |--------|--------------|-------------------|
 | Product shape | Skill + YAML + Python CPM; browser is read-only output | Matches “file is source of truth” |
 | PRD minimal code | Second toolchain, build step, npm in a `uv` skill | One command: `uv run compute` |
-| Hot reload (R10) | HMR targets JS edits, not YAML→Python→JSON | Poll JSON or `compute --watch` in Python later |
+| Hot reload (R10) | HMR targets JS edits, not YAML→Python→JSON | Shelved — see `live_refresh.md` |
 | Remote viewing | Vite’s win is `host: true` + URL list | Same pattern on `http.server` |
 
 ### Trade-offs

@@ -379,6 +379,8 @@ CLI flags and server implementation: `architecture.md`, `decisions.md`.
 
 While developing a schedule, the Gantt **updates when the schedule file changes** without manual refresh.
 
+**Status:** Shelved. See `live_refresh.md` for the implementation plan and rationale.
+
 ---
 
 ## Out of scope (MVP)
@@ -404,3 +406,4 @@ While developing a schedule, the Gantt **updates when the schedule file changes*
 | Resolved product & engineering choices | `decisions.md` |
 | CPM algorithm steps | `scheduling_algorithm.md` |
 | Glossary | `context.md` |
+| Live refresh plan (shelved) | `live_refresh.md` |
