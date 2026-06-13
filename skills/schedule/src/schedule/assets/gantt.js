@@ -496,6 +496,10 @@ function renderRow(item, byId, rangeStart, totalDays) {
 }
 
 function renderGantt(data) {
+  const ganttScroller = document.querySelector(".gantt");
+  const scrollLeft = ganttScroller?.scrollLeft ?? 0;
+  const scrollTop = ganttScroller?.scrollTop ?? 0;
+
   document.getElementById("title").textContent = data.title || "Schedule";
   document.getElementById("project-finish").textContent =
     `Project finish: ${data.project_finish || "—"}`;
@@ -535,6 +539,11 @@ function renderGantt(data) {
 
   renderTimelineSvg(items, rowEntries, root);
   appendLabelColumnResizer(root);
+
+  if (ganttScroller) {
+    ganttScroller.scrollLeft = scrollLeft;
+    ganttScroller.scrollTop = scrollTop;
+  }
 }
 
 function currentLabelWidthPx(root) {

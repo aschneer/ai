@@ -21,33 +21,54 @@
       --critical-ring: 0 0 0 1px #fff, 0 0 0 3px var(--critical);
     }
     * { box-sizing: border-box; }
+    html, body {
+      height: 100%;
+    }
     body {
       margin: 0;
       font-family: system-ui, sans-serif;
       font-size: 14px;
       color: var(--text);
       background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
     }
     header {
-      padding: 1rem 1.25rem;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem 1.25rem;
+      flex-wrap: wrap;
+      padding: 0.5rem 1.25rem;
       border-bottom: 1px solid var(--grid);
       background: #fff;
     }
+    .page-header-main {
+      display: flex;
+      align-items: baseline;
+      gap: 0.75rem 1.25rem;
+      flex-wrap: wrap;
+      min-width: 0;
+    }
     header h1 {
-      margin: 0 0 0.25rem;
-      font-size: 1.25rem;
+      margin: 0;
+      font-size: 1.1rem;
       font-weight: 600;
     }
     header p {
       margin: 0;
+      font-size: 0.85rem;
       color: var(--muted);
+      white-space: nowrap;
     }
     .legend {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.75rem 1.25rem;
-      margin-top: 0.75rem;
-      font-size: 0.75rem;
+      align-items: center;
+      gap: 0.5rem 1rem;
+      font-size: 0.7rem;
       color: var(--muted);
     }
     .legend-item {
@@ -83,11 +104,14 @@
       background: var(--milestone);
     }
     .error {
-      margin: 1rem 1.25rem;
+      flex-shrink: 0;
+      margin: 0.5rem 1.25rem;
       color: #a33;
     }
     .gantt {
-      overflow-x: auto;
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
       padding: 0 0 1rem;
     }
     .gantt-inner {
@@ -108,18 +132,27 @@
       background: #f3f3f3;
       font-size: 0.75rem;
       color: var(--muted);
+      box-shadow: 0 1px 0 var(--grid);
     }
     .row.header .label {
+      position: sticky;
+      left: 0;
+      z-index: 4;
       display: flex;
       align-items: flex-end;
       padding-bottom: 0.35rem;
+      background: #f3f3f3;
     }
     .label {
+      position: sticky;
+      left: 0;
+      z-index: 1;
       padding: 0.35rem 0.75rem;
       border-right: 1px solid var(--grid);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      background: #fff;
     }
     .label .item-name {
       display: block;
@@ -230,7 +263,12 @@
       padding-left: 0.75rem;
     }
     @media print {
+      html, body {
+        height: auto;
+        overflow: visible;
+      }
       body {
+        display: block;
         background: #fff;
       }
       header {
@@ -246,6 +284,10 @@
       .row.header {
         position: static;
       }
+      .row.header .label,
+      .label {
+        position: static;
+      }
       .timeline-svg {
         print-color-adjust: exact;
         -webkit-print-color-adjust: exact;
@@ -258,8 +300,10 @@
 </head>
 <body>
   <header>
-    <h1 id="title">Schedule</h1>
-    <p id="project-finish">Project finish: —</p>
+    <div class="page-header-main">
+      <h1 id="title">Schedule</h1>
+      <p id="project-finish">Project finish: —</p>
+    </div>
     <div class="legend" aria-label="Bar colors">
       <span class="legend-item"><span class="legend-swatch task"></span> Task</span>
       <span class="legend-item"><span class="legend-swatch group"></span> Group</span>
