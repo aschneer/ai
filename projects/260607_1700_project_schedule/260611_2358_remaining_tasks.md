@@ -38,15 +38,9 @@
 
 ### 4. Tighten logic validation (predecessor listing rules)
 
-Partially enforced in `logic_validate_lib.py`. Still missing or weak:
-
-| Rule | Status |
-|------|--------|
-| Top-level with no other preds → exactly `["0FS"]` | Not enforced (only “no 0FS mixed with others”) |
-| Child with no other preds → exactly `["{parentId}SS"]` | Not enforced (only “child must not reference id 0”) |
-| Milestone working days when calendar missing on `validate` | Skipped if calendar not loaded |
-
-Add tests in `test_logic_validate_lib.py` for each new rule.
+- **Status:** Done
+- Exact `["0FS"]` for top-level project anchor; exact `["{parentId}SS"]` when child lists only its parent
+- Calendar required for logic validation when schedule has milestones (working-day and pinned-task checks)
 
 ---
 
