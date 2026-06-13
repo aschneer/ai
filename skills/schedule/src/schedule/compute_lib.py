@@ -33,6 +33,7 @@ class ScheduleItem:
     milestone_date: date | None = None
     start: date | None = None
     finish: date | None = None
+    is_critical: bool = False
 
     @property
     def is_scheduled(self) -> bool:
@@ -85,9 +86,12 @@ def compute_schedule(
     # Iteratively schedule tasks and roll up groups until dates stop changing.
     _run_until_fixed_point(ctx)
 
+    project_finish = _project_finish(ctx.items)
+    _mark_critical_items(ctx, project_finish)
+
     return ComputedSchedule(
         items=ctx.items,
-        project_finish=_project_finish(ctx.items),
+        project_finish=project_finish,
     )
 
 
@@ -104,6 +108,7 @@ def computed_schedule_to_dict(result: ComputedSchedule) -> dict[str, Any]:
                 "finish": item.finish.isoformat() if item.finish else None,
                 "duration": item.duration,
                 "milestone_date": item.milestone_date.isoformat() if item.milestone_date else None,
+                "is_critical": item.is_critical,
             }
             for item in result.items
         ],
@@ -366,3 +371,100 @@ def _start_for_finish(required_finish: date, duration: str, calendar: WorkingCal
     """Back-calculate task start so it finishes on required_finish."""
     working_days = max(parse_duration_to_working_days(duration), 1)
     return calendar.add_working_days(required_finish, -(working_days - 1))
+
+
+def _mark_critical_items(ctx: SchedulingContext, project_finish: date | None) -> None:
+    """Set ``is_critical`` on items that drive project finish."""
+    critical_ids = _compute_critical_item_ids(ctx, project_finish)
+    for item in ctx.items:
+        item.is_critical = item.id in critical_ids
+
+
+def _compute_critical_item_ids(
+    ctx: SchedulingContext,
+    project_finish: date | None,
+) -> frozenset[int]:
+    """Return IDs on the chain that sets project finish."""
+    if project_finish is None:
+        return frozenset()
+
+    critical_ids: set[int] = set()
+    for terminal in _critical_terminal_items(ctx, project_finish):
+        _collect_critical_chain(terminal, ctx, set(), critical_ids)
+    return frozenset(critical_ids)
+
+
+def _critical_terminal_items(
+    ctx: SchedulingContext,
+    project_finish: date,
+) -> list[ScheduleItem]:
+    """Tasks (preferably) whose finish equals project finish."""
+    terminals = [
+        item
+        for item in ctx.items
+        if item.is_scheduled and item.finish == project_finish and item.kind == ItemKind.TASK
+    ]
+    if terminals:
+        return terminals
+    return [item for item in ctx.items if item.is_scheduled and item.finish == project_finish]
+
+
+def _collect_critical_chain(
+    item: ScheduleItem,
+    ctx: SchedulingContext,
+    visiting: set[int],
+    critical_ids: set[int],
+) -> None:
+    """Walk backward from ``item``, adding driving predecessors to ``critical_ids``."""
+    if item.id in visiting:
+        return
+    visiting.add(item.id)
+    critical_ids.add(item.id)
+    for pred_id in _driving_predecessor_ids(item, ctx):
+        pred = ctx.by_id.get(pred_id)
+        if pred is not None:
+            _collect_critical_chain(pred, ctx, visiting, critical_ids)
+
+
+def _driving_predecessor_ids(item: ScheduleItem, ctx: SchedulingContext) -> list[int]:
+    """Return predecessors that actually set this item's scheduled dates.
+
+    Uses driving predecessor links (constraint equals actual start) and
+    rollup-driving children, rather than full total-float math — enough to
+    highlight the chain that determines project finish in the Gantt viewer.
+    """
+    by_id = ctx.by_id
+    ids: list[int] = []
+
+    if item.predecessors and item.start is not None:
+        duration = item.duration or "1d"
+        constraints: list[tuple[int, date]] = []
+        for link in item.predecessors:
+            pred = by_id.get(link.task_id)
+            if pred is None:
+                continue
+            candidate = _constraint_start(link, pred, duration, ctx)
+            if candidate is not None:
+                constraints.append((pred.id, candidate))
+        if constraints:
+            latest = max(candidate for _, candidate in constraints)
+            ids.extend(pred_id for pred_id, candidate in constraints if candidate == latest)
+
+    if item.kind == ItemKind.GROUP and item.finish is not None:
+        children = [
+            child
+            for child in ctx.items
+            if child.parent_id == item.id and child.is_scheduled and child.finish is not None
+        ]
+        if children:
+            latest_finish = max(child.finish for child in children)
+            if latest_finish == item.finish:
+                ids.extend(child.id for child in children if child.finish == latest_finish)
+
+    seen: set[int] = set()
+    unique: list[int] = []
+    for pred_id in ids:
+        if pred_id not in seen:
+            seen.add(pred_id)
+            unique.append(pred_id)
+    return unique

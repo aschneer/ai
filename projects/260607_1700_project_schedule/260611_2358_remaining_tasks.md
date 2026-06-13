@@ -11,7 +11,7 @@
 - CPM compute (`compute_lib.py`)
 - CLIs: `validate`, `compute` (merged render; writes `gantt_data.json`, deploys viewer, stdout + serve by default)
 - Static Gantt viewer (`assets/gantt.html`, `assets/gantt.js`) — bars and milestones only
-- Architecture docs, landscaping example, 25 tests passing
+- Architecture docs, landscaping example, critical path in compute output, 25+ tests passing
 - Agent workflow in `SKILL.md` (don’t modify skill code; propose fixes before editing YAML)
 
 ---
@@ -20,10 +20,10 @@
 
 ### 1. Critical path
 
+- **Status:** Done
 - **What:** Identify and expose the longest dependent chain (determines project finish).
-- **Where:** `compute_lib.py` + include in `gantt_data.json` (and stdout JSON).
-- **Why:** `SKILL.md` tells the agent to report critical path; not implemented yet.
-- **Notes:** Backward pass or float calculation after forward pass; return ordered list of item IDs.
+- **Where:** `compute_lib.py` + `gantt_data.json` / stdout JSON (`is_critical` on each item).
+- **Notes:** Backward walk from terminal tasks; Gantt viewer styles critical bars in a distinct color.
 
 ### 2. Gantt dependency lines
 
@@ -124,7 +124,7 @@ From `references/prd.md`:
 
 ## Suggested implementation order
 
-1. Critical path (JSON + agent reporting)
+1. ~~Critical path (JSON + agent reporting)~~
 2. Predecessors in JSON + Gantt dependency lines
 3. Task timing modes (R19–R23)
 4. Stricter listing validation

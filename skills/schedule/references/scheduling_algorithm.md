@@ -50,6 +50,16 @@ Tasks and groups waiting on predecessor anchors that are not yet scheduled are s
 
 - Latest `finish` date among all scheduled items
 
+### 5. Critical path
+
+- Walk backward from task(s) finishing on `project_finish` through **driving** predecessors:
+  - Predecessor links where the computed constraint equals the item's actual start
+  - For groups, children whose finish equals the group finish (rollup drivers)
+- Set `is_critical: true` on each item in that chain (others default to `false`)
+- Output per item in JSON / stdout — used by the Gantt viewer for bar styling
+
+Driving-predecessor detection avoids full total-float math; it is enough to highlight the chain that sets project finish.
+
 ## Predecessor link semantics
 
 For each link type, the engine computes the **earliest allowed start** for the successor:
@@ -69,5 +79,5 @@ When an item has multiple predecessors, the **latest** required start date appli
 
 ## Output
 
-- Flat list of items with computed `start` and `finish`
+- Flat list of items with computed `start`, `finish`, and `is_critical`
 - `project_finish` date

@@ -115,7 +115,7 @@ The library never writes these fixes for you — that is always the agent's job,
 
 ### 4. Report results (agent)
 
-Present computed dates (from JSON or stdout), critical path, and Gantt URL (`http://127.0.0.1:8000/gantt.html` when serving).
+Present computed dates (from JSON or stdout), call out critical items (`is_critical: true`), and Gantt URL (`http://127.0.0.1:8000/gantt.html` when serving).
 
 If validation failed and you have not yet fixed the file: list every error and your planned YAML changes — do not edit until the user has seen the plan (unless they already asked you to fix it).
 

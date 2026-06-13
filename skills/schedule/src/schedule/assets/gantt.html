@@ -102,7 +102,9 @@
       min-width: 2px;
     }
     .bar.task { background: var(--task); }
+    .bar.task.critical { background: #c0392b; }
     .bar.group { background: var(--group); opacity: 0.85; }
+    .bar.group.critical { background: #5a7a5a; opacity: 1; }
     .bar.milestone {
       width: 10px !important;
       min-width: 10px;
@@ -112,6 +114,10 @@
       top: 50%;
       height: 10px;
       transform: translateY(-50%);
+    }
+    .bar.milestone.critical {
+      background: #922b00;
+      box-shadow: 0 0 0 2px #fff, 0 0 0 3px #922b00;
     }
     .dates {
       font-size: 0.7rem;

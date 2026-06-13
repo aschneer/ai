@@ -31,6 +31,10 @@ def test_write_gantt_data_and_deploy_assets(tmp_path: Path) -> None:
     assert loaded["title"] == "Landscaping"
     assert loaded["project_finish"] == "2026-06-29"
     assert any(item["name"] == "Trim the hedges" for item in loaded["items"])
+    hedges = next(item for item in loaded["items"] if item["name"] == "Trim the hedges")
+    pavers = next(item for item in loaded["items"] if item["name"] == "Install pavers")
+    assert hedges["is_critical"] is False
+    assert pavers["is_critical"] is True
 
     asset_names = {path.name for path in assets}
     assert asset_names == {GANTT_HTML_FILENAME, GANTT_JS_FILENAME}

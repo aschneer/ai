@@ -99,6 +99,9 @@ function renderRow(item, byId, rangeStart, totalDays) {
 
     const bar = document.createElement("div");
     bar.className = `bar ${item.kind}`;
+    if (item.is_critical) {
+      bar.classList.add("critical");
+    }
     bar.style.left = `${leftPct.toFixed(2)}%`;
     if (item.kind === "milestone") {
       bar.classList.add("milestone");

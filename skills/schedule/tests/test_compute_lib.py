@@ -1,11 +1,16 @@
 from datetime import date
 from pathlib import Path
 
-from schedule.compute_lib import compute_schedule
+from schedule.compute_lib import ComputedSchedule, computed_schedule_to_dict, compute_schedule
 from schedule.io_lib import load_schedule_project, load_yaml
 
 EXAMPLES = Path(__file__).resolve().parent.parent / "examples" / "landscaping"
 CALENDAR = {"weekends": ["sat", "sun"], "holidays": []}
+
+
+def critical_ids(result: ComputedSchedule) -> set[int]:
+    """Return IDs of items marked critical on a computed schedule."""
+    return {item.id for item in result.items if item.is_critical}
 
 
 def test_landscaping_schedule_dates() -> None:
@@ -24,6 +29,8 @@ def test_landscaping_schedule_dates() -> None:
     assert by_id[20].start == date(2026, 6, 24)
     assert by_id[20].finish == date(2026, 6, 29)
     assert result.project_finish == date(2026, 6, 29)
+    assert critical_ids(result) == {0, 10, 13, 14, 20}
+    assert not by_id[11].is_critical
 
 
 def test_nested_groups_schedule() -> None:
@@ -88,6 +95,7 @@ def test_finish_to_finish_link() -> None:
     by_id = {item.id: item for item in result.items}
 
     assert by_id[1].finish == by_id[2].finish
+    assert critical_ids(result) == {0, 1, 2}
 
 
 def test_lag_delays_start() -> None:
@@ -115,6 +123,20 @@ def test_lag_delays_start() -> None:
 
     assert by_id[1].finish == date(2026, 6, 9)
     assert by_id[2].start == date(2026, 6, 12)
+    assert critical_ids(result) == {0, 1, 2}
+
+
+def test_computed_schedule_to_dict_marks_critical_items() -> None:
+    schedule_data = load_yaml(EXAMPLES / "schedule.yaml")
+    calendar_data = load_yaml(EXAMPLES / "calendar.yaml")
+    result = compute_schedule(schedule_data, calendar_data)
+    payload = computed_schedule_to_dict(result)
+
+    assert payload["project_finish"] == "2026-06-29"
+    assert "critical_path" not in payload
+    by_id = {item["id"]: item for item in payload["items"]}
+    assert by_id[20]["is_critical"] is True
+    assert by_id[11]["is_critical"] is False
 
 
 def test_landscaping_loads_through_validation() -> None:
