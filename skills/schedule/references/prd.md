@@ -1,7 +1,7 @@
 # Project Schedule — Product Requirements Document
 
 **Status:** Active  
-**Last updated:** 2026-06-12
+**Last updated:** 2026-06-07
 
 ## Purpose
 
@@ -374,6 +374,10 @@ After compute, the user can **open the Gantt in a browser**:
 - The chart must be **reachable on the network** when working on a remote server (LAN, Tailscale, etc.)
 
 CLI flags and server implementation: `architecture.md`, `decisions.md`.
+
+### R26 — Printable Gantt
+
+The user must be able to **print** the schedule for viewing and sharing — to a printer, PDF, or other static document. The implementation (browser print, server-generated PDF, etc.) is not prescribed, but the output must be **clean and faithful** to the on-screen Gantt: task and group names, bars, milestones, dependency links, critical-path highlighting, and timeline alignment.
 
 ### R10 — Live refresh (nice to have)
 
