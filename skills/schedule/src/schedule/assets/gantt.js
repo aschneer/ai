@@ -89,14 +89,14 @@ function elbowPath(x1, y1, x2, y2) {
 }
 
 function renderRow(item, byId, rangeStart, totalDays) {
-  const row = document.createElement("div");
-  row.className = "row";
-
   const depth = itemDepth(item, byId);
+  const row = document.createElement("div");
+  row.className = `row ${item.kind}`;
+
   const label = document.createElement("div");
-  label.className = "label";
+  label.className = `label ${item.kind}`;
   label.title = `${item.kind}: ${item.name}`;
-  label.style.paddingLeft = `${0.75 + depth * 0.75}rem`;
+  label.style.paddingLeft = `${0.75 + depth * 1.25}rem`;
 
   const name = document.createElement("span");
   name.className = "item-name";
