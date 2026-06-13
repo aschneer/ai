@@ -50,7 +50,7 @@ The schedule filename is not fixed. Ask the user for the **schedule file path** 
 
 If the user gives a directory, find the schedule YAML (ask if multiple). If they give a file path, use its parent as the project directory.
 
-Read `references/context.md` before editing — it defines domain terms. Read `references/data_model.md` when creating or structurally changing items. Read `references/architecture.md` for how validation and compute fit together.
+Read `context/context.md` before editing — it defines domain terms. Read `context/data_model.md` when creating or structurally changing items. Read `context/architecture.md` for how validation and compute fit together.
 
 ### 2. Edit the schedule (agent)
 
@@ -108,7 +108,7 @@ uv run compute <schedule-file>
 uv run compute <schedule-file> --no-stdout --no-serve
 ```
 
-**`compute`** validates, runs CPM, writes **`gantt_data.json`**, copies **`gantt.html`** and **`gantt.js`** into the project directory, prints JSON to stdout (default), and starts a dev server (default). It prints **local** and **network** Gantt URLs — use whichever opens from your machine (see `references/decisions.md`). Use **`--no-serve`** for CI or when you only need the files.
+**`compute`** validates, runs CPM, writes **`gantt_data.json`**, copies **`gantt.html`** and **`gantt.js`** into the project directory, prints JSON to stdout (default), and starts a dev server (default). It prints **local** and **network** Gantt URLs — use whichever opens from your machine (see `context/decisions.md`). Use **`--no-serve`** for CI or when you only need the files.
 
 When validation fails, read **all** error messages. Do not patch the skill library to bypass a rule.
 
@@ -159,12 +159,12 @@ When creating or editing a user project, include both modelines unless the user 
 
 ## References
 
-- `references/context.md` — domain glossary (read before editing)
-- `references/architecture.md` — validate-first design, module layout, implementation
-- `references/prd.md` — product requirements and schedule file format (hard requirements)
-- `references/data_model.md` — YAML examples and editing cheat sheet
-- `references/decisions.md` — architecture decisions (ADR-style) and resolved product decisions
-- `references/live_refresh.md` — shelved plan for browser poll + `compute --watch` (PRD R10)
+- `context/context.md` — domain glossary (read before editing)
+- `context/architecture.md` — validate-first design, module layout, implementation
+- `context/prd.md` — product requirements and schedule file format (hard requirements)
+- `context/data_model.md` — YAML examples and editing cheat sheet
+- `context/decisions.md` — architecture decisions (ADR-style) and resolved product decisions
+- `context/live_refresh.md` — shelved plan for browser poll + `compute --watch` (PRD R10)
 - `schemas/` — JSON Schema files **written in YAML** (e.g. `schedule.schema.yaml`, `calendar.schema.yaml`). JSON Schema is the validation standard; YAML is the authoring format. The same schema validates at runtime via `jsonschema` and in the editor via Red Hat YAML + per-file modelines (see **Editor hints** above).
 
 ## Adding library code
@@ -178,4 +178,4 @@ New code must be modular and composable:
 - Unit-testable in isolation
 - Thin scripts compose modules; the agent may also compose them step by step
 
-Full specification: `references/prd.md` (product) and `references/architecture.md` (implementation).
+Full specification: `context/prd.md` (product) and `context/architecture.md` (implementation).

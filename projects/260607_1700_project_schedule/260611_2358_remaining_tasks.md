@@ -3,7 +3,7 @@
 **Created:** 2026-06-11 23:58  
 **Status:** Active backlog  
 **Skill location:** `skills/schedule/`  
-**Design docs:** `projects/260607_1700_project_schedule/`, `skills/schedule/references/`
+**Design docs:** `projects/260607_1700_project_schedule/`, `skills/schedule/context/`
 
 ## Done (for context)
 
@@ -34,7 +34,7 @@
 ### 3. Task timing modes (pinned task dates)
 
 - **Status:** Done
-- **Design:** `skills/schedule/references/task_timing_modes.md`
+- **Design:** `skills/schedule/context/task_timing_modes.md`
 
 ### 4. Tighten logic validation (predecessor listing rules)
 
@@ -64,7 +64,7 @@
 
 ### 8. Gantt hot reload (PRD R10)
 
-- **Status:** Shelved — see `skills/schedule/references/live_refresh.md`
+- **Status:** Shelved — see `skills/schedule/context/live_refresh.md`
 - **Why:** Manual refresh after re-running `compute` is enough for MVP; full loop (browser poll + `compute --watch`) is dev-only polish.
 - **When to revisit:** Frequent local iterate-on-YAML + Gantt sessions become a common pain point.
 
@@ -81,7 +81,7 @@
 
 ## Explicitly out of scope (MVP — do not implement unless scope changes)
 
-From `references/prd.md`:
+From `context/prd.md`:
 
 - Interactive Gantt editing (drag bars, links)
 - Fixed dates on groups (use milestone + predecessor)
@@ -112,5 +112,5 @@ From `references/prd.md`:
 | Dependency lines | `compute_lib.py` (JSON), `assets/gantt.js`, `assets/gantt.html` |
 | Listing validation | `logic_validate_lib.py`, `test_logic_validate_lib.py`, `data_model.md` |
 | Task timing modes | `task_timing_modes.md`, schema, `logic_validate_lib.py`, `compute_lib.py`, tests, examples |
-| PRD sync | `references/prd.md`, `projects/.../PRD.md` |
+| PRD sync | `context/prd.md`, `projects/.../PRD.md` |
 | Editor schema hints | `SKILL.md`, modelines on YAML |

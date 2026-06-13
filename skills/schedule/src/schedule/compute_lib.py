@@ -1,7 +1,7 @@
 """CPM forward-pass scheduling for YAML schedule files.
 
 Expects validated input — run ``logic_validate_lib.validate_schedule_logic`` first.
-Algorithm overview: ``references/scheduling_algorithm.md``.
+Algorithm overview: ``context/scheduling_algorithm.md``.
 """
 
 from __future__ import annotations
