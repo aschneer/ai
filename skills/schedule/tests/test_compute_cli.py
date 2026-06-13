@@ -3,7 +3,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-EXAMPLES = Path(__file__).resolve().parent.parent / "examples" / "landscaping"
+EXAMPLES = Path(__file__).resolve().parent.parent / "examples" / "home_renovation"
 SKILL_ROOT = EXAMPLES.parent.parent
 
 
@@ -33,4 +33,4 @@ def test_compute_cli_writes_gantt_files(tmp_path: Path) -> None:
     assert (tmp_path / "gantt.html").is_file()
     assert (tmp_path / "gantt.js").is_file()
     payload = json.loads((tmp_path / "gantt_data.json").read_text(encoding="utf-8"))
-    assert payload["project_finish"] == "2026-06-29"
+    assert payload["project_finish"] == "2026-09-10"

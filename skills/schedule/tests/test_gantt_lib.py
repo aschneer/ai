@@ -12,7 +12,7 @@ from schedule.gantt_lib import (
 )
 from schedule.io_lib import load_yaml
 
-EXAMPLES = Path(__file__).resolve().parent.parent / "examples" / "landscaping"
+EXAMPLES = Path(__file__).resolve().parent.parent / "examples" / "home_renovation"
 CALENDAR = {"weekends": ["sat", "sun"], "holidays": []}
 
 
@@ -20,7 +20,7 @@ def test_write_gantt_data_and_deploy_assets(tmp_path: Path) -> None:
     schedule_data = load_yaml(EXAMPLES / "schedule.yaml")
     calendar_data = load_yaml(EXAMPLES / "calendar.yaml")
     result = compute_schedule(schedule_data, calendar_data)
-    payload = schedule_payload(computed_schedule_to_dict(result), title="Landscaping")
+    payload = schedule_payload(computed_schedule_to_dict(result), title="Home renovation")
 
     data_path = tmp_path / GANTT_DATA_FILENAME
     write_gantt_data(data_path, payload)
@@ -28,13 +28,13 @@ def test_write_gantt_data_and_deploy_assets(tmp_path: Path) -> None:
 
     assert data_path.is_file()
     loaded = json.loads(data_path.read_text(encoding="utf-8"))
-    assert loaded["title"] == "Landscaping"
-    assert loaded["project_finish"] == "2026-06-29"
-    assert any(item["name"] == "Trim the hedges" for item in loaded["items"])
-    hedges = next(item for item in loaded["items"] if item["name"] == "Trim the hedges")
-    pavers = next(item for item in loaded["items"] if item["name"] == "Install pavers")
-    assert hedges["is_critical"] is False
-    assert pavers["is_critical"] is True
+    assert loaded["title"] == "Home renovation"
+    assert loaded["project_finish"] == "2026-09-10"
+    assert any(item["name"] == "Demo kitchen" for item in loaded["items"])
+    cabinets = next(item for item in loaded["items"] if item["name"] == "Install cabinets")
+    punch = next(item for item in loaded["items"] if item["name"] == "Punch list closeout")
+    assert cabinets["is_critical"] is False
+    assert punch["is_critical"] is True
 
     asset_names = {path.name for path in assets}
     assert asset_names == {GANTT_HTML_FILENAME, GANTT_JS_FILENAME}

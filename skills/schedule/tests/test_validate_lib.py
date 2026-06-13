@@ -3,10 +3,10 @@ from pathlib import Path
 from schedule.io_lib import load_yaml
 from schedule.validate_lib import validate_calendar_file, validate_schedule_file
 
-EXAMPLES = Path(__file__).resolve().parent.parent / "examples" / "landscaping"
+EXAMPLES = Path(__file__).resolve().parent.parent / "examples" / "home_renovation"
 
 
-def test_landscaping_example_passes_validation() -> None:
+def test_home_renovation_example_passes_validation() -> None:
     schedule_path = EXAMPLES / "schedule.yaml"
     calendar_path = EXAMPLES / "calendar.yaml"
 

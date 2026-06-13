@@ -140,44 +140,44 @@ holidays:
 
 ## Valid example
 
+See `examples/home_renovation/` for a full schedule exercising nested groups, multiple milestones, FS/SS/FF links with lag, all four timing modes, and parallel finish tracks.
+
+Abbreviated snippet:
+
 ```yaml
 calendar: calendar.yaml
 items:
   - kind: milestone
     id: 0
     name: Project start
-    date: 2026-06-09
+    date: 2026-06-02
 
   - kind: group
-  id: 10
-  name: Update the landscaping
-  predecessors: ["3FS"]
-  children:
-    - kind: task
-      id: 11
-      name: Trim the hedges
-      timing: auto
-      duration: 2d
-      predecessors: ["10SS"]
-
-    - kind: milestone
-      id: 13
-      name: Permit approved
-      date: 2026-06-22
-
-    - kind: task
-      id: 14
-      name: Re-landscape beds
-      timing: auto
-      duration: 3d
-      predecessors: ["13FS"]
+    id: 10
+    name: Demolition & site prep
+    predecessors: ["5FS"]
+    children:
+      - kind: task
+        id: 11
+        name: Site protection & containment
+        timing: auto
+        duration: 2d
+        predecessors: ["10SS"]
 
   - kind: task
-    id: 20
-    name: Install pavers
+    id: 42
+    name: Install cabinets
+    timing: start_duration
+    start: 2026-08-03
+    duration: 3d
+    predecessors: ["41FS"]
+
+  - kind: task
+    id: 53
+    name: Guest bath refresh
     timing: auto
     duration: 4d
-    predecessors: ["0FS"]
+    predecessors: ["52SS+2d"]
 ```
 
 ## Invalid examples

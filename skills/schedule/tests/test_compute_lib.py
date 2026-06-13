@@ -4,7 +4,7 @@ from pathlib import Path
 from schedule.compute_lib import ComputedSchedule, computed_schedule_to_dict, compute_schedule
 from schedule.io_lib import load_schedule_project, load_yaml
 
-EXAMPLES = Path(__file__).resolve().parent.parent / "examples" / "landscaping"
+EXAMPLES = Path(__file__).resolve().parent.parent / "examples" / "home_renovation"
 CALENDAR = {"weekends": ["sat", "sun"], "holidays": []}
 
 
@@ -13,24 +13,27 @@ def critical_ids(result: ComputedSchedule) -> set[int]:
     return {item.id for item in result.items if item.is_critical}
 
 
-def test_landscaping_schedule_dates() -> None:
+def test_home_renovation_schedule_dates() -> None:
     schedule_data = load_yaml(EXAMPLES / "schedule.yaml")
     calendar_data = load_yaml(EXAMPLES / "calendar.yaml")
     result = compute_schedule(schedule_data, calendar_data)
     by_id = {item.id: item for item in result.items}
 
-    assert by_id[0].start == date(2026, 6, 9)
-    assert by_id[11].start == date(2026, 6, 9)
-    assert by_id[11].finish == date(2026, 6, 10)
-    assert by_id[13].start == date(2026, 6, 22)
-    assert by_id[14].start == date(2026, 6, 22)
-    assert by_id[14].finish == date(2026, 6, 24)
-    assert by_id[10].finish == date(2026, 6, 24)
-    assert by_id[20].start == date(2026, 6, 24)
-    assert by_id[20].finish == date(2026, 6, 29)
-    assert result.project_finish == date(2026, 6, 29)
-    assert critical_ids(result) == {0, 10, 13, 14, 20}
-    assert not by_id[11].is_critical
+    assert by_id[0].start == date(2026, 6, 2)
+    assert by_id[5].start == date(2026, 6, 16)
+    assert by_id[11].start == date(2026, 6, 16)
+    assert by_id[12].finish == date(2026, 6, 23)
+    assert by_id[10].finish == date(2026, 6, 23)
+    assert by_id[20].start == date(2026, 7, 1)
+    assert by_id[42].start == date(2026, 8, 3)
+    assert by_id[42].timing == "start_duration"
+    assert by_id[52].duration == "3d"
+    assert by_id[52].timing == "start_finish"
+    assert by_id[60].finish == date(2026, 9, 4)
+    assert by_id[60].timing == "finish_duration"
+    assert result.project_finish == date(2026, 9, 10)
+    assert critical_ids(result) == {70, 80}
+    assert not by_id[42].is_critical
 
 
 def test_nested_groups_schedule() -> None:
@@ -137,17 +140,17 @@ def test_computed_schedule_to_dict_marks_critical_items() -> None:
     result = compute_schedule(schedule_data, calendar_data)
     payload = computed_schedule_to_dict(result)
 
-    assert payload["project_finish"] == "2026-06-29"
+    assert payload["project_finish"] == "2026-09-10"
     assert "critical_path" not in payload
     by_id = {item["id"]: item for item in payload["items"]}
-    assert by_id[20]["is_critical"] is True
-    assert by_id[11]["is_critical"] is False
-    assert by_id[20]["predecessors"] == [{"task_id": 10, "link_type": "FS", "lag": None}]
+    assert by_id[80]["is_critical"] is True
+    assert by_id[42]["is_critical"] is False
+    assert by_id[80]["predecessors"] == [{"task_id": 70, "link_type": "FS", "lag": None}]
+    assert by_id[43]["predecessors"] == [{"task_id": 42, "link_type": "FF", "lag": None}]
     assert by_id[0]["predecessors"] == []
-    assert by_id[14]["predecessors"] == [{"task_id": 13, "link_type": "FS", "lag": None}]
 
 
-def test_landscaping_loads_through_validation() -> None:
+def test_home_renovation_loads_through_validation() -> None:
     project, errors = load_schedule_project(EXAMPLES / "schedule.yaml", require_calendar=True)
 
     assert errors == []

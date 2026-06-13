@@ -1,0 +1,162 @@
+# yaml-language-server: $schema=../../schemas/schedule.schema.yaml
+calendar: calendar.yaml
+items:
+  - kind: milestone
+    id: 0
+    name: Project start
+    date: 2026-06-02
+
+  - kind: milestone
+    id: 5
+    name: Building permit approved
+    date: 2026-06-16
+
+  - kind: group
+    id: 10
+    name: Demolition & site prep
+    predecessors: ["5FS"]
+    children:
+      - kind: task
+        id: 11
+        name: Site protection & containment
+        timing: auto
+        duration: 2d
+        predecessors: ["10SS"]
+
+      - kind: task
+        id: 12
+        name: Demo kitchen
+        timing: auto
+        duration: 1w
+        predecessors: ["11FS"]
+
+      - kind: group
+        id: 13
+        name: Demo bathrooms
+        predecessors: ["12SS"]
+        children:
+          - kind: task
+            id: 14
+            name: Remove fixtures
+            timing: auto
+            duration: 3d
+            predecessors: ["13SS"]
+
+          - kind: task
+            id: 15
+            name: Remove tile and substrate
+            timing: auto
+            duration: 2d
+            predecessors: ["14FS"]
+
+  - kind: milestone
+    id: 20
+    name: Rough-in inspection passed
+    date: 2026-07-01
+
+  - kind: group
+    id: 30
+    name: Rough-in MEP
+    predecessors: ["20FS"]
+    children:
+      - kind: task
+        id: 31
+        name: Plumbing rough-in
+        timing: auto
+        duration: 2w
+        predecessors: ["30SS"]
+
+      - kind: task
+        id: 32
+        name: Electrical rough-in
+        timing: auto
+        duration: 2w
+        predecessors: ["31SS"]
+
+      - kind: task
+        id: 33
+        name: HVAC rough-in
+        timing: auto
+        duration: 1w
+        predecessors: ["31FS+3d"]
+
+  - kind: group
+    id: 40
+    name: Kitchen finishes
+    predecessors: ["30FS"]
+    children:
+      - kind: task
+        id: 41
+        name: Drywall and prime kitchen
+        timing: auto
+        duration: 1w
+        predecessors: ["40SS"]
+
+      - kind: task
+        id: 42
+        name: Install cabinets
+        timing: start_duration
+        start: 2026-08-03
+        duration: 3d
+        predecessors: ["41FS"]
+
+      - kind: task
+        id: 43
+        name: Template counters
+        timing: auto
+        duration: 2d
+        predecessors: ["42FF"]
+
+      - kind: task
+        id: 44
+        name: Install appliances
+        timing: auto
+        duration: 1d
+        predecessors: ["43FS"]
+
+  - kind: group
+    id: 50
+    name: Bathroom finishes
+    predecessors: ["40SS"]
+    children:
+      - kind: task
+        id: 51
+        name: Waterproof and tile primary bath
+        timing: auto
+        duration: 2w
+        predecessors: ["50SS"]
+
+      - kind: task
+        id: 52
+        name: Fixture set primary bath
+        timing: start_finish
+        start: 2026-08-24
+        finish: 2026-08-26
+        predecessors: ["51FS"]
+
+      - kind: task
+        id: 53
+        name: Guest bath refresh
+        timing: auto
+        duration: 4d
+        predecessors: ["52SS+2d"]
+
+  - kind: task
+    id: 60
+    name: Final cleaning
+    timing: finish_duration
+    finish: 2026-09-04
+    duration: 2d
+    predecessors: ["44FS", "53FS"]
+
+  - kind: milestone
+    id: 70
+    name: Substantial completion
+    date: 2026-09-08
+
+  - kind: task
+    id: 80
+    name: Punch list closeout
+    timing: auto
+    duration: 3d
+    predecessors: ["70FS"]

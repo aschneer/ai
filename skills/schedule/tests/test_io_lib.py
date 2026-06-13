@@ -2,7 +2,7 @@ from pathlib import Path
 
 from schedule.io_lib import load_schedule_project
 
-EXAMPLES = Path(__file__).resolve().parent.parent / "examples" / "landscaping"
+EXAMPLES = Path(__file__).resolve().parent.parent / "examples" / "home_renovation"
 
 
 def test_load_schedule_project_with_calendar() -> None:
