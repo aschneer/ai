@@ -59,19 +59,143 @@ function dateRange(items) {
   };
 }
 
-function weekColumns(rangeStart, rangeEnd) {
-  const columns = [];
+function eachDay(rangeStart, rangeEnd) {
+  const days = [];
   const current = new Date(rangeStart);
-  current.setDate(current.getDate() - current.getDay());
   while (current <= rangeEnd) {
-    const label = current.toLocaleDateString(undefined, { month: "short", day: "numeric" });
-    const week = document.createElement("div");
-    week.className = "week";
-    week.textContent = label;
-    columns.push(week);
-    current.setDate(current.getDate() + 7);
+    days.push(new Date(current));
+    current.setDate(current.getDate() + 1);
   }
-  return columns;
+  return days;
+}
+
+const WEEKDAY_LETTERS = ["S", "M", "T", "W", "T", "F", "S"];
+
+function headerSpans(days, spanKey, labelFn) {
+  const spans = [];
+  let index = 0;
+  while (index < days.length) {
+    const key = spanKey(days[index]);
+    let count = 1;
+    while (index + count < days.length && spanKey(days[index + count]) === key) {
+      count += 1;
+    }
+    spans.push({ label: labelFn(days[index]), count });
+    index += count;
+  }
+  return spans;
+}
+
+function boundaryClass(day, index, days) {
+  if (index === 0) {
+    return "";
+  }
+  if (day.getFullYear() !== days[index - 1].getFullYear()) {
+    return "year-start";
+  }
+  if (day.getMonth() !== days[index - 1].getMonth()) {
+    return "month-start";
+  }
+  return "";
+}
+
+function appendGridSpan(header, className, gridRow, col, spanCount, label, startDay, previousDay) {
+  const cell = document.createElement("div");
+  cell.className = className;
+  cell.style.gridColumn = `${col} / span ${spanCount}`;
+  cell.style.gridRow = String(gridRow);
+  cell.textContent = label;
+  if (previousDay) {
+    const boundary = boundaryClass(startDay, 1, [previousDay, startDay]);
+    if (boundary) {
+      cell.classList.add(boundary);
+    }
+  }
+  header.appendChild(cell);
+}
+
+function appendGridDay(header, className, gridRow, col, day, index, days, valueFn) {
+  const cell = document.createElement("div");
+  cell.className = className;
+  cell.style.gridColumn = String(col);
+  cell.style.gridRow = String(gridRow);
+  const dayOfWeek = day.getDay();
+  if (dayOfWeek === 0 || dayOfWeek === 6) {
+    cell.classList.add("weekend");
+  }
+  const boundary = boundaryClass(day, index, days);
+  if (boundary) {
+    cell.classList.add(boundary);
+  }
+  if (index === days.length - 1) {
+    cell.classList.add("last-col");
+  }
+  cell.textContent = valueFn(day);
+  header.appendChild(cell);
+}
+
+function buildTimelineHeader(rangeStart, rangeEnd) {
+  const header = document.createElement("div");
+  header.className = "timeline-header";
+  const days = eachDay(rangeStart, rangeEnd);
+  header.style.setProperty("--day-count", String(days.length));
+
+  let col = 1;
+  for (const span of headerSpans(
+    days,
+    (day) => day.getFullYear(),
+    (day) => String(day.getFullYear()),
+  )) {
+    appendGridSpan(
+      header,
+      "header-span year-cell",
+      1,
+      col,
+      span.count,
+      span.label,
+      days[col - 1],
+      col > 1 ? days[col - 2] : null,
+    );
+    col += span.count;
+  }
+
+  col = 1;
+  for (const span of headerSpans(
+    days,
+    (day) => `${day.getFullYear()}-${day.getMonth()}`,
+    (day) => day.toLocaleDateString(undefined, { month: "long" }),
+  )) {
+    appendGridSpan(
+      header,
+      "header-span month-cell",
+      2,
+      col,
+      span.count,
+      span.label,
+      days[col - 1],
+      col > 1 ? days[col - 2] : null,
+    );
+    col += span.count;
+  }
+
+  days.forEach((day, index) => {
+    const colNum = index + 1;
+    appendGridDay(header, "day-col day-cell", 3, colNum, day, index, days, (d) =>
+      String(d.getDate()),
+    );
+    appendGridDay(
+      header,
+      "day-col weekday-cell",
+      4,
+      colNum,
+      day,
+      index,
+      days,
+      (d) => WEEKDAY_LETTERS[d.getDay()],
+    );
+  });
+
+  return header;
 }
 
 function remPx() {
@@ -388,6 +512,7 @@ function renderGantt(data) {
 
   const totalDays =
     Math.round((range.end - range.start) / (1000 * 60 * 60 * 24)) + 1;
+  document.documentElement.style.setProperty("--timeline-min-width", `${totalDays * 1.15}rem`);
   const byId = new Map(items.map((item) => [item.id, item]));
 
   const header = document.createElement("div");
@@ -397,10 +522,7 @@ function renderGantt(data) {
   headerLabel.textContent = "Item";
   const headerTimeline = document.createElement("div");
   headerTimeline.className = "timeline";
-  const headerWeeks = document.createElement("div");
-  headerWeeks.className = "timeline-header";
-  weekColumns(range.start, range.end).forEach((week) => headerWeeks.appendChild(week));
-  headerTimeline.appendChild(headerWeeks);
+  headerTimeline.appendChild(buildTimelineHeader(range.start, range.end));
   header.append(headerLabel, headerTimeline);
   root.appendChild(header);
 

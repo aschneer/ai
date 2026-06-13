@@ -15,6 +15,9 @@
       --milestone: #c45c26;
       --critical: #c0392b;
       --label-width: 16rem;
+      --day-col-min: 1.1rem;
+      --weekend-bg: #d8d8d8;
+      --header-major-border: #888;
       --critical-ring: 0 0 0 1px #fff, 0 0 0 3px var(--critical);
     }
     * { box-sizing: border-box; }
@@ -88,7 +91,7 @@
       padding: 0 0 1rem;
     }
     .gantt-inner {
-      min-width: 48rem;
+      min-width: max(48rem, var(--timeline-min-width, 48rem));
       position: relative;
     }
     .row {
@@ -105,7 +108,11 @@
       background: #f3f3f3;
       font-size: 0.75rem;
       color: var(--muted);
-      min-height: 1.75rem;
+    }
+    .row.header .label {
+      display: flex;
+      align-items: flex-end;
+      padding-bottom: 0.35rem;
     }
     .label {
       padding: 0.35rem 0.75rem;
@@ -142,14 +149,57 @@
       min-height: 2rem;
     }
     .timeline-header {
-      display: flex;
-      height: 100%;
+      display: grid;
+      grid-template-columns: repeat(var(--day-count), minmax(var(--day-col-min), 1fr));
+      grid-template-rows: auto auto auto auto;
+      width: 100%;
+      line-height: 1.2;
     }
-    .week {
-      flex: 1;
-      border-right: 1px solid var(--grid);
-      padding: 0.25rem 0.35rem;
+    .year-cell {
+      grid-row: 1;
+      font-weight: 600;
+    }
+    .month-cell {
+      grid-row: 2;
+      font-weight: 500;
+    }
+    .day-cell {
+      grid-row: 3;
+    }
+    .weekday-cell {
+      grid-row: 4;
+    }
+    .header-span {
+      display: flex;
+      align-items: center;
+      justify-content: center;
       text-align: center;
+      padding: 0.15rem 0.2rem;
+      border-bottom: 1px solid var(--grid);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .year-start,
+    .month-start {
+      border-left: 2px solid var(--header-major-border);
+    }
+    .day-col {
+      text-align: center;
+      padding: 0.1rem 0;
+      border-right: 1px solid #efefef;
+      border-bottom: 1px solid var(--grid);
+      font-size: 0.65rem;
+    }
+    .weekday-cell {
+      border-bottom: none;
+    }
+    .day-col.last-col {
+      border-right: none;
+    }
+    .day-col.weekend {
+      background: var(--weekend-bg);
+      color: #444;
     }
     .bar-area {
       position: absolute;
