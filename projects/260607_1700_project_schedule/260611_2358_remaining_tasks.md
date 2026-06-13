@@ -72,13 +72,10 @@
 
 - **Status:** Resolved — logic validation requires calendar when schedule has milestones
 
-### 10. Push to remote
+### 10. Editor schema hints
 
-- Branch `main` is **6 commits ahead** of `origin/main` (as of 2026-06-11).
-
-### 11. Editor schema hints
-
-- Optional modeline or README note for Red Hat YAML + `schemas/*.schema.yaml` on example projects.
+- **Status:** Done
+- Modelines on example and fixture schedule/calendar YAML; agent guidance in `SKILL.md` (Red Hat extension + modelines; workspace settings optional).
 
 ---
 
@@ -103,7 +100,7 @@ From `references/prd.md`:
 4. ~~Stricter listing validation~~
 5. PRD sync (validate-first drift)
 6. ~~Hot reload~~ — shelved (`live_refresh.md`)
-7. Evals + gitignore + push
+7. Evals + gitignore
 
 ---
 
@@ -116,5 +113,4 @@ From `references/prd.md`:
 | Listing validation | `logic_validate_lib.py`, `test_logic_validate_lib.py`, `data_model.md` |
 | Task timing modes | `task_timing_modes.md`, schema, `logic_validate_lib.py`, `compute_lib.py`, tests, examples |
 | PRD sync | `references/prd.md`, `projects/.../PRD.md` |
-| Live refresh (shelved) | `references/live_refresh.md` |
-| Hot reload (if implemented) | `src/schedule/assets/gantt.js`, `watch_lib.py`, `compute.py` |
+| Editor schema hints | `SKILL.md`, modelines on YAML |

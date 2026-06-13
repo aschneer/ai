@@ -108,7 +108,7 @@ We use **`group`**, not `summary` or `phase` — see `decisions.md` (Resolved pr
 ### Validation
 
 - Schedule and calendar files must conform to this format. The skill ships **JSON Schema** files authored in YAML (`schemas/schedule.schema.yaml`, `schemas/calendar.schema.yaml`).
-- The same schemas power **editor validation** (Red Hat YAML + `yaml.schemas`, or a modeline: `# yaml-language-server: $schema=./schemas/schedule.schema.yaml`).
+- The same schemas power **editor validation** via Red Hat YAML and a modeline on each file (`# yaml-language-server: $schema=…` on schedule and calendar). Workspace `yaml.schemas` is optional; see `SKILL.md` **Editor hints**.
 - **`kind`** selects a sub-schema; forbidden fields on a kind are **schema errors**, not runtime surprises.
 - A group with zero children is invalid at schema level.
 

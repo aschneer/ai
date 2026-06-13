@@ -129,6 +129,28 @@ If validation failed and you have not yet fixed the file: list every error and y
 
 Do not fix validation problems by writing computed `start`/`finish` dates onto non-milestone items — only milestones have user-set dates.
 
+## Editor hints (optional)
+
+Inline schema validation while editing is **optional** — the skill does not require workspace settings.
+
+1. Install the [Red Hat YAML](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml) extension (Cursor / VS Code).
+2. Copy `schemas/schedule.schema.yaml` and `schemas/calendar.schema.yaml` into the user’s project (e.g. a `schemas/` folder).
+3. Add a modeline as the **first line** of **both** the schedule file and the calendar file:
+
+```yaml
+# yaml-language-server: $schema=./schemas/schedule.schema.yaml
+```
+
+```yaml
+# yaml-language-server: $schema=./schemas/calendar.schema.yaml
+```
+
+Adjust relative paths to match where the schemas live.
+
+When creating or editing a user project, include both modelines unless the user opts out. Repo examples already have modelines configured.
+
+**Optional:** workspace `yaml.schemas` in `.vscode/settings.json` can map globs to schemas without modelines in every file — not required; modelines are sufficient and travel with the file.
+
 ## When NOT to use
 
 - User wants interactive Gantt drag-and-drop editing
@@ -143,7 +165,7 @@ Do not fix validation problems by writing computed `start`/`finish` dates onto n
 - `references/data_model.md` — YAML examples and editing cheat sheet
 - `references/decisions.md` — architecture decisions (ADR-style) and resolved product decisions
 - `references/live_refresh.md` — shelved plan for browser poll + `compute --watch` (PRD R10)
-- `schemas/` — JSON Schema files **written in YAML** (e.g. `schedule.schema.yaml`, `calendar.schema.yaml`). JSON Schema is the validation standard; YAML is the authoring format. The same schema validates schedule data files in the editor (Red Hat YAML + `yaml.schemas`) and in library code.
+- `schemas/` — JSON Schema files **written in YAML** (e.g. `schedule.schema.yaml`, `calendar.schema.yaml`). JSON Schema is the validation standard; YAML is the authoring format. The same schema validates at runtime via `jsonschema` and in the editor via Red Hat YAML + per-file modelines (see **Editor hints** above).
 
 ## Adding library code
 
