@@ -4,7 +4,7 @@ from pathlib import Path
 from schedule.compute_lib import ComputedSchedule, computed_schedule_to_dict, compute_schedule
 from schedule.io_lib import load_schedule_project, load_yaml
 
-EXAMPLES = Path(__file__).resolve().parent.parent / "examples" / "home_renovation"
+FIXTURES = Path(__file__).resolve().parent / "fixtures" / "home_renovation"
 CALENDAR = {"weekends": ["sat", "sun"], "holidays": []}
 
 
@@ -14,8 +14,8 @@ def critical_ids(result: ComputedSchedule) -> set[int]:
 
 
 def test_home_renovation_schedule_dates() -> None:
-    schedule_data = load_yaml(EXAMPLES / "schedule.yaml")
-    calendar_data = load_yaml(EXAMPLES / "calendar.yaml")
+    schedule_data = load_yaml(FIXTURES / "schedule.yaml")
+    calendar_data = load_yaml(FIXTURES / "calendar.yaml")
     result = compute_schedule(schedule_data, calendar_data)
     by_id = {item.id: item for item in result.items}
 
@@ -135,8 +135,8 @@ def test_lag_delays_start() -> None:
 
 
 def test_computed_schedule_to_dict_marks_critical_items() -> None:
-    schedule_data = load_yaml(EXAMPLES / "schedule.yaml")
-    calendar_data = load_yaml(EXAMPLES / "calendar.yaml")
+    schedule_data = load_yaml(FIXTURES / "schedule.yaml")
+    calendar_data = load_yaml(FIXTURES / "calendar.yaml")
     result = compute_schedule(schedule_data, calendar_data)
     payload = computed_schedule_to_dict(result)
 
@@ -151,7 +151,7 @@ def test_computed_schedule_to_dict_marks_critical_items() -> None:
 
 
 def test_home_renovation_loads_through_validation() -> None:
-    project, errors = load_schedule_project(EXAMPLES / "schedule.yaml", require_calendar=True)
+    project, errors = load_schedule_project(FIXTURES / "schedule.yaml", require_calendar=True)
 
     assert errors == []
     assert project is not None

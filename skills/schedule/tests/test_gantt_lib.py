@@ -12,13 +12,13 @@ from schedule.gantt_lib import (
 )
 from schedule.io_lib import load_yaml
 
-EXAMPLES = Path(__file__).resolve().parent.parent / "examples" / "home_renovation"
+FIXTURES = Path(__file__).resolve().parent / "fixtures" / "home_renovation"
 CALENDAR = {"weekends": ["sat", "sun"], "holidays": []}
 
 
 def test_write_gantt_data_and_deploy_assets(tmp_path: Path) -> None:
-    schedule_data = load_yaml(EXAMPLES / "schedule.yaml")
-    calendar_data = load_yaml(EXAMPLES / "calendar.yaml")
+    schedule_data = load_yaml(FIXTURES / "schedule.yaml")
+    calendar_data = load_yaml(FIXTURES / "calendar.yaml")
     result = compute_schedule(schedule_data, calendar_data)
     payload = schedule_payload(computed_schedule_to_dict(result), title="Home renovation")
 

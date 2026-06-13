@@ -3,15 +3,15 @@ import subprocess
 import sys
 from pathlib import Path
 
-EXAMPLES = Path(__file__).resolve().parent.parent / "examples" / "home_renovation"
-SKILL_ROOT = EXAMPLES.parent.parent
+FIXTURES = Path(__file__).resolve().parent / "fixtures" / "home_renovation"
+SKILL_ROOT = Path(__file__).resolve().parent.parent
 
 
 def test_compute_cli_writes_gantt_files(tmp_path: Path) -> None:
     schedule_copy = tmp_path / "schedule.yaml"
     calendar_copy = tmp_path / "calendar.yaml"
-    schedule_copy.write_text((EXAMPLES / "schedule.yaml").read_text(encoding="utf-8"))
-    calendar_copy.write_text((EXAMPLES / "calendar.yaml").read_text(encoding="utf-8"))
+    schedule_copy.write_text((FIXTURES / "schedule.yaml").read_text(encoding="utf-8"))
+    calendar_copy.write_text((FIXTURES / "calendar.yaml").read_text(encoding="utf-8"))
 
     result = subprocess.run(
         [

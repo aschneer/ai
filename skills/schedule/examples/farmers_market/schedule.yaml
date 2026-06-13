@@ -1,0 +1,108 @@
+# yaml-language-server: $schema=../../schemas/schedule.schema.yaml
+calendar: calendar.yaml
+items:
+  - kind: milestone
+    id: 0
+    name: Planning kickoff
+    date: 2026-05-04
+
+  - kind: group
+    id: 10
+    name: Permits & licensing
+    predecessors: ["0FS"]
+    children:
+      - kind: task
+        id: 11
+        name: Submit health department application
+        timing: auto
+        duration: 1w
+        predecessors: ["10SS"]
+
+      - kind: task
+        id: 12
+        name: Obtain business license
+        timing: auto
+        duration: 2w
+        predecessors: ["11FS"]
+
+  - kind: milestone
+    id: 15
+    name: Permit approved
+    date: 2026-06-02
+
+  - kind: group
+    id: 20
+    name: Vendor recruitment
+    predecessors: ["0FS"]
+    children:
+      - kind: task
+        id: 21
+        name: Draft vendor prospectus
+        timing: auto
+        duration: 3d
+        predecessors: ["20SS"]
+
+      - kind: task
+        id: 22
+        name: Confirm anchor vendors
+        timing: start_duration
+        start: 2026-05-18
+        duration: 2w
+        predecessors: ["21FS"]
+
+  - kind: group
+    id: 30
+    name: Site & logistics
+    predecessors: ["15FS"]
+    children:
+      - kind: task
+        id: 31
+        name: Order tents and signage
+        timing: auto
+        duration: 1w
+        predecessors: ["30SS"]
+
+      - kind: task
+        id: 32
+        name: Arrange parking and traffic plan
+        timing: auto
+        duration: 4d
+        predecessors: ["31SS"]
+
+  - kind: group
+    id: 40
+    name: Promotion
+    predecessors: ["22FS"]
+    children:
+      - kind: task
+        id: 41
+        name: Launch social campaign
+        timing: auto
+        duration: 2w
+        predecessors: ["40SS"]
+
+      - kind: task
+        id: 42
+        name: Send press release
+        timing: auto
+        duration: 2d
+        predecessors: ["41FS+3d"]
+
+  - kind: task
+    id: 50
+    name: Opening day rehearsal
+    timing: auto
+    duration: 1d
+    predecessors: ["32FS", "42FS"]
+
+  - kind: milestone
+    id: 60
+    name: Opening day
+    date: 2026-07-06
+
+  - kind: task
+    id: 70
+    name: First market session
+    timing: auto
+    duration: 1d
+    predecessors: ["60FS"]

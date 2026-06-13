@@ -2,12 +2,12 @@ from pathlib import Path
 
 from schedule.io_lib import load_schedule_project
 
-EXAMPLES = Path(__file__).resolve().parent.parent / "examples" / "home_renovation"
+FIXTURES = Path(__file__).resolve().parent / "fixtures" / "home_renovation"
 
 
 def test_load_schedule_project_with_calendar() -> None:
     project, errors = load_schedule_project(
-        EXAMPLES / "schedule.yaml",
+        FIXTURES / "schedule.yaml",
         require_calendar=True,
     )
 
@@ -18,7 +18,7 @@ def test_load_schedule_project_with_calendar() -> None:
 
 def test_load_schedule_project_validate_without_require() -> None:
     project, errors = load_schedule_project(
-        EXAMPLES / "schedule.yaml",
+        FIXTURES / "schedule.yaml",
         require_calendar=False,
     )
 

@@ -140,44 +140,39 @@ holidays:
 
 ## Valid example
 
-See `examples/home_renovation/` for a full schedule exercising nested groups, multiple milestones, FS/SS/FF links with lag, all four timing modes, and parallel finish tracks.
+See `examples/farmers_market/` for a user-facing demo schedule (permits, vendors, site setup, and promotion for a market opening).
 
-Abbreviated snippet:
+Regression tests use a separate fixture at `tests/fixtures/home_renovation/` — do not point tests at `examples/`.
+
+Abbreviated demo snippet:
 
 ```yaml
 calendar: calendar.yaml
 items:
   - kind: milestone
     id: 0
-    name: Project start
-    date: 2026-06-02
+    name: Planning kickoff
+    date: 2026-05-04
 
   - kind: group
-    id: 10
-    name: Demolition & site prep
-    predecessors: ["5FS"]
+    id: 20
+    name: Vendor recruitment
+    predecessors: ["0FS"]
     children:
       - kind: task
-        id: 11
-        name: Site protection & containment
-        timing: auto
-        duration: 2d
-        predecessors: ["10SS"]
+        id: 22
+        name: Confirm anchor vendors
+        timing: start_duration
+        start: 2026-05-18
+        duration: 2w
+        predecessors: ["21FS"]
 
   - kind: task
     id: 42
-    name: Install cabinets
-    timing: start_duration
-    start: 2026-08-03
-    duration: 3d
-    predecessors: ["41FS"]
-
-  - kind: task
-    id: 53
-    name: Guest bath refresh
+    name: Send press release
     timing: auto
-    duration: 4d
-    predecessors: ["52SS+2d"]
+    duration: 2d
+    predecessors: ["41FS+3d"]
 ```
 
 ## Invalid examples

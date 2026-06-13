@@ -11,7 +11,7 @@
 - CPM compute (`compute_lib.py`)
 - CLIs: `validate`, `compute` (merged render; writes `gantt_data.json`, deploys viewer, stdout + serve by default)
 - Static Gantt viewer (`assets/gantt.html`, `assets/gantt.js`) — bars, milestones, dependency lines, critical styling
-- Architecture docs, home renovation example, critical path in compute output, 40+ tests passing
+- Architecture docs, farmers market demo example, home renovation test fixture, critical path in compute output, 40+ tests passing
 - Agent workflow in `SKILL.md` (don’t modify skill code; propose fixes before editing YAML)
 
 ---
