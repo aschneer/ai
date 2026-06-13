@@ -140,66 +140,51 @@
       position: absolute;
       inset: 0.3rem 0;
     }
-    .bar {
+    .timeline-svg {
       position: absolute;
-      top: 0.25rem;
-      height: calc(100% - 0.5rem);
-      border-radius: 3px;
-      min-width: 2px;
+      top: 0;
+      left: var(--label-width);
+      right: 0;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+      overflow: visible;
     }
-    .bar.task { background: var(--task); }
-    .bar.group {
-      background: transparent;
-      border-top: 3px solid var(--group);
-      border-left: 3px solid var(--group);
-      border-right: 3px solid var(--group);
-      border-bottom: none;
-      border-radius: 0;
-      opacity: 1;
-      height: 10px;
-      top: 0.3rem;
+    .timeline-svg .links path {
+      fill: none;
+      stroke: #aaa;
+      stroke-width: 1.5;
     }
-    .bar.group.critical {
-      border-color: var(--critical);
-      box-shadow: none;
-    }
-    .bar.critical:not(.milestone):not(.group) {
-      box-shadow: var(--critical-ring);
-    }
-    .bar.milestone {
-      width: 10px !important;
-      min-width: 10px;
-      margin-left: -5px;
-      background: var(--milestone);
-      border-radius: 50%;
-      top: 50%;
-      height: 10px;
-      transform: translateY(-50%);
-    }
-    .bar.milestone.critical {
-      box-shadow: var(--critical-ring);
+    .timeline-svg .links path.critical {
+      stroke: var(--critical);
+      stroke-width: 2;
     }
     .dates {
       font-size: 0.7rem;
       color: var(--muted);
       padding-left: 0.75rem;
     }
-    .dependency-lines {
-      position: absolute;
-      top: 0;
-      left: var(--label-width);
-      pointer-events: none;
-      z-index: 1;
-      overflow: visible;
-    }
-    .dependency-lines path {
-      fill: none;
-      stroke: #aaa;
-      stroke-width: 1.5;
-    }
-    .dependency-lines path.critical {
-      stroke: var(--critical);
-      stroke-width: 2;
+    @media print {
+      body {
+        background: #fff;
+      }
+      header {
+        border-bottom: 1px solid #ccc;
+      }
+      .gantt {
+        overflow: visible;
+      }
+      .gantt-inner {
+        min-width: unset;
+        width: 100%;
+      }
+      .row.header {
+        position: static;
+      }
+      .timeline-svg {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+      }
     }
   </style>
 </head>

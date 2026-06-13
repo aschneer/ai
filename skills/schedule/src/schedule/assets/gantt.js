@@ -70,23 +70,115 @@ function weekColumns(rangeStart, rangeEnd) {
   return columns;
 }
 
-function barAnchor(rowEl, edge, vertical, timelineRect, containerRect) {
-  const bar = rowEl.querySelector(".bar");
-  if (!bar) {
+function remPx() {
+  return parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+}
+
+function chartColors() {
+  const styles = getComputedStyle(document.documentElement);
+  return {
+    task: styles.getPropertyValue("--task").trim(),
+    group: styles.getPropertyValue("--group").trim(),
+    milestone: styles.getPropertyValue("--milestone").trim(),
+    critical: styles.getPropertyValue("--critical").trim(),
+  };
+}
+
+function itemMetrics(item, rangeStart, totalDays) {
+  if (!item.start || !item.finish || totalDays <= 0) {
     return null;
   }
-  const barRect = bar.getBoundingClientRect();
-  let x = (edge === "start" ? barRect.left : barRect.right) - timelineRect.left;
+  const start = parseDate(item.start);
+  const finish = parseDate(item.finish);
+  const offsetDays = Math.round((start - rangeStart) / (1000 * 60 * 60 * 24));
+  const spanDays = Math.max(
+    Math.round((finish - start) / (1000 * 60 * 60 * 24)) + 1,
+    1,
+  );
+  return {
+    leftPct: (offsetDays / totalDays) * 100,
+    widthPct: (spanDays / totalDays) * 100,
+    kind: item.kind,
+  };
+}
+
+function timelineBox(rowEl, containerTop) {
+  const timeline = rowEl.querySelector(".timeline");
+  const rect = timeline.getBoundingClientRect();
+  return {
+    top: rect.top - containerTop,
+    height: rect.height,
+    width: rect.width,
+  };
+}
+
+function barGeometry(entry, box, timelineWidth) {
+  const { metrics, item } = entry;
+  if (!metrics) {
+    return null;
+  }
+  const rem = remPx();
+  const left = (metrics.leftPct / 100) * timelineWidth;
+  const width = Math.max((metrics.widthPct / 100) * timelineWidth, 2);
+
+  if (item.kind === "milestone") {
+    return {
+      kind: "milestone",
+      cx: left,
+      cy: box.top + box.height / 2,
+      r: 5,
+      item,
+    };
+  }
+
+  if (item.kind === "group") {
+    const y = box.top + 0.3 * rem;
+    return {
+      kind: "group",
+      x: left,
+      y,
+      width,
+      legH: 10,
+      item,
+    };
+  }
+
+  const areaTop = box.top + 0.3 * rem;
+  const areaHeight = box.height - 0.6 * rem;
+  return {
+    kind: "task",
+    x: left,
+    y: areaTop + 0.25 * rem,
+    width,
+    height: Math.max(areaHeight - 0.5 * rem, 4),
+    item,
+  };
+}
+
+function anchorFromGeometry(geom, edge, vertical) {
+  if (geom.kind === "milestone") {
+    return { x: geom.cx, y: geom.cy };
+  }
+
+  if (geom.kind === "group") {
+    let x = edge === "start" ? geom.x : geom.x + geom.width;
+    let y = vertical === "top" ? geom.y : geom.y + geom.legH / 2;
+    if (edge === "start") {
+      x += LINK_ARROW_INDENT;
+    }
+    return { x, y };
+  }
+
+  let x = edge === "start" ? geom.x : geom.x + geom.width;
+  let y = geom.y;
+  if (vertical === "center") {
+    y = geom.y + geom.height / 2;
+  } else if (vertical === "bottom") {
+    y = geom.y + geom.height;
+  }
   if (edge === "start") {
     x += LINK_ARROW_INDENT;
   }
-  let y = barRect.top;
-  if (vertical === "center") {
-    y = barRect.top + barRect.height / 2;
-  } else if (vertical === "bottom") {
-    y = barRect.bottom;
-  }
-  y -= containerRect.top;
   return { x, y };
 }
 
@@ -98,11 +190,10 @@ function dependencyPath(x1, y1, x2, y2) {
   return `M ${x1} ${y1} H ${x2} V ${y2}`;
 }
 
-function addDependencyArrowMarkers(svg) {
-  const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+function addDependencyArrowMarkers(defs, colors) {
   for (const [id, fill] of [
     ["dependency-arrow", "#aaa"],
-    ["dependency-arrow-critical", "#c0392b"],
+    ["dependency-arrow-critical", colors.critical],
   ]) {
     const marker = document.createElementNS("http://www.w3.org/2000/svg", "marker");
     marker.setAttribute("id", id);
@@ -118,7 +209,132 @@ function addDependencyArrowMarkers(svg) {
     marker.appendChild(head);
     defs.appendChild(marker);
   }
+}
+
+function appendBarShape(layer, geom, colors) {
+  const { item } = geom;
+  const critical = item.is_critical;
+
+  if (geom.kind === "milestone") {
+    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    circle.setAttribute("class", `bar milestone${critical ? " critical" : ""}`);
+    circle.setAttribute("cx", String(geom.cx));
+    circle.setAttribute("cy", String(geom.cy));
+    circle.setAttribute("r", String(geom.r));
+    circle.setAttribute("fill", colors.milestone);
+    if (critical) {
+      circle.setAttribute("stroke", colors.critical);
+      circle.setAttribute("stroke-width", "3");
+    }
+    layer.appendChild(circle);
+    return;
+  }
+
+  if (geom.kind === "group") {
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    const { x, y, width, legH } = geom;
+    path.setAttribute(
+      "d",
+      `M ${x} ${y + legH} L ${x} ${y} L ${x + width} ${y} L ${x + width} ${y + legH}`,
+    );
+    path.setAttribute("class", `bar group${critical ? " critical" : ""}`);
+    path.setAttribute("fill", "none");
+    path.setAttribute("stroke", critical ? colors.critical : colors.group);
+    path.setAttribute("stroke-width", "3");
+    layer.appendChild(path);
+    return;
+  }
+
+  const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+  rect.setAttribute("class", `bar task${critical ? " critical" : ""}`);
+  rect.setAttribute("x", String(geom.x));
+  rect.setAttribute("y", String(geom.y));
+  rect.setAttribute("width", String(geom.width));
+  rect.setAttribute("height", String(geom.height));
+  rect.setAttribute("rx", "3");
+  rect.setAttribute("fill", colors.task);
+  if (critical) {
+    rect.setAttribute("stroke", colors.critical);
+    rect.setAttribute("stroke-width", "3");
+  }
+  layer.appendChild(rect);
+}
+
+function renderTimelineSvg(items, rowEntries, container) {
+  const drawable = rowEntries.filter((entry) => entry.metrics);
+  if (!drawable.length) {
+    return;
+  }
+
+  const containerRect = container.getBoundingClientRect();
+  const timelineWidth = timelineBox(drawable[0].row, containerRect.top).width;
+  const containerHeight = containerRect.height;
+  if (!timelineWidth || !containerHeight) {
+    return;
+  }
+
+  const colors = chartColors();
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("class", "timeline-svg");
+  svg.setAttribute("width", String(timelineWidth));
+  svg.setAttribute("height", String(containerHeight));
+  svg.setAttribute("viewBox", `0 0 ${timelineWidth} ${containerHeight}`);
+  svg.setAttribute("preserveAspectRatio", "none");
+
+  const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+  addDependencyArrowMarkers(defs, colors);
   svg.appendChild(defs);
+
+  const barLayer = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  barLayer.setAttribute("class", "bars");
+  const linkLayer = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  linkLayer.setAttribute("class", "links");
+
+  const geometryById = new Map();
+  for (const entry of drawable) {
+    const box = timelineBox(entry.row, containerRect.top);
+    const geom = barGeometry(entry, box, timelineWidth);
+    if (!geom) {
+      continue;
+    }
+    geometryById.set(entry.item.id, geom);
+    appendBarShape(barLayer, geom, colors);
+  }
+
+  const byId = new Map(drawable.map((entry) => [entry.item.id, entry]));
+  for (const item of items) {
+    const predecessors = item.predecessors || [];
+    const succGeom = geometryById.get(item.id);
+    if (!succGeom) {
+      continue;
+    }
+
+    for (const pred of predecessors) {
+      const predGeom = geometryById.get(pred.task_id);
+      if (!predGeom) {
+        continue;
+      }
+
+      const anchors = LINK_ANCHORS[pred.link_type] || LINK_ANCHORS.FS;
+      const from = anchorFromGeometry(predGeom, anchors.from.edge, anchors.from.v);
+      const to = anchorFromGeometry(succGeom, anchors.to.edge, anchors.to.v);
+
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("d", dependencyPath(from.x, from.y, to.x, to.y));
+      const isCritical = predGeom.item.is_critical && succGeom.item.is_critical;
+      path.setAttribute(
+        "marker-end",
+        isCritical ? "url(#dependency-arrow-critical)" : "url(#dependency-arrow)",
+      );
+      if (isCritical) {
+        path.classList.add("critical");
+      }
+      linkLayer.appendChild(path);
+    }
+  }
+
+  svg.append(barLayer, linkLayer);
+  container.appendChild(svg);
 }
 
 function renderRow(item, byId, rangeStart, totalDays) {
@@ -144,113 +360,11 @@ function renderRow(item, byId, rangeStart, totalDays) {
   timeline.className = "timeline";
   const barArea = document.createElement("div");
   barArea.className = "bar-area";
-
-  let metrics = null;
-  if (item.start && item.finish && totalDays > 0) {
-    const start = parseDate(item.start);
-    const finish = parseDate(item.finish);
-    const offsetDays = Math.round((start - rangeStart) / (1000 * 60 * 60 * 24));
-    const spanDays = Math.max(
-      Math.round((finish - start) / (1000 * 60 * 60 * 24)) + 1,
-      1,
-    );
-    const leftPct = (offsetDays / totalDays) * 100;
-    const widthPct = (spanDays / totalDays) * 100;
-
-    const bar = document.createElement("div");
-    bar.className = `bar ${item.kind}`;
-    if (item.is_critical) {
-      bar.classList.add("critical");
-    }
-    bar.style.left = `${leftPct.toFixed(2)}%`;
-    if (item.kind === "milestone") {
-      bar.classList.add("milestone");
-    } else {
-      bar.style.width = `${widthPct.toFixed(2)}%`;
-    }
-    barArea.appendChild(bar);
-    metrics = { leftPct, widthPct, kind: item.kind };
-  }
-
   timeline.appendChild(barArea);
   row.append(label, timeline);
+
+  const metrics = itemMetrics(item, rangeStart, totalDays);
   return { row, metrics, item };
-}
-
-function renderDependencyLines(items, rowEntries, container) {
-  const drawable = rowEntries.filter((entry) => entry.metrics);
-  if (!drawable.length) {
-    return;
-  }
-
-  const timeline = drawable[0].row.querySelector(".timeline");
-  const timelineRect = timeline.getBoundingClientRect();
-  const timelineWidth = timelineRect.width;
-  const containerRect = container.getBoundingClientRect();
-  const containerHeight = containerRect.height;
-  if (!timelineWidth || !containerHeight) {
-    return;
-  }
-
-  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  svg.setAttribute("class", "dependency-lines");
-  svg.setAttribute("width", String(timelineWidth));
-  svg.setAttribute("height", String(containerHeight));
-  svg.setAttribute("viewBox", `0 0 ${timelineWidth} ${containerHeight}`);
-  addDependencyArrowMarkers(svg);
-
-  const byId = new Map(drawable.map((entry) => [entry.item.id, entry]));
-
-  for (const item of items) {
-    const predecessors = item.predecessors || [];
-    const succEntry = byId.get(item.id);
-    if (!succEntry) {
-      continue;
-    }
-
-    for (const pred of predecessors) {
-      const predEntry = byId.get(pred.task_id);
-      if (!predEntry) {
-        continue;
-      }
-
-      const anchors = LINK_ANCHORS[pred.link_type] || LINK_ANCHORS.FS;
-      const from = barAnchor(
-        predEntry.row,
-        anchors.from.edge,
-        anchors.from.v,
-        timelineRect,
-        containerRect,
-      );
-      const to = barAnchor(
-        succEntry.row,
-        anchors.to.edge,
-        anchors.to.v,
-        timelineRect,
-        containerRect,
-      );
-      if (!from || !to) {
-        continue;
-      }
-
-      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      path.setAttribute("d", dependencyPath(from.x, from.y, to.x, to.y));
-      const isCritical =
-        predEntry.item.is_critical && succEntry.item.is_critical;
-      path.setAttribute(
-        "marker-end",
-        isCritical ? "url(#dependency-arrow-critical)" : "url(#dependency-arrow)",
-      );
-      if (isCritical) {
-        path.classList.add("critical");
-      }
-      svg.appendChild(path);
-    }
-  }
-
-  if (svg.childNodes.length) {
-    container.appendChild(svg);
-  }
 }
 
 function renderGantt(data) {
@@ -293,7 +407,7 @@ function renderGantt(data) {
     rowEntries.push(entry);
   });
 
-  renderDependencyLines(items, rowEntries, root);
+  renderTimelineSvg(items, rowEntries, root);
 }
 
 function showError(message) {
@@ -303,13 +417,19 @@ function showError(message) {
 }
 
 async function init() {
+  let chartData = null;
   try {
     const response = await fetch(DATA_URL);
     if (!response.ok) {
       throw new Error(`Could not load ${DATA_URL} (${response.status})`);
     }
-    const data = await response.json();
-    renderGantt(data);
+    chartData = await response.json();
+    renderGantt(chartData);
+    window.addEventListener("resize", () => {
+      if (chartData) {
+        renderGantt(chartData);
+      }
+    });
   } catch (err) {
     showError(err.message);
   }

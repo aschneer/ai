@@ -107,7 +107,9 @@ Algorithm detail: `scheduling_algorithm.md`.
 
 The viewer fetches `gantt_data.json` over HTTP — `file://` does not work.
 
-Viewer features: task/group bars, milestones, SVG dependency links (FS/SS/FF/SF anchors), critical bar styling.
+**Rendering:** Item labels and the week header are HTML. The timeline column is a **single SVG** (`.timeline-svg`) containing task bars, group bracket paths, milestone markers, and dependency links in one coordinate system — required for faithful browser print (PRD R26). See **`decisions.md` ADR-002**.
+
+Viewer features: task/group bars, milestones, SVG dependency links (FS/SS/FF/SF anchors), critical bar styling, print-friendly layout.
 
 ---
 
@@ -152,6 +154,6 @@ tests/
 - `prd.md` — product requirements (what)
 - `data_model.md` — YAML editing reference
 - `scheduling_algorithm.md` — CPM steps
-- `decisions.md` — ADRs (Gantt stack, no Vite, etc.)
+- `decisions.md` — ADRs (Gantt stack, single SVG timeline, no Vite, etc.)
 - `task_timing_modes.md` — planned pinned-date feature
 - `context.md` — glossary

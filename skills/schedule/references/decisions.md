@@ -25,6 +25,7 @@ Historical checklist — decisions now reflected in `prd.md`, `data_model.md`, o
 | Holiday file location | Project directory; path relative to schedule file |
 | Task timing modes | Implemented — R19–R23; `timing` required on every task |
 | Gantt output | Static HTML/JS + JSON in project directory via `compute` |
+| Gantt timeline rendering | Single SVG layer for bars + dependency links (print fidelity; ADR-002) |
 | Gantt viewing | HTTP URLs printed; user opens manually; network-reachable when remote |
 | Critical path | Per-item marking in computed output and Gantt styling |
 | Schedule filename | Arbitrary; skill asks user for path |
@@ -76,3 +77,39 @@ The Gantt viewer is static HTML/JS served over HTTP. Users run `compute` locally
 ### Revisit if
 
 Interactive Gantt editing, a large SPA viewer, or a separate “schedule studio” app — then a frontend build tool may be justified (dev-only build into `assets/` at minimum).
+
+---
+
+## ADR-002 — Single SVG timeline layer for bars and links
+
+**Date:** 2026-06-13  
+**Status:** Accepted
+
+### Context
+
+PRD **R26** requires a printable Gantt: users must be able to print or export a faithful static copy (browser print/PDF or equivalent). The first viewer used HTML `%`-positioned bars with a separate overlay SVG for dependency links. That hybrid layout desynced under browser print preview and zoom — bars and links scaled independently.
+
+### Decision
+
+- Render **all timeline graphics in one SVG** (`.timeline-svg`): task rects, group bracket paths, milestone circles, and dependency link paths share one coordinate system and `viewBox`.
+- Keep **HTML for labels** (item names, dates) and the week header; only the timeline column is SVG.
+- Compute bar and link geometry from row layout + date metrics (not a second HTML bar layer).
+- Add **`@media print`** CSS so the chart prints without clipping; defer server-side PDF generation.
+
+### Rationale
+
+| Factor | Hybrid HTML + SVG overlay | Single SVG timeline |
+|--------|---------------------------|---------------------|
+| Print fidelity (R26) | Bars and links drift apart when printed | One layer scales together |
+| Complexity | Two rendering paths to keep aligned | One path for bars and links |
+| On-screen | Worked until print/zoom | Same geometry for screen and print |
+| Scope | — | Labels stay HTML; no full-page SVG rewrite |
+
+### Trade-offs
+
+**Pros:** Satisfies R26 with browser print; simpler mental model; MS Project–style bars/links stay aligned.  
+**Cons:** SVG redraw on window resize; no drag-and-drop bar editing (already out of scope); server PDF still optional later.
+
+### Revisit if
+
+Print quality is insufficient (e.g. multi-page pagination, exact page sizing) — consider server-generated PDF or a print-specific layout pass without abandoning the single-SVG timeline for on-screen view.
