@@ -1,6 +1,40 @@
 # Decisions
 
-Architecture and product choices for the Schedule skill. New entries at the top.
+Architecture and product choices for the Schedule skill. New ADRs at the top; resolved product decisions are the audit trail for choices once captured in the PRD open-questions list.
+
+---
+
+## Resolved product decisions
+
+Historical checklist — decisions now reflected in `prd.md`, `data_model.md`, or ADRs below.
+
+| Topic | Decision |
+|-------|----------|
+| Predecessor format | Inline YAML list of MS Project strings (`["5FS", "7SS+2d"]`) |
+| Identifier type | Stable integer Unique ID; **ID 0** reserved for project start milestone |
+| Duration units (MVP) | Days and weeks only (`4d`, `2w`); hours out of scope |
+| Calendar (MVP) | Weekends (Sat/Sun) and holidays excluded; separate `calendar.yaml` |
+| Predecessors on groups | Allowed; constrains earliest child start (local project start) |
+| Group children | Minimum 1 child, enforced at schema level |
+| Item discriminator | `kind` is first field; values `milestone`, `task`, `group` |
+| Group kind name | **`group`** (not `summary`, `phase`, etc.) — MS Project “summary task” |
+| Predecessor listing | Immediate predecessors only; `["0FS"]` alone OR other preds without `0FS`; child with no preds uses `{parentId}SS` |
+| Child→parent link | Start-to-start: `{parentId}SS` |
+| Milestones | User `date` authoritative; no predecessors; only file-based date constraint |
+| Validation | JSON Schema files in YAML; same schemas in editor and runtime |
+| Holiday file location | Project directory; path relative to schedule file |
+| Task timing modes | Designed — R19–R23 in `prd.md`; detail in `task_timing_modes.md` |
+| Gantt output | Static HTML/JS + JSON in project directory via `compute` |
+| Gantt viewing | HTTP URLs printed; user opens manually; network-reachable when remote |
+| Critical path | Per-item marking in computed output and Gantt styling |
+| Schedule filename | Arbitrary; skill asks user for path |
+| Engine mutability | Read-only on source YAML — validate, compute, write separate outputs only |
+| Impossible schedules | **Hard errors** (R18), not warnings — no auto-fix |
+| Deliverable | AI agent skill with composable libraries, not a standalone app |
+
+### Group kind naming (R1 / schedule format)
+
+Microsoft Project calls this a **summary task**. We use **`group`**: shorter, avoids confusion with report/summary language, reads naturally in YAML (`kind: group`). Rejected: `category`, `phase`, `section`, `container`, `rollup`, `block`, `package`, `summary`.
 
 ---
 

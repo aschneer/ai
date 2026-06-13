@@ -2,7 +2,7 @@
 
 **Status:** Planned (not implemented)  
 **Last updated:** 2026-06-12  
-**Related:** `prd.md` (Implement later — R19–R23), `data_model.md`, `scheduling_algorithm.md`
+**Related:** `prd.md` (R19–R23), `architecture.md`, `data_model.md`, `scheduling_algorithm.md`
 
 ## Summary
 
@@ -179,7 +179,7 @@ Validation only — no warnings channel, no auto-fix.
 
 ## Implementation order
 
-1. This document + PRD requirements (R19–R23)
+1. `prd.md` requirements R19–R23 (this document adds algorithm and validation detail)
 2. JSON Schema — required `timing`, conditional fields
 3. Update all test fixtures and examples with explicit `timing: auto`
 4. Logic validation — predecessor bounds, parent floor, `start_finish` sanity

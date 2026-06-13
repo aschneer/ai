@@ -34,7 +34,7 @@
 ### 3. Task timing modes (pinned task dates)
 
 - **Design:** `skills/schedule/references/task_timing_modes.md`
-- **PRD:** R19–R23 in `references/prd.md` (Implement later)
+- **PRD:** Planned capability in `references/prd.md`; detailed spec in `references/task_timing_modes.md`
 - **What:** Required `timing` field on every task (`auto` | `start_duration` | `start_finish` | `finish_duration`). User pins two of start/finish/duration; engine computes the third. Predecessors stay required; fixed dates win; bound violations fail validation.
 - **Scope:** Minor extension — schema + logic validation + `_schedule_task` branch. Groups unchanged (milestone + predecessor for phase gates).
 - **Not doing:** fixed group dates, optional/default `timing`, backward compatibility for omitted `timing`
@@ -63,11 +63,7 @@ Add tests in `test_logic_validate_lib.py` for each new rule.
 
 ### 5. Sync PRD with validate-first architecture
 
-- **File:** `skills/schedule/references/prd.md` (and optionally `projects/260607_1700_project_schedule/PRD.md`)
-- **Drift:** R16/R18 still describe **warnings**; engine now **errors** at validation and has no warnings channel.
-- **Drift:** Agent table still says “Interpret warnings, suggest fixes”.
-- **Drift:** R9 mentions `schedule-render`; now `compute` deploys viewer.
-- Update open questions / checklist as needed.
+- **Status:** Done — PRD restored with file-format requirements; R18 = hard errors; resolved decisions in `decisions.md`
 
 ### 6. Expand evals
 
@@ -122,7 +118,7 @@ From `references/prd.md`:
 
 1. ~~Critical path (JSON + agent reporting)~~
 2. ~~Predecessors in JSON + Gantt dependency lines~~
-3. Task timing modes (R19–R23)
+3. Task timing modes (see `task_timing_modes.md`)
 4. Stricter listing validation
 5. PRD sync (validate-first drift)
 6. Hot reload (optional polish)

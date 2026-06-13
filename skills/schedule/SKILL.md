@@ -130,11 +130,10 @@ Do not fix validation problems by writing computed `start`/`finish` dates onto n
 ## References
 
 - `references/context.md` — domain glossary (read before editing)
-- `references/architecture.md` — validate-first design, agent boundaries, module layout
-- `references/data_model.md` — kind constraints, examples, predecessor rules
-- `references/scheduling_algorithm.md` — CPM compute steps and predecessor semantics
-- `references/prd.md` — full product requirements
-- `references/decisions.md` — architecture decisions (ADR-style)
+- `references/architecture.md` — validate-first design, module layout, implementation
+- `references/prd.md` — product requirements and schedule file format (hard requirements)
+- `references/data_model.md` — YAML examples and editing cheat sheet
+- `references/decisions.md` — architecture decisions (ADR-style) and resolved product decisions
 - `schemas/` — JSON Schema files **written in YAML** (e.g. `schedule.schema.yaml`, `calendar.schema.yaml`). JSON Schema is the validation standard; YAML is the authoring format. The same schema validates schedule data files in the editor (Red Hat YAML + `yaml.schemas`) and in library code.
 
 ## Adding library code
@@ -148,4 +147,4 @@ New code must be modular and composable:
 - Unit-testable in isolation
 - Thin scripts compose modules; the agent may also compose them step by step
 
-Full specification: `references/prd.md`.
+Full specification: `references/prd.md` (product) and `references/architecture.md` (implementation).

@@ -1,6 +1,6 @@
 # Data Model
 
-Quick reference for editing schedule YAML. Full requirements: `prd.md`. Glossary: `context.md`. File structure is defined by JSON Schema files written in YAML (`schemas/schedule.schema.yaml`, `schemas/calendar.schema.yaml`).
+Quick reference and examples for editing schedule YAML. **Hard requirements** (field rules, listing rules, validation): `prd.md` § Schedule file format and requirements R0–R18. Implementation: `architecture.md`. Glossary: `context.md`. Schemas: `schemas/schedule.schema.yaml`, `schemas/calendar.schema.yaml`.
 
 ## Schedule file header
 

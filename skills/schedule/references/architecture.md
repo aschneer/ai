@@ -1,24 +1,58 @@
 # Architecture
 
-How the Schedule skill separates validation from computation. Read this before changing library code or adding new rules.
+How the Schedule skill is built. **Hard requirements** (file format, behavior): `prd.md`. **Editing examples**: `data_model.md`.
 
-## Principle: validate first, compute on clean input
+---
 
-The scheduling engine uses two layers:
+## Deliverable
+
+An **AI agent skill** (`SKILL.md` + Python libraries + JSON Schema files), not a standalone application. Users and agents edit YAML in a project directory; libraries validate, compute, and render.
+
+---
+
+## Design principles (engineering)
+
+1. **Minimal code** — prefer instructing the agent via the skill unless correctness requires library code
+2. **Modular libraries** — small, composable, unit-testable modules; thin CLIs
+3. **Deterministic scheduling** — CPM and calendar math in Python, never LLM inference
+4. **Read-only engine** — libraries validate and compute; they never write schedule/calendar YAML
+5. **Validate first** — structural + logic validation before compute (see below)
+
+---
+
+## Agent vs deterministic code
+
+Defined in **`prd.md`** § Agent vs deterministic code. Implementation notes:
+
+- When validation fails, list every error before the agent edits YAML (unless the user already asked for fixes).
+- Before adding library code for a new capability, ask whether the skill can instruct the agent instead — prefer code only where correctness requires it (validation, graph algorithms, calendar math, rendering).
+
+---
+
+## Project directory
+
+```
+my-project/
+  schedule.yaml      # any filename
+  calendar.yaml      # path relative to schedule file
+  gantt_data.json   # generated
+  gantt.html        # generated (copied from skill assets)
+  gantt.js
+```
+
+The skill asks for the schedule file or project directory. All artifacts for one schedule stay co-located.
+
+---
+
+## Validation: validate first, compute on clean input
 
 | Layer | Module | Purpose | On failure |
 |-------|--------|---------|------------|
 | **Structural** | `validate_lib.py` | JSON Schema — shape, required/forbidden fields, kinds | List every schema error; stop |
-| **Logical** | `logic_validate_lib.py` | Rules schema cannot express — unique IDs, predecessor refs, cycles, listing rules, milestone working days | List every logic error; stop |
-| **Compute** | `compute_lib.py` | CPM forward pass on validated input | Assumes input is valid; no warnings channel |
+| **Logical** | `logic_validate_lib.py` | IDs, predecessor refs, cycles, listing rules, milestone working days | List every logic error; stop |
+| **Compute** | `compute_lib.py` | CPM forward pass | Assumes valid input; no warnings channel |
 
-**Compute does not paper over bad data.** If the schedule violates a rule, validation fails and compute is not run. The agent (or user) fixes the YAML and re-runs.
-
-This keeps compute code small and deterministic: no duplicate-ID handling, no unknown-predecessor skips, no milestone non-working-day workarounds, no post-hoc “unscheduled item” warnings for cycles.
-
-## Error reporting
-
-Validation collects **all** errors before returning — not just the first. Each distinct problem gets its own message. Each duplicate ID produces one error per pair (first occurrence vs duplicate). The agent reads the full list, fixes the schedule file, and runs validate again.
+Compute does not paper over bad data. Collect **all** validation errors before returning.
 
 Example messages:
 
@@ -27,51 +61,97 @@ schedule: items: duplicate id 1: 'First' and 'Duplicate'
 schedule: item 5: predecessor 99: unknown task id
 schedule: milestone 13: date 2026-06-20 falls on a non-working day
 schedule: cyclic predecessor dependency: 1 → 2 → 1
-schedule: item 20: must not include 0FS when other predecessors are listed
 ```
 
-## Agent boundaries
+### Why JSON Schema (not Pydantic)
 
-| Edit | Do not edit |
-|------|-------------|
-| Schedule and calendar YAML in the **user's project directory** | `skills/schedule/` library code, schemas, tests, or SKILL.md |
+Schemas live in `schemas/*.schema.yaml` (JSON Schema authored in YAML). Same schemas validate in the editor (Red Hat YAML) and at runtime via `jsonschema`. Logic that needs the calendar or graph walks stays in Python to avoid drift and duplicate models.
 
-When `validate` or `compute` fails, fix the **schedule file** — never patch the skill to bypass a validation rule.
+### Adding a new rule
 
-When the agent fixes validation errors, it must **list every error and its planned YAML fix for the user before editing** (unless the user already asked it to fix the file). The library never writes schedule files; only the agent does, and the user should see the plan first.
+1. Structural → schema; logical → `logic_validate_lib.py`
+2. Document in `data_model.md`
+3. Test in `tests/test_logic_validate_lib.py`
+4. Do **not** add defensive handling in `compute_lib.py`
 
-## Why not Pydantic?
+---
 
-Schedule and calendar files are validated with **JSON Schema** (`schemas/*.schema.yaml`) via `jsonschema`. The same schemas validate in the editor (Red Hat YAML) and at runtime. Logical rules live in Python because they need the calendar, graph walks, and cross-field checks JSON Schema cannot express cleanly.
+## Data model (implementation)
 
-We do not maintain a second model layer (e.g. Pydantic) to avoid drift and extra dependencies.
+Three **`kind`** values: `milestone`, `task`, `group`. The `kind` field is first on every item and drives which other fields are legal. **`group`** = Microsoft Project summary task.
+
+Full field constraints, predecessor listing rules, and examples: **`data_model.md`**.
+
+---
+
+## Scheduling pipeline
+
+1. `load_schedule_project()` — load YAML, run schema + logic validation
+2. `compute_schedule()` — CPM forward pass, critical path, project finish
+3. `computed_schedule_to_dict()` — JSON for stdout and Gantt
+
+Algorithm detail: `scheduling_algorithm.md`.
+
+---
+
+## Gantt output
+
+**`compute`** (default):
+
+1. Validates (as above)
+2. Runs CPM
+3. Writes **`gantt_data.json`** (items with start, finish, duration, `is_critical`, parsed `predecessors`, etc.)
+4. Copies static **`gantt.html`** + **`gantt.js`** from `src/schedule/assets/` into the project directory
+5. Prints JSON to stdout (default `--stdout`)
+6. Optionally serves the project directory (default `--serve`)
+
+The viewer fetches `gantt_data.json` over HTTP — `file://` does not work.
+
+Viewer features: task/group bars, milestones, SVG dependency links (FS/SS/FF/SF anchors), critical bar styling.
+
+---
+
+## Dev server and viewing
+
+Implemented in `gantt_lib.py` with Python `http.server` (no Vite/Node). See **`decisions.md` ADR-001**.
+
+| CLI | Behavior |
+|-----|----------|
+| `--host auto` (default) | Bind `0.0.0.0`; print local + network URLs |
+| `--host 127.0.0.1` | Loopback only |
+| `--no-serve` | Write files only (CI) |
+| `--port` | Default 8000 |
+
+Prints clickable **local** (`127.0.0.1`) and **network** (LAN IP or `SCHEDULE_VIEWER_HOST`) URLs. User opens manually — no auto-open. Over SSH, local URL works with Cursor/VS Code port forwarding or `ssh -L`.
+
+---
 
 ## Module layout
 
 ```
 src/schedule/
-  validate_lib.py       # JSON Schema
-  logic_validate_lib.py # Semantic / graph rules
-  io_lib.py             # Load YAML, run both validation layers
-  compute_lib.py        # CPM only
-  gantt_lib.py          # Write JSON, deploy assets, serve
-  calendar_lib.py       # Working-day math
-  predecessors_lib.py   # Parse predecessor strings
-  assets/               # gantt.html + gantt.js (static viewer)
+  validate.py, compute.py     # CLIs
+  validate_lib.py
+  logic_validate_lib.py
+  io_lib.py
+  compute_lib.py
+  gantt_lib.py
+  calendar_lib.py
+  predecessors_lib.py
+  assets/                     # gantt.html, gantt.js
+schemas/
+tests/
 ```
 
-CLIs (`validate`, `compute`) load through `io_lib.load_schedule_project()`, which runs structural + logical validation before compute. **`compute`** also writes `gantt_data.json`, deploys Gantt viewer assets, and optionally serves the project directory.
+`validate` — validation only. `compute` — validate + compute + Gantt deploy + serve.
 
-## Adding a new rule
-
-1. Decide: structural (schema) or logical (Python)?
-2. If logical, add a check to `logic_validate_lib.py` with a clear error message.
-3. Document the rule in `data_model.md` or `prd.md`.
-4. Add a test in `tests/test_logic_validate_lib.py`.
-5. Do **not** add defensive handling in `compute_lib.py` — compute should remain unaware.
+---
 
 ## Related references
 
-- `scheduling_algorithm.md` — CPM steps (runs only after validation passes)
-- `data_model.md` — editing rules the validator enforces
-- `context.md` — domain glossary
+- `prd.md` — product requirements (what)
+- `data_model.md` — YAML editing reference
+- `scheduling_algorithm.md` — CPM steps
+- `decisions.md` — ADRs (Gantt stack, no Vite, etc.)
+- `task_timing_modes.md` — planned pinned-date feature
+- `context.md` — glossary
