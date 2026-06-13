@@ -212,10 +212,3 @@ test-results/
 playwright-report/
 blob-report/
 playwright/.cache/
-
-# Schedule skill — output from `uv run compute` in project directories (regenerate anytime)
-**/gantt_data.json
-**/gantt.html
-!skills/schedule/src/schedule/assets/gantt.html
-**/gantt.js
-!skills/schedule/src/schedule/assets/gantt.js

@@ -38,7 +38,7 @@ my-renovation/
   gantt.js         # generated — do not commit
 ```
 
-`compute` writes Gantt artifacts into the project directory. They are **generated output** — edit `schedule.yaml`, not these files. In this repo they are gitignored (see root `.gitignore`).
+`compute` writes Gantt artifacts into the project directory. They are **generated output** — edit `schedule.yaml`, not these files. In this repo, generated Gantt files under `examples/` are gitignored (`skills/schedule/.gitignore`).
 
 The schedule filename is not fixed. Ask the user for the **schedule file path** or **project directory** if not provided.
 
