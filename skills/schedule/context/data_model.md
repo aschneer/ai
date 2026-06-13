@@ -140,7 +140,7 @@ holidays:
 
 ## Valid example
 
-See `examples/farmers_market/` for a user-facing demo schedule (permits, vendors, site setup, and promotion for a market opening).
+See `examples/farmers_market/` for a small intro schedule and `examples/farmers_market_full/` for a full-season stress-test example.
 
 Regression tests use a separate fixture at `tests/fixtures/home_renovation/` — do not point tests at `examples/`.
 

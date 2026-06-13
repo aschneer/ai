@@ -1,0 +1,993 @@
+# yaml-language-server: $schema=../../schemas/schedule.schema.yaml
+calendar: calendar.yaml
+items:
+  - kind: milestone
+    id: 0
+    name: Planning kickoff
+    date: 2026-05-04
+
+  - kind: milestone
+    id: 15
+    name: Permit approved
+    date: 2026-06-02
+
+  - kind: milestone
+    id: 19
+    name: Site lease executed
+    date: 2026-06-16
+
+  - kind: milestone
+    id: 35
+    name: Vendor roster locked
+    date: 2026-06-30
+
+  - kind: milestone
+    id: 200
+    name: Site infrastructure complete
+    date: 2026-07-02
+
+  - kind: milestone
+    id: 60
+    name: Opening day
+    date: 2026-07-06
+
+  - kind: milestone
+    id: 75
+    name: First month review
+    date: 2026-08-03
+
+  - kind: milestone
+    id: 90
+    name: Mid-season review
+    date: 2026-09-14
+
+  - kind: milestone
+    id: 105
+    name: Season close
+    date: 2026-10-26
+
+  - kind: group
+    id: 10
+    name: Permits & licensing
+    predecessors: ["0FS"]
+    children:
+      - kind: task
+        id: 11
+        name: Submit health department application
+        timing: auto
+        duration: 1w
+        predecessors: ["10SS"]
+
+      - kind: task
+        id: 12
+        name: Apply for temporary food event permit
+        timing: auto
+        duration: 3d
+        predecessors: ["11SS"]
+
+      - kind: task
+        id: 13
+        name: Submit city special event permit
+        timing: auto
+        duration: 1w
+        predecessors: ["11SS"]
+
+      - kind: task
+        id: 14
+        name: Coordinate fire marshal pre-inspection
+        timing: auto
+        duration: 4d
+        predecessors: ["12FS", "13FS"]
+
+      - kind: task
+        id: 16
+        name: Obtain business license
+        timing: auto
+        duration: 2w
+        predecessors: ["11FS"]
+
+      - kind: task
+        id: 17
+        name: Secure liability insurance binder
+        timing: auto
+        duration: 1w
+        predecessors: ["10SS"]
+
+  - kind: group
+    id: 20
+    name: Vendor recruitment
+    predecessors: ["0FS"]
+    children:
+      - kind: task
+        id: 21
+        name: Draft vendor prospectus
+        timing: auto
+        duration: 3d
+        predecessors: ["20SS"]
+
+      - kind: task
+        id: 22
+        name: Confirm anchor vendors
+        timing: start_duration
+        start: 2026-05-18
+        duration: 2w
+        predecessors: ["21FS"]
+
+      - kind: group
+        id: 23
+        name: Producer vendors
+        predecessors: ["21SS"]
+        children:
+          - kind: task
+            id: 24
+            name: Identify target producer list
+            timing: auto
+            duration: 4d
+            predecessors: ["23SS"]
+
+          - kind: task
+            id: 25
+            name: Send producer invitation packets
+            timing: auto
+            duration: 3d
+            predecessors: ["24FS"]
+
+          - kind: task
+            id: 26
+            name: Host producer info session
+            timing: auto
+            duration: 1d
+            predecessors: ["25FS+2d"]
+
+          - kind: task
+            id: 27
+            name: Review producer applications
+            timing: auto
+            duration: 1w
+            predecessors: ["26FS"]
+
+          - kind: task
+            id: 28
+            name: Sign producer vendor agreements
+            timing: auto
+            duration: 1w
+            predecessors: ["27FS"]
+
+      - kind: group
+        id: 29
+        name: Prepared food vendors
+        predecessors: ["22SS"]
+        children:
+          - kind: task
+            id: 30
+            name: Recruit prepared food vendors
+            timing: auto
+            duration: 2w
+            predecessors: ["29SS"]
+
+          - kind: task
+            id: 31
+            name: Verify commissary kitchen letters
+            timing: auto
+            duration: 1w
+            predecessors: ["30FS"]
+
+          - kind: task
+            id: 32
+            name: Collect food handler certificates
+            timing: auto
+            duration: 4d
+            predecessors: ["31FS"]
+
+      - kind: group
+        id: 33
+        name: Craft & artisan vendors
+        predecessors: ["22SS"]
+        children:
+          - kind: task
+            id: 34
+            name: Outreach to artisan vendors
+            timing: auto
+            duration: 1w
+            predecessors: ["33SS"]
+
+          - kind: task
+            id: 36
+            name: Jury craft applications
+            timing: auto
+            duration: 4d
+            predecessors: ["34FS"]
+
+          - kind: task
+            id: 37
+            name: Confirm craft booth assignments
+            timing: auto
+            duration: 3d
+            predecessors: ["36FS"]
+
+      - kind: task
+        id: 38
+        name: Publish vendor fee schedule
+        timing: auto
+        duration: 2d
+        predecessors: ["28FS", "32FS", "37FS"]
+
+      - kind: task
+        id: 39
+        name: Finalize market layout by vendor type
+        timing: auto
+        duration: 1w
+        predecessors: ["38FS"]
+
+  - kind: group
+    id: 40
+    name: Insurance & legal
+    predecessors: ["0FS"]
+    children:
+      - kind: task
+        id: 41
+        name: Review market bylaws with attorney
+        timing: auto
+        duration: 1w
+        predecessors: ["40SS"]
+
+      - kind: task
+        id: 42
+        name: Draft vendor agreement template
+        timing: auto
+        duration: 1w
+        predecessors: ["41FS"]
+
+      - kind: task
+        id: 43
+        name: Establish market bank account
+        timing: auto
+        duration: 3d
+        predecessors: ["40SS"]
+
+      - kind: task
+        id: 44
+        name: Set up vendor payment processing
+        timing: auto
+        duration: 4d
+        predecessors: ["43FS"]
+
+  - kind: group
+    id: 45
+    name: Site & infrastructure
+    predecessors: ["15FS"]
+    children:
+      - kind: group
+        id: 46
+        name: Utilities & services
+        predecessors: ["45SS"]
+        children:
+          - kind: task
+            id: 47
+            name: Survey site utilities
+            timing: auto
+            duration: 3d
+            predecessors: ["46SS"]
+
+          - kind: task
+            id: 48
+            name: Order generator and power distro
+            timing: auto
+            duration: 2w
+            predecessors: ["47FS"]
+
+          - kind: task
+            id: 49
+            name: Install temporary water hookups
+            timing: auto
+            duration: 1w
+            predecessors: ["47SS"]
+
+          - kind: task
+            id: 50
+            name: Arrange portable restroom contract
+            timing: auto
+            duration: 4d
+            predecessors: ["46SS"]
+
+      - kind: group
+        id: 51
+        name: Layout & signage
+        predecessors: ["46SS"]
+        children:
+          - kind: task
+            id: 52
+            name: Stake vendor stall layout
+            timing: auto
+            duration: 2d
+            predecessors: ["51SS"]
+
+          - kind: task
+            id: 53
+            name: Mark traffic flow and pedestrian lanes
+            timing: auto
+            duration: 2d
+            predecessors: ["52FS"]
+
+          - kind: task
+            id: 54
+            name: Install wayfinding signage posts
+            timing: auto
+            duration: 3d
+            predecessors: ["53FS"]
+
+          - kind: task
+            id: 58
+            name: Set up info booth and welcome desk
+            timing: auto
+            duration: 2d
+            predecessors: ["54FS"]
+
+      - kind: group
+        id: 56
+        name: Facilities setup
+        predecessors: ["51SS"]
+        children:
+          - kind: task
+            id: 57
+            name: Erect main tent and shade structures
+            timing: auto
+            duration: 1w
+            predecessors: ["56SS"]
+
+          - kind: task
+            id: 59
+            name: Install perimeter fencing
+            timing: auto
+            duration: 3d
+            predecessors: ["56SS"]
+
+          - kind: task
+            id: 61
+            name: Set up hand-wash stations
+            timing: auto
+            duration: 2d
+            predecessors: ["49FS", "57FS"]
+
+          - kind: task
+            id: 62
+            name: Test lighting for early season hours
+            timing: auto
+            duration: 2d
+            predecessors: ["57FS"]
+
+      - kind: task
+        id: 63
+        name: Order tents and vendor signage
+        timing: auto
+        duration: 1w
+        predecessors: ["45SS"]
+
+      - kind: task
+        id: 64
+        name: Arrange parking and traffic plan
+        timing: auto
+        duration: 4d
+        predecessors: ["63SS"]
+
+      - kind: task
+        id: 65
+        name: Coordinate with city traffic engineering
+        timing: auto
+        duration: 3d
+        predecessors: ["64FS"]
+
+  - kind: group
+    id: 66
+    name: Food safety & compliance
+    predecessors: ["15FS"]
+    children:
+      - kind: task
+        id: 67
+        name: Write market food safety plan
+        timing: auto
+        duration: 1w
+        predecessors: ["66SS"]
+
+      - kind: task
+        id: 68
+        name: Schedule health department walkthrough
+        timing: auto
+        duration: 2d
+        predecessors: ["67FS"]
+
+      - kind: task
+        id: 69
+        name: Train market managers on inspection protocol
+        timing: auto
+        duration: 1d
+        predecessors: ["68FS"]
+
+      - kind: task
+        id: 71
+        name: Prepare opening day inspection packet
+        timing: auto
+        duration: 2d
+        predecessors: ["69FS"]
+
+  - kind: group
+    id: 70
+    name: Equipment & supplies
+    predecessors: ["0FS"]
+    children:
+      - kind: task
+        id: 72
+        name: Order cash boxes and receipt supplies
+        timing: auto
+        duration: 4d
+        predecessors: ["70SS"]
+
+      - kind: task
+        id: 73
+        name: Purchase PPE and first aid kits
+        timing: auto
+        duration: 3d
+        predecessors: ["70SS"]
+
+      - kind: task
+        id: 74
+        name: Buy cleaning and sanitizing supplies
+        timing: auto
+        duration: 3d
+        predecessors: ["72FS"]
+
+      - kind: task
+        id: 76
+        name: Label and stage equipment bins
+        timing: auto
+        duration: 2d
+        predecessors: ["73FS", "74FS"]
+
+  - kind: group
+    id: 80
+    name: Marketing & promotion
+    predecessors: ["22FS"]
+    children:
+      - kind: task
+        id: 81
+        name: Finalize market brand assets
+        timing: auto
+        duration: 1w
+        predecessors: ["80SS"]
+
+      - kind: task
+        id: 82
+        name: Build market website landing page
+        timing: auto
+        duration: 1w
+        predecessors: ["81FS"]
+
+      - kind: task
+        id: 83
+        name: Launch social media campaign
+        timing: auto
+        duration: 2w
+        predecessors: ["82FS"]
+
+      - kind: task
+        id: 84
+        name: Design print flyers and posters
+        timing: auto
+        duration: 4d
+        predecessors: ["81SS"]
+
+      - kind: task
+        id: 85
+        name: Send press release to local media
+        timing: auto
+        duration: 2d
+        predecessors: ["83FS+3d"]
+
+      - kind: task
+        id: 86
+        name: Partner outreach to community orgs
+        timing: auto
+        duration: 1w
+        predecessors: ["80SS"]
+
+      - kind: task
+        id: 87
+        name: Schedule opening day ribbon cutting
+        timing: auto
+        duration: 3d
+        predecessors: ["85FS", "86FS"]
+
+  - kind: group
+    id: 88
+    name: Operations & staffing
+    predecessors: ["35FS"]
+    children:
+      - kind: task
+        id: 89
+        name: Recruit market manager
+        timing: auto
+        duration: 2w
+        predecessors: ["88SS"]
+
+      - kind: task
+        id: 91
+        name: Hire setup and teardown crew
+        timing: auto
+        duration: 1w
+        predecessors: ["89FS"]
+
+      - kind: task
+        id: 92
+        name: Create staff shift schedule template
+        timing: auto
+        duration: 3d
+        predecessors: ["91FS"]
+
+      - kind: task
+        id: 93
+        name: Run staff orientation and safety training
+        timing: auto
+        duration: 1d
+        predecessors: ["92FS", "71FS"]
+
+      - kind: task
+        id: 94
+        name: Write opening day runbook
+        timing: auto
+        duration: 1w
+        predecessors: ["88SS"]
+
+      - kind: task
+        id: 95
+        name: Conduct tabletop emergency drill
+        timing: auto
+        duration: 1d
+        predecessors: ["94FS", "93FS"]
+
+  - kind: group
+    id: 96
+    name: Pre-opening integration
+    predecessors: ["65FS", "87FS", "95FS"]
+    children:
+      - kind: task
+        id: 97
+        name: Final vendor check-in and stall assignments
+        timing: auto
+        duration: 1d
+        predecessors: ["39FS", "200FS"]
+
+      - kind: task
+        id: 98
+        name: Load-in dry run with anchor vendors
+        timing: auto
+        duration: 1d
+        predecessors: ["97FS"]
+
+      - kind: task
+        id: 99
+        name: Opening day rehearsal
+        timing: auto
+        duration: 1d
+        predecessors: ["98FS"]
+
+  - kind: group
+    id: 100
+    name: Opening week
+    predecessors: ["99FS"]
+    children:
+      - kind: task
+        id: 101
+        name: First market session
+        timing: auto
+        duration: 1d
+        predecessors: ["60FS"]
+
+      - kind: task
+        id: 102
+        name: Collect opening day feedback forms
+        timing: auto
+        duration: 1d
+        predecessors: ["101FS"]
+
+      - kind: task
+        id: 103
+        name: Debrief with vendor leads
+        timing: auto
+        duration: 1d
+        predecessors: ["102FS"]
+
+  - kind: group
+    id: 110
+    name: July market Saturdays
+    predecessors: ["103FS"]
+    children:
+      - kind: task
+        id: 111
+        name: July — Week 1 setup
+        timing: auto
+        duration: 1d
+        predecessors: ["103FS"]
+
+      - kind: task
+        id: 112
+        name: July — Week 1 market day
+        timing: auto
+        duration: 1d
+        predecessors: ["111FS"]
+
+      - kind: task
+        id: 113
+        name: July — Week 1 teardown
+        timing: auto
+        duration: 1d
+        predecessors: ["112FS"]
+
+      - kind: task
+        id: 114
+        name: July — Week 2 setup
+        timing: auto
+        duration: 1d
+        predecessors: ["113FS"]
+
+      - kind: task
+        id: 115
+        name: July — Week 2 market day
+        timing: auto
+        duration: 1d
+        predecessors: ["114FS"]
+
+      - kind: task
+        id: 116
+        name: July — Week 2 teardown
+        timing: auto
+        duration: 1d
+        predecessors: ["115FS"]
+
+      - kind: task
+        id: 117
+        name: July — Week 3 setup
+        timing: auto
+        duration: 1d
+        predecessors: ["116FS"]
+
+      - kind: task
+        id: 118
+        name: July — Week 3 market day
+        timing: auto
+        duration: 1d
+        predecessors: ["117FS"]
+
+      - kind: task
+        id: 119
+        name: July — Week 3 teardown
+        timing: auto
+        duration: 1d
+        predecessors: ["118FS"]
+
+      - kind: task
+        id: 120
+        name: July — Week 4 setup
+        timing: auto
+        duration: 1d
+        predecessors: ["119FS"]
+
+      - kind: task
+        id: 121
+        name: July — Week 4 market day
+        timing: auto
+        duration: 1d
+        predecessors: ["120FS"]
+
+      - kind: task
+        id: 122
+        name: July — Week 4 teardown
+        timing: auto
+        duration: 1d
+        predecessors: ["121FS"]
+
+  - kind: group
+    id: 130
+    name: August market Saturdays
+    predecessors: ["122FS"]
+    children:
+      - kind: task
+        id: 131
+        name: August — Week 1 setup
+        timing: auto
+        duration: 1d
+        predecessors: ["122FS"]
+
+      - kind: task
+        id: 132
+        name: August — Week 1 market day
+        timing: auto
+        duration: 1d
+        predecessors: ["131FS"]
+
+      - kind: task
+        id: 133
+        name: August — Week 1 teardown
+        timing: auto
+        duration: 1d
+        predecessors: ["132FS"]
+
+      - kind: task
+        id: 134
+        name: August — Week 2 setup
+        timing: auto
+        duration: 1d
+        predecessors: ["133FS"]
+
+      - kind: task
+        id: 135
+        name: August — Week 2 market day
+        timing: auto
+        duration: 1d
+        predecessors: ["134FS"]
+
+      - kind: task
+        id: 136
+        name: August — Week 2 teardown
+        timing: auto
+        duration: 1d
+        predecessors: ["135FS"]
+
+      - kind: task
+        id: 137
+        name: August — Week 3 setup
+        timing: auto
+        duration: 1d
+        predecessors: ["136FS"]
+
+      - kind: task
+        id: 138
+        name: August — Week 3 market day
+        timing: auto
+        duration: 1d
+        predecessors: ["137FS"]
+
+      - kind: task
+        id: 139
+        name: August — Week 3 teardown
+        timing: auto
+        duration: 1d
+        predecessors: ["138FS"]
+
+      - kind: task
+        id: 140
+        name: August — Week 4 setup
+        timing: auto
+        duration: 1d
+        predecessors: ["139FS"]
+
+      - kind: task
+        id: 141
+        name: August — Week 4 market day
+        timing: auto
+        duration: 1d
+        predecessors: ["140FS"]
+
+      - kind: task
+        id: 142
+        name: August — Week 4 teardown
+        timing: auto
+        duration: 1d
+        predecessors: ["141FS"]
+
+  - kind: group
+    id: 150
+    name: September market Saturdays
+    predecessors: ["142FS"]
+    children:
+      - kind: task
+        id: 151
+        name: September — Week 1 setup
+        timing: auto
+        duration: 1d
+        predecessors: ["142FS"]
+
+      - kind: task
+        id: 152
+        name: September — Week 1 market day
+        timing: auto
+        duration: 1d
+        predecessors: ["151FS"]
+
+      - kind: task
+        id: 153
+        name: September — Week 1 teardown
+        timing: auto
+        duration: 1d
+        predecessors: ["152FS"]
+
+      - kind: task
+        id: 154
+        name: September — Week 2 setup
+        timing: auto
+        duration: 1d
+        predecessors: ["153FS"]
+
+      - kind: task
+        id: 155
+        name: September — Week 2 market day
+        timing: auto
+        duration: 1d
+        predecessors: ["154FS"]
+
+      - kind: task
+        id: 156
+        name: September — Week 2 teardown
+        timing: auto
+        duration: 1d
+        predecessors: ["155FS"]
+
+      - kind: task
+        id: 157
+        name: September — Week 3 setup
+        timing: auto
+        duration: 1d
+        predecessors: ["156FS"]
+
+      - kind: task
+        id: 158
+        name: September — Week 3 market day
+        timing: auto
+        duration: 1d
+        predecessors: ["157FS"]
+
+      - kind: task
+        id: 159
+        name: September — Week 3 teardown
+        timing: auto
+        duration: 1d
+        predecessors: ["158FS"]
+
+      - kind: task
+        id: 160
+        name: September — Week 4 setup
+        timing: auto
+        duration: 1d
+        predecessors: ["159FS"]
+
+      - kind: task
+        id: 161
+        name: September — Week 4 market day
+        timing: auto
+        duration: 1d
+        predecessors: ["160FS"]
+
+      - kind: task
+        id: 162
+        name: September — Week 4 teardown
+        timing: auto
+        duration: 1d
+        predecessors: ["161FS"]
+
+  - kind: group
+    id: 170
+    name: October market Saturdays
+    predecessors: ["162FS"]
+    children:
+      - kind: task
+        id: 171
+        name: October — Week 1 setup
+        timing: auto
+        duration: 1d
+        predecessors: ["162FS"]
+
+      - kind: task
+        id: 172
+        name: October — Week 1 market day
+        timing: auto
+        duration: 1d
+        predecessors: ["171FS"]
+
+      - kind: task
+        id: 173
+        name: October — Week 1 teardown
+        timing: auto
+        duration: 1d
+        predecessors: ["172FS"]
+
+      - kind: task
+        id: 174
+        name: October — Week 2 setup
+        timing: auto
+        duration: 1d
+        predecessors: ["173FS"]
+
+      - kind: task
+        id: 175
+        name: October — Week 2 market day
+        timing: auto
+        duration: 1d
+        predecessors: ["174FS"]
+
+      - kind: task
+        id: 176
+        name: October — Week 2 teardown
+        timing: auto
+        duration: 1d
+        predecessors: ["175FS"]
+
+      - kind: task
+        id: 177
+        name: October — Week 3 setup
+        timing: auto
+        duration: 1d
+        predecessors: ["176FS"]
+
+      - kind: task
+        id: 178
+        name: October — Week 3 market day
+        timing: auto
+        duration: 1d
+        predecessors: ["177FS"]
+
+      - kind: task
+        id: 179
+        name: October — Week 3 teardown
+        timing: auto
+        duration: 1d
+        predecessors: ["178FS"]
+
+      - kind: task
+        id: 180
+        name: October — Week 4 setup
+        timing: auto
+        duration: 1d
+        predecessors: ["179FS"]
+
+      - kind: task
+        id: 181
+        name: October — Week 4 market day
+        timing: auto
+        duration: 1d
+        predecessors: ["180FS"]
+
+      - kind: task
+        id: 182
+        name: October — Week 4 teardown
+        timing: auto
+        duration: 1d
+        predecessors: ["181FS"]
+
+  - kind: group
+    id: 190
+    name: Post-season wrap-up
+    predecessors: ["182FS"]
+    children:
+      - kind: task
+        id: 191
+        name: Survey vendors on season experience
+        timing: auto
+        duration: 1w
+        predecessors: ["190SS"]
+
+      - kind: task
+        id: 192
+        name: Analyze attendance and sales trends
+        timing: auto
+        duration: 1w
+        predecessors: ["191SS"]
+
+      - kind: task
+        id: 193
+        name: Hold board retrospective
+        timing: auto
+        duration: 1d
+        predecessors: ["192FS"]
+
+      - kind: task
+        id: 194
+        name: Draft next season improvement plan
+        timing: auto
+        duration: 1w
+        predecessors: ["193FS"]
+
+      - kind: task
+        id: 195
+        name: Archive vendor files and renewals list
+        timing: auto
+        duration: 3d
+        predecessors: ["194FS"]

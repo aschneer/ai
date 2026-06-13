@@ -40,7 +40,7 @@ my-renovation/
 
 `compute` writes Gantt artifacts into the project directory. They are **generated output** — edit `schedule.yaml`, not these files. In this repo, generated Gantt files under `examples/` are gitignored (`skills/schedule/.gitignore`).
 
-**Repo demo:** `examples/farmers_market/` is a sample project users can validate, compute, and open in the Gantt chart. Regression tests use frozen fixtures under `tests/fixtures/` — not `examples/`.
+**Repo demos:** `examples/farmers_market/` is a small intro schedule; `examples/farmers_market_full/` is a full-season stress-test (~150 tasks). Regression tests use frozen fixtures under `tests/fixtures/` — not `examples/`.
 
 The schedule filename is not fixed. Ask the user for the **schedule file path** or **project directory** if not provided.
 

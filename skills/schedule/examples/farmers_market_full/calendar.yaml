@@ -1,0 +1,6 @@
+# yaml-language-server: $schema=../../schemas/calendar.schema.yaml
+weekends: [sat, sun]
+holidays:
+  - 2026-05-25
+  - 2026-07-04
+  - 2026-09-07

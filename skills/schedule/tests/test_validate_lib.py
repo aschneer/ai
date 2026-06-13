@@ -29,3 +29,15 @@ def test_farmers_market_demo_passes_validation() -> None:
 
     assert validate_schedule_file(schedule_path, schedule_data) == []
     assert validate_calendar_file(calendar_path, calendar_data) == []
+
+
+def test_farmers_market_full_demo_passes_validation() -> None:
+    demo = Path(__file__).resolve().parent.parent / "examples" / "farmers_market_full"
+    schedule_path = demo / "schedule.yaml"
+    calendar_path = demo / "calendar.yaml"
+
+    schedule_data = load_yaml(schedule_path)
+    calendar_data = load_yaml(calendar_path)
+
+    assert validate_schedule_file(schedule_path, schedule_data) == []
+    assert validate_calendar_file(calendar_path, calendar_data) == []
