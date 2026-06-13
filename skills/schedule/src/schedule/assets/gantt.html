@@ -60,7 +60,15 @@
       flex-shrink: 0;
     }
     .legend-swatch.task { background: var(--task); }
-    .legend-swatch.group { background: var(--group); }
+    .legend-swatch.group {
+      background: transparent;
+      border-top: 2px solid var(--group);
+      border-left: 2px solid var(--group);
+      border-right: 2px solid var(--group);
+      border-bottom: none;
+      border-radius: 0;
+      height: 0.5rem;
+    }
     .legend-swatch.critical-outline {
       background: var(--task);
       box-shadow: 0 0 0 1px #fff, 0 0 0 2px var(--critical);
@@ -140,8 +148,22 @@
       min-width: 2px;
     }
     .bar.task { background: var(--task); }
-    .bar.group { background: var(--group); opacity: 0.85; }
-    .bar.critical:not(.milestone) {
+    .bar.group {
+      background: transparent;
+      border-top: 3px solid var(--group);
+      border-left: 3px solid var(--group);
+      border-right: 3px solid var(--group);
+      border-bottom: none;
+      border-radius: 0;
+      opacity: 1;
+      height: 10px;
+      top: 0.3rem;
+    }
+    .bar.group.critical {
+      border-color: var(--critical);
+      box-shadow: none;
+    }
+    .bar.critical:not(.milestone):not(.group) {
       box-shadow: var(--critical-ring);
     }
     .bar.milestone {
