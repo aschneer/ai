@@ -224,3 +224,100 @@ def test_start_finish_with_start_after_finish_is_error() -> None:
     errors = validate_schedule_logic(schedule_data, CALENDAR)
 
     assert any("start_finish" in error and "start" in error and "after finish" in error for error in errors)
+
+
+def test_top_level_project_anchor_must_be_exactly_zero_fs() -> None:
+    schedule_data = {
+        "items": [
+            {"kind": "milestone", "id": 0, "name": "Start", "date": "2026-06-09"},
+            {
+                "kind": "task",
+                "id": 1,
+                "name": "A",
+                "timing": "auto",
+                "duration": "1d",
+                "predecessors": ["0SS"],
+            },
+        ]
+    }
+
+    errors = validate_schedule_logic(schedule_data, CALENDAR)
+
+    assert any("exactly [\"0FS\"]" in error for error in errors)
+
+
+def test_child_with_only_parent_must_be_parent_ss() -> None:
+    schedule_data = {
+        "items": [
+            {"kind": "milestone", "id": 0, "name": "Start", "date": "2026-06-09"},
+            {
+                "kind": "group",
+                "id": 10,
+                "name": "Group",
+                "predecessors": ["0FS"],
+                "children": [
+                    {
+                        "kind": "task",
+                        "id": 11,
+                        "name": "Child",
+                        "timing": "auto",
+                        "duration": "1d",
+                        "predecessors": ["10FS"],
+                    }
+                ],
+            },
+        ]
+    }
+
+    errors = validate_schedule_logic(schedule_data, CALENDAR)
+
+    assert any("exactly [\"10SS\"]" in error for error in errors)
+
+
+def test_child_with_specific_predecessor_is_allowed() -> None:
+    schedule_data = {
+        "items": [
+            {"kind": "milestone", "id": 0, "name": "Start", "date": "2026-06-09"},
+            {
+                "kind": "group",
+                "id": 10,
+                "name": "Group",
+                "predecessors": ["0FS"],
+                "children": [
+                    {
+                        "kind": "task",
+                        "id": 11,
+                        "name": "Child",
+                        "timing": "auto",
+                        "duration": "1d",
+                        "predecessors": ["5FS"],
+                    }
+                ],
+            },
+        ]
+    }
+
+    errors = validate_schedule_logic(schedule_data, CALENDAR)
+
+    assert any("unknown task id" in error for error in errors)
+    assert not any("exactly [\"10SS\"]" in error for error in errors)
+
+
+def test_milestone_checks_require_calendar() -> None:
+    schedule_data = {
+        "items": [
+            {"kind": "milestone", "id": 0, "name": "Start", "date": "2026-06-09"},
+            {
+                "kind": "task",
+                "id": 1,
+                "name": "A",
+                "timing": "auto",
+                "duration": "1d",
+                "predecessors": ["0FS"],
+            },
+        ]
+    }
+
+    errors = validate_schedule_logic(schedule_data, None)
+
+    assert any("calendar file required for logic validation" in error for error in errors)

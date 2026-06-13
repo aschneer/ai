@@ -26,13 +26,21 @@ def validate_schedule_logic(
     errors.extend(_check_predecessor_format(items))
     errors.extend(_check_cyclic_dependencies(items, by_id))
 
-    if calendar_data is not None:
+    if calendar_data is None:
+        if _schedule_has_milestones(items):
+            errors.append("schedule: calendar file required for logic validation")
+    else:
         calendar = WorkingCalendar.from_dict(calendar_data)
         errors.extend(_check_milestone_working_days(items, calendar))
         if not errors:
             errors.extend(validate_pinned_task_bounds(schedule_data, calendar_data))
 
     return errors
+
+
+def _schedule_has_milestones(items: list[tuple[dict[str, Any], int | None]]) -> bool:
+    """True when the schedule contains at least one milestone item."""
+    return any(raw.get("kind") == "milestone" for raw, _parent_id in items)
 
 
 def _iter_schedule_items(
@@ -127,19 +135,25 @@ def _check_predecessor_listing(items: list[tuple[dict[str, Any], int | None]]) -
                 errors.append(
                     f"schedule: item {item_id}: must not include 0FS when other predecessors are listed"
                 )
+            elif references_zero and len(links) == 1:
+                link = links[0]
+                if link.link_type != LinkType.FS or link.lag is not None:
+                    errors.append(
+                        f"schedule: item {item_id}: top-level item anchored only to project "
+                        f"start must list exactly [\"0FS\"]"
+                    )
             continue
 
         if references_zero:
             errors.append(f"schedule: item {item_id}: child items must not reference id 0")
 
-        if len(links) == 1:
+        if len(links) == 1 and links[0].task_id == parent_id:
             link = links[0]
-            if (
-                link.task_id == parent_id
-                and link.link_type == LinkType.SS
-                and link.lag is None
-            ):
-                continue
+            if link.link_type != LinkType.SS or link.lag is not None:
+                errors.append(
+                    f"schedule: item {item_id}: child with only parent anchor must list "
+                    f"exactly [\"{parent_id}SS\"]"
+                )
 
     return errors
 

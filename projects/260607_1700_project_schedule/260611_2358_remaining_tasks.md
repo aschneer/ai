@@ -79,8 +79,7 @@ Add tests in `test_logic_validate_lib.py` for each new rule.
 
 ### 9. Validate milestone working days without full calendar requirement
 
-- `validate` allows missing calendar; milestone working-day checks skipped.
-- Decide: require calendar for logic validation always, or document current behavior.
+- **Status:** Resolved — logic validation requires calendar when schedule has milestones
 
 ### 10. Push to remote
 
@@ -110,7 +109,7 @@ From `references/prd.md`:
 1. ~~Critical path (JSON + agent reporting)~~
 2. ~~Predecessors in JSON + Gantt dependency lines~~
 3. ~~Task timing modes~~
-4. Stricter listing validation
+4. ~~Stricter listing validation~~
 5. PRD sync (validate-first drift)
 6. Hot reload (optional polish)
 7. Evals + gitignore + push
