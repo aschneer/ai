@@ -4,25 +4,61 @@
     {
       "id": 1,
       "prompt": "I'm renovating my backyard — grading, new patio pavers, and replanting beds. Create a project schedule in YAML with a landscaping group, a permit milestone on June 20, and tasks linked with predecessors. Put it in ~/renovation/schedule.yaml with a calendar file.",
-      "expected_output": "Valid schedule YAML with kind-first items, id 0 project-start milestone, groups/tasks/milestones following data_model rules, predecessors as MS Project strings, separate calendar.yaml, no dates on non-milestone items",
+      "expected_output": "Valid schedule YAML with kind-first items, id 0 project-start milestone, groups/tasks/milestones following data_model rules, timing: auto on every task, predecessors as MS Project strings, separate calendar.yaml, no date/start/finish on auto tasks",
       "files": []
     },
     {
       "id": 2,
       "prompt": "This schedule has a task with a date field on it — that's wrong for our format. Fix the YAML so it validates.\n\n```yaml\ncalendar: calendar.yaml\nitems:\n  - kind: milestone\n    id: 0\n    name: Project start\n    date: 2026-06-09\n  - kind: task\n    id: 5\n    name: Pour concrete\n    timing: auto\n    duration: 3d\n    date: 2026-06-12\n    predecessors: [\"0FS\"]\n```",
-      "expected_output": "Removes date from the task (only milestones have dates), keeps predecessors and duration, explains the kind constraint",
+      "expected_output": "Removes date from the task (only milestones have date), keeps timing, duration, and predecessors, explains the kind constraint",
       "files": []
     },
     {
       "id": 3,
       "prompt": "Run validation on skills/schedule/examples/landscaping/schedule.yaml and tell me if anything is wrong.",
       "expected_output": "Runs validate (or uv run from skills/schedule/) and reports ok for schedule and calendar; does not hand-compute dates",
-      "files": ["skills/schedule/examples/landscaping/schedule.yaml", "skills/schedule/examples/landscaping/calendar.yaml"]
+      "files": [
+        "skills/schedule/examples/landscaping/schedule.yaml",
+        "skills/schedule/examples/landscaping/calendar.yaml"
+      ]
     },
     {
       "id": 4,
       "prompt": "Add a new task 'Install irrigation' (4 days) after 'Re-landscape beds' in the landscaping example schedule. Assign the next available ID and wire predecessors correctly.",
-      "expected_output": "Edits schedule YAML only — adds task with duration 4d, predecessor 14FS (or equivalent immediate pred), stable new id, does not write computed dates onto the task",
+      "expected_output": "Edits schedule YAML only — adds task with timing: auto, duration 4d, predecessor 14FS (or equivalent immediate pred), stable new id, does not write computed dates onto the task",
+      "files": ["skills/schedule/examples/landscaping/schedule.yaml"]
+    },
+    {
+      "id": 5,
+      "prompt": "Validate this schedule and list every error before changing anything:\n\n```yaml\ncalendar: calendar.yaml\nitems:\n  - kind: milestone\n    id: 0\n    name: Project start\n    date: 2026-06-09\n  - kind: task\n    id: 1\n    name: Task A\n    timing: auto\n    duration: 1d\n    predecessors: [\"0FS\"]\n  - kind: task\n    id: 1\n    name: Duplicate\n    timing: auto\n    duration: 1d\n    predecessors: [\"0FS\"]\n  - kind: task\n    id: 2\n    name: Bad pred\n    timing: auto\n    duration: 1d\n    predecessors: [\"nope\"]\n```",
+      "expected_output": "Runs validate from skills/schedule/, reports all errors at once (duplicate id and invalid predecessor format), proposes YAML fixes before editing, does not modify skill code",
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "Fix this schedule — it has a duplicate task ID:\n\n```yaml\ncalendar: calendar.yaml\nitems:\n  - kind: milestone\n    id: 0\n    name: Project start\n    date: 2026-06-09\n  - kind: task\n    id: 3\n    name: First\n    timing: auto\n    duration: 2d\n    predecessors: [\"0FS\"]\n  - kind: task\n    id: 3\n    name: Second\n    timing: auto\n    duration: 1d\n    predecessors: [\"0FS\"]\n```",
+      "expected_output": "Reassigns one task to the next available id (e.g. 4), keeps timing auto and predecessor rules, validates clean",
+      "files": []
+    },
+    {
+      "id": 7,
+      "prompt": "This schedule has a cyclic dependency — fix it:\n\n```yaml\ncalendar: calendar.yaml\nitems:\n  - kind: milestone\n    id: 0\n    name: Project start\n    date: 2026-06-09\n  - kind: task\n    id: 1\n    name: A\n    timing: auto\n    duration: 1d\n    predecessors: [\"2FS\"]\n  - kind: task\n    id: 2\n    name: B\n    timing: auto\n    duration: 1d\n    predecessors: [\"1FS\"]\n```",
+      "expected_output": "Breaks the cycle by changing at least one predecessor link, validates clean, explains which link changed and why",
+      "files": []
+    },
+    {
+      "id": 8,
+      "prompt": "Run compute on skills/schedule/examples/landscaping/schedule.yaml and tell me the project finish date, which tasks are on the critical path, and how to open the Gantt chart.",
+      "expected_output": "Runs uv run compute from skills/schedule/, reports project_finish and critical items from library JSON (is_critical), does not hand-calculate dates, mentions browser URLs or generated gantt artifacts in the project directory",
+      "files": [
+        "skills/schedule/examples/landscaping/schedule.yaml",
+        "skills/schedule/examples/landscaping/calendar.yaml"
+      ]
+    },
+    {
+      "id": 9,
+      "prompt": "The paver crew confirmed they start Thursday June 24 — pin that on task 20 (Install pavers) in the landscaping schedule while keeping duration and predecessors.",
+      "expected_output": "Sets timing: start_duration with start: 2026-06-24 on task 20, keeps duration 4d and predecessors, does not use a date field, validates before compute",
       "files": ["skills/schedule/examples/landscaping/schedule.yaml"]
     }
   ]
