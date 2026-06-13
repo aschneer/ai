@@ -29,7 +29,10 @@ class ScheduleItem:
     name: str
     parent_id: int | None
     predecessors: list[PredecessorLink] = field(default_factory=list)
+    timing: str = "auto"
     duration: str | None = None
+    pinned_start: date | None = None
+    pinned_finish: date | None = None
     milestone_date: date | None = None
     start: date | None = None
     finish: date | None = None
@@ -59,6 +62,7 @@ class SchedulingContext:
     tasks: list[ScheduleItem]
     groups: list[ScheduleItem]
     milestones: list[ScheduleItem]
+    auto_only: bool = False
 
 
 def flatten_schedule_items(items: list[dict[str, Any]], parent_id: int | None = None) -> list[ScheduleItem]:
@@ -106,6 +110,7 @@ def computed_schedule_to_dict(result: ComputedSchedule) -> dict[str, Any]:
                 "parent_id": item.parent_id,
                 "start": item.start.isoformat() if item.start else None,
                 "finish": item.finish.isoformat() if item.finish else None,
+                "timing": item.timing if item.kind == ItemKind.TASK else None,
                 "duration": item.duration,
                 "milestone_date": item.milestone_date.isoformat() if item.milestone_date else None,
                 "is_critical": item.is_critical,
@@ -124,18 +129,42 @@ def computed_schedule_to_dict(result: ComputedSchedule) -> dict[str, Any]:
     }
 
 
+def validate_pinned_task_bounds(
+    schedule_data: dict[str, Any],
+    calendar_data: dict[str, Any],
+) -> list[str]:
+    """Return logic errors for pinned tasks that violate predecessor or parent bounds."""
+    ctx = _build_scheduling_context(schedule_data, calendar_data)
+    ctx.auto_only = True
+    _apply_milestone_dates(ctx)
+    _run_until_fixed_point(ctx)
+
+    errors: list[str] = []
+    for task in ctx.tasks:
+        if task.timing == "auto":
+            continue
+        errors.extend(_pinned_task_bound_errors(task, ctx))
+    return errors
+
+
 def _schedule_item_from_raw(raw: dict[str, Any], parent_id: int | None) -> ScheduleItem:
     """Build one ScheduleItem from a YAML item dict."""
     kind = ItemKind(raw["kind"])
     predecessors = parse_predecessors(raw.get("predecessors", [])) if kind != ItemKind.MILESTONE else []
     milestone_date = date.fromisoformat(raw["date"]) if kind == ItemKind.MILESTONE else None
+    timing = raw.get("timing", "auto") if kind == ItemKind.TASK else "auto"
+    pinned_start = date.fromisoformat(raw["start"]) if kind == ItemKind.TASK and "start" in raw else None
+    pinned_finish = date.fromisoformat(raw["finish"]) if kind == ItemKind.TASK and "finish" in raw else None
     return ScheduleItem(
         id=raw["id"],
         kind=kind,
         name=raw["name"],
         parent_id=parent_id,
         predecessors=predecessors,
+        timing=timing,
         duration=raw.get("duration"),
+        pinned_start=pinned_start,
+        pinned_finish=pinned_finish,
         milestone_date=milestone_date,
     )
 
@@ -213,6 +242,23 @@ def _groups_by_depth(items: list[ScheduleItem], by_id: dict[int, ScheduleItem]) 
 
 def _schedule_task(task: ScheduleItem, ctx: SchedulingContext) -> bool:
     """Compute start/finish for one task. Returns True if dates changed."""
+    if task.kind != ItemKind.TASK:
+        return False
+    if ctx.auto_only or task.timing == "auto":
+        return _schedule_auto_task(task, ctx)
+    if task.is_scheduled:
+        return False
+    if task.timing == "start_duration":
+        return _schedule_start_duration_task(task, ctx)
+    if task.timing == "start_finish":
+        return _schedule_start_finish_task(task, ctx)
+    if task.timing == "finish_duration":
+        return _schedule_finish_duration_task(task, ctx)
+    return False
+
+
+def _schedule_auto_task(task: ScheduleItem, ctx: SchedulingContext) -> bool:
+    """Compute start/finish for an auto-scheduled task."""
     if task.duration is None:
         return False
 
@@ -230,6 +276,96 @@ def _schedule_task(task: ScheduleItem, ctx: SchedulingContext) -> bool:
     task.start = earliest
     task.finish = finish
     return True
+
+
+def _schedule_start_duration_task(task: ScheduleItem, ctx: SchedulingContext) -> bool:
+    """Pin start and duration; compute finish."""
+    if task.pinned_start is None or task.duration is None:
+        return False
+    start = task.pinned_start
+    finish = ctx.calendar.task_finish(start, task.duration)
+    if task.start == start and task.finish == finish:
+        return False
+    task.start = start
+    task.finish = finish
+    return True
+
+
+def _schedule_start_finish_task(task: ScheduleItem, ctx: SchedulingContext) -> bool:
+    """Pin start and finish; derive duration for output."""
+    if task.pinned_start is None or task.pinned_finish is None:
+        return False
+    start = task.pinned_start
+    finish = task.pinned_finish
+    working_days = ctx.calendar.count_working_days(start, finish)
+    duration = f"{working_days}d"
+    if task.start == start and task.finish == finish and task.duration == duration:
+        return False
+    task.start = start
+    task.finish = finish
+    task.duration = duration
+    return True
+
+
+def _schedule_finish_duration_task(task: ScheduleItem, ctx: SchedulingContext) -> bool:
+    """Pin finish and duration; back-calculate start."""
+    if task.pinned_finish is None or task.duration is None:
+        return False
+    finish = task.pinned_finish
+    start = _start_for_finish(finish, task.duration, ctx.calendar)
+    if task.start == start and task.finish == finish:
+        return False
+    task.start = start
+    task.finish = finish
+    return True
+
+
+def _pinned_task_bound_errors(task: ScheduleItem, ctx: SchedulingContext) -> list[str]:
+    """Validate one pinned task against predecessor and parent bounds."""
+    errors: list[str] = []
+    parent = ctx.by_id.get(task.parent_id) if task.parent_id is not None else None
+
+    if task.timing in {"start_duration", "start_finish"}:
+        if task.pinned_start is None:
+            return errors
+        duration = task.duration or "1d"
+        earliest = _minimum_start_from_predecessors(task, ctx, duration)
+        parent_floor = _parent_earliest_start(parent, ctx) if parent else None
+        if parent_floor is not None:
+            earliest = max(earliest, parent_floor) if earliest is not None else parent_floor
+        if earliest is not None and task.pinned_start < earliest:
+            errors.append(
+                f"schedule: item {task.id}: {task.timing}: start {task.pinned_start} "
+                f"is before earliest allowable start {earliest}"
+            )
+
+    if task.timing == "finish_duration":
+        if task.pinned_finish is None or task.duration is None:
+            return errors
+        earliest_finish = _minimum_finish_from_predecessors(task, ctx, task.duration)
+        if earliest_finish is not None and task.pinned_finish < earliest_finish:
+            errors.append(
+                f"schedule: item {task.id}: finish_duration: finish {task.pinned_finish} "
+                f"is before earliest allowable finish {earliest_finish}"
+            )
+
+    if task.timing == "start_finish":
+        if task.pinned_start is None or task.pinned_finish is None:
+            return errors
+        if task.pinned_start > task.pinned_finish:
+            errors.append(
+                f"schedule: item {task.id}: start_finish: start {task.pinned_start} "
+                f"is after finish {task.pinned_finish}"
+            )
+            return errors
+        working_days = ctx.calendar.count_working_days(task.pinned_start, task.pinned_finish)
+        if working_days < 1:
+            errors.append(
+                f"schedule: item {task.id}: start_finish: span has no working days "
+                f"between {task.pinned_start} and {task.pinned_finish}"
+            )
+
+    return errors
 
 
 def _schedule_group(group: ScheduleItem, ctx: SchedulingContext) -> bool:
@@ -287,6 +423,59 @@ def _minimum_start_from_predecessors(
         candidates.append(candidate)
 
     return max(candidates)
+
+
+def _minimum_finish_from_predecessors(
+    item: ScheduleItem,
+    ctx: SchedulingContext,
+    duration: str,
+) -> date | None:
+    """Latest minimum finish date implied by all predecessor links."""
+    if not item.predecessors:
+        return None
+
+    candidates: list[date] = []
+    for link in item.predecessors:
+        pred = ctx.by_id.get(link.task_id)
+        if pred is None:
+            return None
+        candidate = _constraint_finish(link, pred, duration, ctx)
+        if candidate is None:
+            return None
+        candidates.append(candidate)
+
+    return max(candidates)
+
+
+def _constraint_finish(
+    link: PredecessorLink,
+    pred: ScheduleItem,
+    duration: str,
+    ctx: SchedulingContext,
+) -> date | None:
+    """Earliest allowed finish for a successor given one predecessor link."""
+    anchor_start, anchor_finish = _pred_anchors(pred, ctx)
+    calendar = ctx.calendar
+
+    if link.link_type == LinkType.FF:
+        if anchor_finish is None:
+            return None
+        return calendar.apply_lag(anchor_finish, link.lag)
+    if link.link_type == LinkType.FS:
+        start = _fs_constraint_start(anchor_finish, link.lag, calendar)
+        if start is None:
+            return None
+        return calendar.task_finish(start, duration)
+    if link.link_type == LinkType.SS:
+        start = _ss_constraint_start(anchor_start, link.lag, calendar)
+        if start is None:
+            return None
+        return calendar.task_finish(start, duration)
+    if link.link_type == LinkType.SF:
+        if anchor_start is None:
+            return None
+        return calendar.apply_lag(anchor_start, link.lag)
+    return None
 
 
 def _pred_anchors(

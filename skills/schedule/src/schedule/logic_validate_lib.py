@@ -7,6 +7,7 @@ from datetime import date
 from typing import Any
 
 from schedule.calendar_lib import WorkingCalendar
+from schedule.compute_lib import validate_pinned_task_bounds
 from schedule.predecessors_lib import LinkType, PredecessorLink, parse_predecessor
 
 
@@ -28,6 +29,8 @@ def validate_schedule_logic(
     if calendar_data is not None:
         calendar = WorkingCalendar.from_dict(calendar_data)
         errors.extend(_check_milestone_working_days(items, calendar))
+        if not errors:
+            errors.extend(validate_pinned_task_bounds(schedule_data, calendar_data))
 
     return errors
 

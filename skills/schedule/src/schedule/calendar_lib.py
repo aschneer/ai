@@ -56,6 +56,18 @@ class WorkingCalendar:
             return start
         return self.add_working_days(start, working_days - 1)
 
+    def count_working_days(self, start: date, finish: date) -> int:
+        """Count inclusive working days from ``start`` through ``finish``."""
+        if finish < start:
+            return 0
+        count = 0
+        current = start
+        while current <= finish:
+            if self.is_working_day(current):
+                count += 1
+            current += timedelta(days=1)
+        return count
+
     def apply_lag(self, anchor: date, lag: str | None) -> date:
         """Shift ``anchor`` by optional lag/lead (``+3d``, ``-1w``)."""
         if not lag:

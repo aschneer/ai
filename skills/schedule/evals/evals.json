@@ -9,7 +9,7 @@
     },
     {
       "id": 2,
-      "prompt": "This schedule has a task with a date field on it — that's wrong for our format. Fix the YAML so it validates.\n\n```yaml\ncalendar: calendar.yaml\nitems:\n  - kind: milestone\n    id: 0\n    name: Project start\n    date: 2026-06-09\n  - kind: task\n    id: 5\n    name: Pour concrete\n    duration: 3d\n    date: 2026-06-12\n    predecessors: [\"0FS\"]\n```",
+      "prompt": "This schedule has a task with a date field on it — that's wrong for our format. Fix the YAML so it validates.\n\n```yaml\ncalendar: calendar.yaml\nitems:\n  - kind: milestone\n    id: 0\n    name: Project start\n    date: 2026-06-09\n  - kind: task\n    id: 5\n    name: Pour concrete\n    timing: auto\n    duration: 3d\n    date: 2026-06-12\n    predecessors: [\"0FS\"]\n```",
       "expected_output": "Removes date from the task (only milestones have dates), keeps predecessors and duration, explains the kind constraint",
       "files": []
     },

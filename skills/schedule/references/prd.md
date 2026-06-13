@@ -87,7 +87,9 @@ We use **`group`**, not `summary` or `phase` — see `decisions.md` (Resolved pr
 | `id` | required | required | required |
 | `name` | required | required | required |
 | `date` | required (user-set) | **forbidden** | **forbidden** |
-| `duration` | **forbidden** | required | **forbidden** |
+| `timing` | **forbidden** | required | **forbidden** |
+| `duration` | **forbidden** | conditional | **forbidden** |
+| `start` / `finish` | **forbidden** | conditional | **forbidden** |
 | `predecessors` | **forbidden** | required | required |
 | `children` | **forbidden** | **forbidden** | required (**min 1**) |
 
@@ -311,6 +313,40 @@ Impossible schedules are **hard errors**, not warnings. Examples:
 
 The engine does not auto-fix or silently adjust user data.
 
+### R19 — Task timing mode (required field)
+
+Every **`kind: task`** item must include a **`timing`** field — never optional, never inferred:
+
+| `timing` | User specifies | Engine computes |
+|----------|----------------|-----------------|
+| `auto` | `duration`, `predecessors` | `start`, `finish` |
+| `start_duration` | `start`, `duration`, `predecessors` | `finish` |
+| `start_finish` | `start`, `finish`, `predecessors` | `duration` |
+| `finish_duration` | `finish`, `duration`, `predecessors` | `start` |
+
+Every task must set `timing` explicitly, including `timing: auto`.
+
+### R20 — Task date fields by timing mode
+
+- **`auto`:** `start` and `finish` forbidden in the schedule file
+- **`start_duration`:** `start` required; `finish` forbidden
+- **`start_finish`:** `start` and `finish` required; `duration` forbidden
+- **`finish_duration`:** `finish` required; `start` forbidden
+
+Milestones keep authoritative **`date`**. Groups have no user-entered dates (R3 unchanged).
+
+### R21 — Predecessors on pinned tasks
+
+`predecessors` remain **required** in all timing modes. Pinned `start` / `finish` values are authoritative. Predecessors define earliest allowable bounds.
+
+### R22 — Pinned-task validation
+
+Impossible pinned schedules are **hard errors** before compute (see R18).
+
+### R23 — Pinned-task compute
+
+The engine derives the third field from the two user-specified fields using working-calendar math. Pinned fields are not overwritten. `auto` tasks use the existing CPM forward pass. Detail: `task_timing_modes.md`.
+
 ### R17 — Project directory
 
 Each schedule project lives in **one directory** containing the schedule file, calendar file, and generated artifacts (Gantt, JSON). The skill asks for the schedule file path or project directory. Schedule filename is not prescribed. Calendar path is relative to the schedule file.
@@ -342,55 +378,6 @@ CLI flags and server implementation: `architecture.md`, `decisions.md`.
 ### R10 — Live refresh (nice to have)
 
 While developing a schedule, the Gantt **updates when the schedule file changes** without manual refresh.
-
----
-
-## Planned capabilities
-
-Not yet implemented. Algorithm and validation detail: `task_timing_modes.md`.
-
-### R19 — Task timing mode (required field)
-
-Every **`kind: task`** item must include a **`timing`** field — never optional, never inferred:
-
-| `timing` | User specifies | Engine computes |
-|----------|----------------|-----------------|
-| `auto` | `duration`, `predecessors` | `start`, `finish` |
-| `start_duration` | `start`, `duration`, `predecessors` | `finish` |
-| `start_finish` | `start`, `finish`, `predecessors` | `duration` |
-| `finish_duration` | `finish`, `duration`, `predecessors` | `start` |
-
-Existing schedules must add `timing: auto` on every task — no backward compatibility for omitted `timing`.
-
-### R20 — Task date fields by timing mode
-
-- **`auto`:** `start` and `finish` forbidden in the schedule file
-- **`start_duration`:** `start` required; `finish` forbidden
-- **`start_finish`:** `start` and `finish` required; `duration` forbidden
-- **`finish_duration`:** `finish` required; `start` forbidden
-
-Milestones keep authoritative **`date`**. Groups have no user-entered dates (R3 unchanged).
-
-### R21 — Predecessors on pinned tasks
-
-`predecessors` remain **required** in all timing modes. Pinned `start` / `finish` values are authoritative. Predecessors define earliest allowable bounds.
-
-### R22 — Pinned-task validation
-
-Impossible pinned schedules are **hard errors** before compute:
-
-- Pinned `start` before predecessor-implied earliest start
-- Pinned `finish` before predecessor-implied earliest finish
-- `start_finish` with `start` after `finish`, or zero working-day span
-- Pinned child `start` before parent group floor
-
-No warnings channel and no automatic adjustment of user pins.
-
-### R23 — Pinned-task compute
-
-The engine derives the third field (start, finish, or duration) from the two user-specified fields using working-calendar math. Pinned fields are not overwritten. `auto` tasks use the existing CPM forward pass.
-
-**Out of scope for R19–R23:** fixed dates on groups (use milestone + predecessor on the group); hour durations; YAML layout changes.
 
 ---
 

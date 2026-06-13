@@ -1,6 +1,6 @@
 # Task Timing Modes
 
-**Status:** Planned (not implemented)  
+**Status:** Implemented  
 **Last updated:** 2026-06-12  
 **Related:** `prd.md` (R19–R23), `architecture.md`, `data_model.md`, `scheduling_algorithm.md`
 

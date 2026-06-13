@@ -13,6 +13,7 @@ items:
       - kind: task
         id: 11
         name: Trim the hedges
+        timing: auto
         duration: 2d
         predecessors: ["10SS"]
 
@@ -24,11 +25,13 @@ items:
       - kind: task
         id: 14
         name: Re-landscape beds
+        timing: auto
         duration: 3d
         predecessors: ["13FS"]
 
   - kind: task
     id: 20
     name: Install pavers
+    timing: auto
     duration: 4d
     predecessors: ["10FS"]

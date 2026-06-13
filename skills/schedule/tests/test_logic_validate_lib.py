@@ -11,6 +11,7 @@ def test_duplicate_id_error_per_pair() -> None:
                 "kind": "task",
                 "id": 1,
                 "name": "First",
+                "timing": "auto",
                 "duration": "1d",
                 "predecessors": ["0FS"],
             },
@@ -18,6 +19,7 @@ def test_duplicate_id_error_per_pair() -> None:
                 "kind": "task",
                 "id": 1,
                 "name": "Duplicate",
+                "timing": "auto",
                 "duration": "1d",
                 "predecessors": ["0FS"],
             },
@@ -40,6 +42,7 @@ def test_unknown_predecessor_error() -> None:
                 "kind": "task",
                 "id": 1,
                 "name": "A",
+                "timing": "auto",
                 "duration": "1d",
                 "predecessors": ["99FS"],
             },
@@ -77,6 +80,7 @@ def test_cyclic_dependency_error() -> None:
                 "kind": "task",
                 "id": 1,
                 "name": "A",
+                "timing": "auto",
                 "duration": "1d",
                 "predecessors": ["2FS"],
             },
@@ -84,6 +88,7 @@ def test_cyclic_dependency_error() -> None:
                 "kind": "task",
                 "id": 2,
                 "name": "B",
+                "timing": "auto",
                 "duration": "1d",
                 "predecessors": ["1FS"],
             },
@@ -103,6 +108,7 @@ def test_top_level_must_not_mix_zero_with_other_predecessors() -> None:
                 "kind": "task",
                 "id": 1,
                 "name": "A",
+                "timing": "auto",
                 "duration": "1d",
                 "predecessors": ["0FS", "2FS"],
             },
@@ -110,6 +116,7 @@ def test_top_level_must_not_mix_zero_with_other_predecessors() -> None:
                 "kind": "task",
                 "id": 2,
                 "name": "B",
+                "timing": "auto",
                 "duration": "1d",
                 "predecessors": ["0FS"],
             },
@@ -135,6 +142,7 @@ def test_child_must_not_reference_zero() -> None:
                         "kind": "task",
                         "id": 11,
                         "name": "Child",
+                        "timing": "auto",
                         "duration": "1d",
                         "predecessors": ["0FS"],
                     }
@@ -156,6 +164,7 @@ def test_invalid_predecessor_format_error() -> None:
                 "kind": "task",
                 "id": 1,
                 "name": "A",
+                "timing": "auto",
                 "duration": "1d",
                 "predecessors": ["bad"],
             },
@@ -165,3 +174,53 @@ def test_invalid_predecessor_format_error() -> None:
     errors = validate_schedule_logic(schedule_data, CALENDAR)
 
     assert any("invalid predecessor format" in error for error in errors)
+
+
+def test_start_duration_before_predecessor_is_error() -> None:
+    schedule_data = {
+        "items": [
+            {"kind": "milestone", "id": 0, "name": "Start", "date": "2026-06-09"},
+            {
+                "kind": "task",
+                "id": 1,
+                "name": "First",
+                "timing": "auto",
+                "duration": "3d",
+                "predecessors": ["0FS"],
+            },
+            {
+                "kind": "task",
+                "id": 2,
+                "name": "Too early",
+                "timing": "start_duration",
+                "start": "2026-06-10",
+                "duration": "1d",
+                "predecessors": ["1FS"],
+            },
+        ]
+    }
+
+    errors = validate_schedule_logic(schedule_data, CALENDAR)
+
+    assert any("start_duration" in error and "earliest allowable start" in error for error in errors)
+
+
+def test_start_finish_with_start_after_finish_is_error() -> None:
+    schedule_data = {
+        "items": [
+            {"kind": "milestone", "id": 0, "name": "Start", "date": "2026-06-09"},
+            {
+                "kind": "task",
+                "id": 1,
+                "name": "Bad span",
+                "timing": "start_finish",
+                "start": "2026-06-12",
+                "finish": "2026-06-10",
+                "predecessors": ["0FS"],
+            },
+        ]
+    }
+
+    errors = validate_schedule_logic(schedule_data, CALENDAR)
+
+    assert any("start_finish" in error and "start" in error and "after finish" in error for error in errors)

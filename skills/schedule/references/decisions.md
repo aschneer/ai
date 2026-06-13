@@ -23,7 +23,7 @@ Historical checklist — decisions now reflected in `prd.md`, `data_model.md`, o
 | Milestones | User `date` authoritative; no predecessors; only file-based date constraint |
 | Validation | JSON Schema files in YAML; same schemas in editor and runtime |
 | Holiday file location | Project directory; path relative to schedule file |
-| Task timing modes | Designed — R19–R23 in `prd.md`; detail in `task_timing_modes.md` |
+| Task timing modes | Implemented — R19–R23; `timing` required on every task |
 | Gantt output | Static HTML/JS + JSON in project directory via `compute` |
 | Gantt viewing | HTTP URLs printed; user opens manually; network-reachable when remote |
 | Critical path | Per-item marking in computed output and Gantt styling |

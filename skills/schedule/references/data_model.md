@@ -39,8 +39,10 @@ items:
 | `id` | required | required | required |
 | `name` | required | required | required |
 | `date` | required | forbidden | forbidden |
-| `duration` | forbidden | required | forbidden |
-| `predecessors` | forbidden | required | forbidden |
+| `timing` | forbidden | required | forbidden |
+| `duration` | forbidden | conditional | forbidden |
+| `start` / `finish` | forbidden | conditional | forbidden |
+| `predecessors` | forbidden | required | required |
 | `children` | forbidden | forbidden | required (min 1) |
 
 ## ID 0 — project start
@@ -95,6 +97,28 @@ Only **immediate** predecessors. No transitive chain.
 
 **Milestone on a working day:** milestone `date` values must fall on a working day in the calendar file. Validation fails with an error if not — move the date to a working day before computing.
 
+## Task timing
+
+Every **`kind: task`** item requires **`timing`**:
+
+| `timing` | User specifies | Engine computes |
+|----------|----------------|-----------------|
+| `auto` | `duration`, `predecessors` | `start`, `finish` |
+| `start_duration` | `start`, `duration`, `predecessors` | `finish` |
+| `start_finish` | `start`, `finish`, `predecessors` | `duration` |
+| `finish_duration` | `finish`, `duration`, `predecessors` | `start` |
+
+```yaml
+- kind: task
+  id: 11
+  name: Trim the hedges
+  timing: auto
+  duration: 2d
+  predecessors: ["10SS"]
+```
+
+Pinned `start` / `finish` values are authoritative; predecessors define earliest allowable bounds. Violations are hard errors before compute.
+
 ## Durations
 
 Days and weeks only: `4d`, `2w`. No hours. Lag uses the same units (`5FS+3d`, `7SS+1w`).
@@ -132,6 +156,7 @@ items:
     - kind: task
       id: 11
       name: Trim the hedges
+      timing: auto
       duration: 2d
       predecessors: ["10SS"]
 
@@ -143,12 +168,14 @@ items:
     - kind: task
       id: 14
       name: Re-landscape beds
+      timing: auto
       duration: 3d
       predecessors: ["13FS"]
 
   - kind: task
     id: 20
     name: Install pavers
+    timing: auto
     duration: 4d
     predecessors: ["0FS"]
 ```

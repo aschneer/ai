@@ -33,17 +33,8 @@
 
 ### 3. Task timing modes (pinned task dates)
 
+- **Status:** Done
 - **Design:** `skills/schedule/references/task_timing_modes.md`
-- **PRD:** Planned capability in `references/prd.md`; detailed spec in `references/task_timing_modes.md`
-- **What:** Required `timing` field on every task (`auto` | `start_duration` | `start_finish` | `finish_duration`). User pins two of start/finish/duration; engine computes the third. Predecessors stay required; fixed dates win; bound violations fail validation.
-- **Scope:** Minor extension — schema + logic validation + `_schedule_task` branch. Groups unchanged (milestone + predecessor for phase gates).
-- **Not doing:** fixed group dates, optional/default `timing`, backward compatibility for omitted `timing`
-- **Steps:**
-  1. Schema — required `timing`, conditional `start`/`finish`/`duration`
-  2. Update all test fixtures and examples with explicit `timing: auto`
-  3. Logic validation — predecessor bounds, parent floor, `start_finish` sanity
-  4. Compute — pinned branches; do not overwrite pins in fixed-point loop
-  5. Docs + SKILL.md + evals
 
 ### 4. Tighten logic validation (predecessor listing rules)
 
@@ -118,7 +109,7 @@ From `references/prd.md`:
 
 1. ~~Critical path (JSON + agent reporting)~~
 2. ~~Predecessors in JSON + Gantt dependency lines~~
-3. Task timing modes (see `task_timing_modes.md`)
+3. ~~Task timing modes~~
 4. Stricter listing validation
 5. PRD sync (validate-first drift)
 6. Hot reload (optional polish)

@@ -53,6 +53,7 @@ def test_nested_groups_schedule() -> None:
                                 "kind": "task",
                                 "id": 12,
                                 "name": "Work",
+                                "timing": "auto",
                                 "duration": "2d",
                                 "predecessors": ["11SS"],
                             }
@@ -79,6 +80,7 @@ def test_finish_to_finish_link() -> None:
                 "kind": "task",
                 "id": 1,
                 "name": "First",
+                "timing": "auto",
                 "duration": "3d",
                 "predecessors": ["0FS"],
             },
@@ -86,6 +88,7 @@ def test_finish_to_finish_link() -> None:
                 "kind": "task",
                 "id": 2,
                 "name": "Second",
+                "timing": "auto",
                 "duration": "2d",
                 "predecessors": ["1FF"],
             },
@@ -106,6 +109,7 @@ def test_lag_delays_start() -> None:
                 "kind": "task",
                 "id": 1,
                 "name": "First",
+                "timing": "auto",
                 "duration": "1d",
                 "predecessors": ["0FS"],
             },
@@ -113,6 +117,7 @@ def test_lag_delays_start() -> None:
                 "kind": "task",
                 "id": 2,
                 "name": "Second",
+                "timing": "auto",
                 "duration": "1d",
                 "predecessors": ["1FS+3d"],
             },
@@ -147,3 +152,78 @@ def test_landscaping_loads_through_validation() -> None:
 
     assert errors == []
     assert project is not None
+
+
+def test_start_duration_pins_start_and_computes_finish() -> None:
+    schedule_data = {
+        "items": [
+            {"kind": "milestone", "id": 0, "name": "Start", "date": "2026-06-09"},
+            {
+                "kind": "task",
+                "id": 1,
+                "name": "First",
+                "timing": "auto",
+                "duration": "2d",
+                "predecessors": ["0FS"],
+            },
+            {
+                "kind": "task",
+                "id": 2,
+                "name": "Pinned",
+                "timing": "start_duration",
+                "start": "2026-06-12",
+                "duration": "1d",
+                "predecessors": ["1FS"],
+            },
+        ]
+    }
+    result = compute_schedule(schedule_data, CALENDAR)
+    by_id = {item.id: item for item in result.items}
+
+    assert by_id[2].start == date(2026, 6, 12)
+    assert by_id[2].finish == date(2026, 6, 12)
+
+
+def test_finish_duration_pins_finish_and_computes_start() -> None:
+    schedule_data = {
+        "items": [
+            {"kind": "milestone", "id": 0, "name": "Start", "date": "2026-06-09"},
+            {
+                "kind": "task",
+                "id": 1,
+                "name": "Pinned",
+                "timing": "finish_duration",
+                "finish": "2026-06-12",
+                "duration": "2d",
+                "predecessors": ["0FS"],
+            },
+        ]
+    }
+    result = compute_schedule(schedule_data, CALENDAR)
+    by_id = {item.id: item for item in result.items}
+
+    assert by_id[1].finish == date(2026, 6, 12)
+    assert by_id[1].start == date(2026, 6, 11)
+
+
+def test_start_finish_derives_duration() -> None:
+    schedule_data = {
+        "items": [
+            {"kind": "milestone", "id": 0, "name": "Start", "date": "2026-06-09"},
+            {
+                "kind": "task",
+                "id": 1,
+                "name": "Pinned span",
+                "timing": "start_finish",
+                "start": "2026-06-09",
+                "finish": "2026-06-11",
+                "predecessors": ["0FS"],
+            },
+        ]
+    }
+    result = compute_schedule(schedule_data, CALENDAR)
+    by_id = {item.id: item for item in result.items}
+
+    assert by_id[1].start == date(2026, 6, 9)
+    assert by_id[1].finish == date(2026, 6, 11)
+    assert by_id[1].duration == "3d"

@@ -54,9 +54,9 @@ Edit YAML directly. Rules that matter most:
 
 | Kind | Key fields | Forbidden |
 |------|------------|-----------|
-| `milestone` | `date` (user-set, must be a working day) | `duration`, `predecessors`, `children` |
-| `task` | `duration`, `predecessors` | `date`, `children` |
-| `group` | `predecessors`, `children` (min 1) | `date`, `duration` |
+| `milestone` | `date` (user-set, must be a working day) | `duration`, `timing`, `predecessors`, `children` |
+| `task` | `timing`, `duration`, `predecessors` (plus `start`/`finish` when timing requires) | `date`, `children` |
+| `group` | `predecessors`, `children` (min 1) | `date`, `duration`, `timing` |
 
 **ID 0** is reserved for the project start milestone. IDs are stable and **must be unique** — never renumber when reordering items.
 
@@ -77,6 +77,8 @@ Listing rules:
 - No cyclic predecessor dependencies
 
 **Durations and lag:** days and weeks only (`4d`, `2w`). No hours.
+
+**Task timing:** every task requires `timing: auto | start_duration | start_finish | finish_duration`. Use `auto` for planning (duration + predecessors → computed dates). Use pinned modes during execution when a start or finish is committed — see `data_model.md`.
 
 **Task order:** controlled by user and agent. Scheduling code does not rewrite file order. Convention: parent group above its children; siblings by computed start date when practical.
 

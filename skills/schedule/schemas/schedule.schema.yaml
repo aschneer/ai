@@ -23,6 +23,10 @@ $defs:
     type: string
     pattern: ^\d+[dw]$
 
+  iso_date:
+    type: string
+    format: date
+
   predecessor:
     type: string
     pattern: ^\d+(FS|SS|FF|SF)([+-]\d+[dw])?$
@@ -47,13 +51,12 @@ $defs:
         type: string
         minLength: 1
       date:
-        type: string
-        format: date
+        $ref: '#/$defs/iso_date'
 
-  task:
+  task_auto:
     type: object
     additionalProperties: false
-    required: [kind, id, name, duration, predecessors]
+    required: [kind, id, name, timing, duration, predecessors]
     properties:
       kind:
         const: task
@@ -63,10 +66,85 @@ $defs:
       name:
         type: string
         minLength: 1
+      timing:
+        const: auto
       duration:
         $ref: '#/$defs/duration'
       predecessors:
         $ref: '#/$defs/predecessors'
+
+  task_start_duration:
+    type: object
+    additionalProperties: false
+    required: [kind, id, name, timing, start, duration, predecessors]
+    properties:
+      kind:
+        const: task
+      id:
+        type: integer
+        minimum: 1
+      name:
+        type: string
+        minLength: 1
+      timing:
+        const: start_duration
+      start:
+        $ref: '#/$defs/iso_date'
+      duration:
+        $ref: '#/$defs/duration'
+      predecessors:
+        $ref: '#/$defs/predecessors'
+
+  task_start_finish:
+    type: object
+    additionalProperties: false
+    required: [kind, id, name, timing, start, finish, predecessors]
+    properties:
+      kind:
+        const: task
+      id:
+        type: integer
+        minimum: 1
+      name:
+        type: string
+        minLength: 1
+      timing:
+        const: start_finish
+      start:
+        $ref: '#/$defs/iso_date'
+      finish:
+        $ref: '#/$defs/iso_date'
+      predecessors:
+        $ref: '#/$defs/predecessors'
+
+  task_finish_duration:
+    type: object
+    additionalProperties: false
+    required: [kind, id, name, timing, finish, duration, predecessors]
+    properties:
+      kind:
+        const: task
+      id:
+        type: integer
+        minimum: 1
+      name:
+        type: string
+        minLength: 1
+      timing:
+        const: finish_duration
+      finish:
+        $ref: '#/$defs/iso_date'
+      duration:
+        $ref: '#/$defs/duration'
+      predecessors:
+        $ref: '#/$defs/predecessors'
+
+  task:
+    oneOf:
+      - $ref: '#/$defs/task_auto'
+      - $ref: '#/$defs/task_start_duration'
+      - $ref: '#/$defs/task_start_finish'
+      - $ref: '#/$defs/task_finish_duration'
 
   group:
     type: object
