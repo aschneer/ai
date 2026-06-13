@@ -2,6 +2,13 @@
 
 const DATA_URL = "gantt_data.json";
 
+const LINK_ANCHORS = {
+  FS: { from: "finish", to: "start" },
+  SS: { from: "start", to: "start" },
+  FF: { from: "finish", to: "finish" },
+  SF: { from: "start", to: "finish" },
+};
+
 function parseDate(value) {
   const [year, month, day] = value.split("-").map(Number);
   return new Date(year, month - 1, day);
@@ -61,6 +68,26 @@ function weekColumns(rangeStart, rangeEnd) {
   return columns;
 }
 
+function barEdgePct(metrics, edge) {
+  if (metrics.kind === "milestone") {
+    return metrics.leftPct;
+  }
+  return edge === "start" ? metrics.leftPct : metrics.leftPct + metrics.widthPct;
+}
+
+function rowCenterY(rowEl) {
+  return rowEl.offsetTop + rowEl.offsetHeight / 2;
+}
+
+function elbowPath(x1, y1, x2, y2) {
+  const gap = 8;
+  if (Math.abs(y1 - y2) < 1) {
+    return `M ${x1} ${y1} H ${x2}`;
+  }
+  const bendX = Math.max(x1, x2) + gap;
+  return `M ${x1} ${y1} H ${bendX} V ${y2} H ${x2}`;
+}
+
 function renderRow(item, byId, rangeStart, totalDays) {
   const row = document.createElement("div");
   row.className = "row";
@@ -86,6 +113,7 @@ function renderRow(item, byId, rangeStart, totalDays) {
   const barArea = document.createElement("div");
   barArea.className = "bar-area";
 
+  let metrics = null;
   if (item.start && item.finish && totalDays > 0) {
     const start = parseDate(item.start);
     const finish = parseDate(item.finish);
@@ -109,11 +137,66 @@ function renderRow(item, byId, rangeStart, totalDays) {
       bar.style.width = `${widthPct.toFixed(2)}%`;
     }
     barArea.appendChild(bar);
+    metrics = { leftPct, widthPct, kind: item.kind };
   }
 
   timeline.appendChild(barArea);
   row.append(label, timeline);
-  return row;
+  return { row, metrics, item };
+}
+
+function renderDependencyLines(items, rowEntries, container) {
+  const drawable = rowEntries.filter((entry) => entry.metrics);
+  if (!drawable.length) {
+    return;
+  }
+
+  const timeline = drawable[0].row.querySelector(".timeline");
+  const timelineWidth = timeline.offsetWidth;
+  const containerHeight = container.offsetHeight;
+  if (!timelineWidth || !containerHeight) {
+    return;
+  }
+
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("class", "dependency-lines");
+  svg.setAttribute("width", String(timelineWidth));
+  svg.setAttribute("height", String(containerHeight));
+  svg.setAttribute("viewBox", `0 0 ${timelineWidth} ${containerHeight}`);
+
+  const byId = new Map(drawable.map((entry) => [entry.item.id, entry]));
+
+  for (const item of items) {
+    const predecessors = item.predecessors || [];
+    const succEntry = byId.get(item.id);
+    if (!succEntry) {
+      continue;
+    }
+
+    for (const pred of predecessors) {
+      const predEntry = byId.get(pred.task_id);
+      if (!predEntry) {
+        continue;
+      }
+
+      const anchors = LINK_ANCHORS[pred.link_type] || LINK_ANCHORS.FS;
+      const x1 = (barEdgePct(predEntry.metrics, anchors.from) / 100) * timelineWidth;
+      const x2 = (barEdgePct(succEntry.metrics, anchors.to) / 100) * timelineWidth;
+      const y1 = rowCenterY(predEntry.row);
+      const y2 = rowCenterY(succEntry.row);
+
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("d", elbowPath(x1, y1, x2, y2));
+      if (predEntry.item.is_critical && succEntry.item.is_critical) {
+        path.classList.add("critical");
+      }
+      svg.appendChild(path);
+    }
+  }
+
+  if (svg.childNodes.length) {
+    container.appendChild(svg);
+  }
 }
 
 function renderGantt(data) {
@@ -149,9 +232,14 @@ function renderGantt(data) {
   header.append(headerLabel, headerTimeline);
   root.appendChild(header);
 
+  const rowEntries = [];
   items.forEach((item) => {
-    root.appendChild(renderRow(item, byId, range.start, totalDays));
+    const entry = renderRow(item, byId, range.start, totalDays);
+    root.appendChild(entry.row);
+    rowEntries.push(entry);
   });
+
+  renderDependencyLines(items, rowEntries, root);
 }
 
 function showError(message) {

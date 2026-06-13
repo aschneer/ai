@@ -48,6 +48,11 @@ def main(argv: list[str] | None = None) -> int:
         default=True,
         help="Serve the project directory after compute (default: true)",
     )
+    parser.add_argument(
+        "--host",
+        default="auto",
+        help="Bind address: auto (0.0.0.0), 127.0.0.1, or 0.0.0.0 (default: auto)",
+    )
     parser.add_argument("--port", type=int, default=8000, help="HTTP port for --serve")
     args = parser.parse_args(argv)
 
@@ -75,7 +80,7 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(payload, indent=2))
 
     if args.serve:
-        serve_project_directory(project_dir, port=args.port)
+        serve_project_directory(project_dir, port=args.port, host=args.host)
 
     return 0
 

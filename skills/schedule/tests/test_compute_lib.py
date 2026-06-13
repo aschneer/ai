@@ -137,6 +137,9 @@ def test_computed_schedule_to_dict_marks_critical_items() -> None:
     by_id = {item["id"]: item for item in payload["items"]}
     assert by_id[20]["is_critical"] is True
     assert by_id[11]["is_critical"] is False
+    assert by_id[20]["predecessors"] == [{"task_id": 10, "link_type": "FS", "lag": None}]
+    assert by_id[0]["predecessors"] == []
+    assert by_id[14]["predecessors"] == [{"task_id": 13, "link_type": "FS", "lag": None}]
 
 
 def test_landscaping_loads_through_validation() -> None:

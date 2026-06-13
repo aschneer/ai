@@ -109,6 +109,14 @@ def computed_schedule_to_dict(result: ComputedSchedule) -> dict[str, Any]:
                 "duration": item.duration,
                 "milestone_date": item.milestone_date.isoformat() if item.milestone_date else None,
                 "is_critical": item.is_critical,
+                "predecessors": [
+                    {
+                        "task_id": link.task_id,
+                        "link_type": link.link_type.value,
+                        "lag": link.lag,
+                    }
+                    for link in item.predecessors
+                ],
             }
             for item in result.items
         ],

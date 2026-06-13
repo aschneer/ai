@@ -10,7 +10,7 @@
 - JSON Schema + logic validation (fail-fast before compute)
 - CPM compute (`compute_lib.py`)
 - CLIs: `validate`, `compute` (merged render; writes `gantt_data.json`, deploys viewer, stdout + serve by default)
-- Static Gantt viewer (`assets/gantt.html`, `assets/gantt.js`) — bars and milestones only
+- Static Gantt viewer (`assets/gantt.html`, `assets/gantt.js`) — bars, milestones, dependency lines, critical styling
 - Architecture docs, landscaping example, critical path in compute output, 25+ tests passing
 - Agent workflow in `SKILL.md` (don’t modify skill code; propose fixes before editing YAML)
 
@@ -27,13 +27,9 @@
 
 ### 2. Gantt dependency lines
 
+- **Status:** Done
 - **What:** Draw predecessor links between bars (FS/SS/FF/SF-aware anchor points).
-- **Where:** `assets/gantt.js` (+ CSS/SVG overlay); extend JSON payload.
-- **Blocker today:** `computed_schedule_to_dict()` does **not** export `predecessors` — viewer has no link data.
-- **Steps:**
-  1. Add predecessors to JSON (parsed links: `task_id`, link type, lag).
-  2. Render SVG or canvas connectors between row/bar positions.
-  3. Tests for JSON shape; optional visual/regression test later.
+- **Where:** `assets/gantt.js` + `predecessors` on each item in JSON from `computed_schedule_to_dict()`.
 
 ### 3. Task timing modes (pinned task dates)
 
@@ -125,7 +121,7 @@ From `references/prd.md`:
 ## Suggested implementation order
 
 1. ~~Critical path (JSON + agent reporting)~~
-2. Predecessors in JSON + Gantt dependency lines
+2. ~~Predecessors in JSON + Gantt dependency lines~~
 3. Task timing modes (R19–R23)
 4. Stricter listing validation
 5. PRD sync (validate-first drift)

@@ -100,7 +100,7 @@ uv run compute <schedule-file>
 uv run compute <schedule-file> --no-stdout --no-serve
 ```
 
-**`compute`** validates, runs CPM, writes **`gantt_data.json`**, copies **`gantt.html`** and **`gantt.js`** into the project directory, prints JSON to stdout (default), and starts a local server (default) at `http://127.0.0.1:8000/gantt.html`. Use **`--no-serve`** for CI or when you only need the files.
+**`compute`** validates, runs CPM, writes **`gantt_data.json`**, copies **`gantt.html`** and **`gantt.js`** into the project directory, prints JSON to stdout (default), and starts a dev server (default). It prints **local** and **network** Gantt URLs — use whichever opens from your machine (see `references/decisions.md`). Use **`--no-serve`** for CI or when you only need the files.
 
 When validation fails, read **all** error messages. Do not patch the skill library to bypass a rule.
 
@@ -115,7 +115,7 @@ The library never writes these fixes for you — that is always the agent's job,
 
 ### 4. Report results (agent)
 
-Present computed dates (from JSON or stdout), call out critical items (`is_critical: true`), and Gantt URL (`http://127.0.0.1:8000/gantt.html` when serving).
+Present computed dates (from JSON or stdout), call out critical items (`is_critical: true`), and the Gantt URLs printed by `compute` when serving.
 
 If validation failed and you have not yet fixed the file: list every error and your planned YAML changes — do not edit until the user has seen the plan (unless they already asked you to fix it).
 
@@ -134,6 +134,7 @@ Do not fix validation problems by writing computed `start`/`finish` dates onto n
 - `references/data_model.md` — kind constraints, examples, predecessor rules
 - `references/scheduling_algorithm.md` — CPM compute steps and predecessor semantics
 - `references/prd.md` — full product requirements
+- `references/decisions.md` — architecture decisions (ADR-style)
 - `schemas/` — JSON Schema files **written in YAML** (e.g. `schedule.schema.yaml`, `calendar.schema.yaml`). JSON Schema is the validation standard; YAML is the authoring format. The same schema validates schedule data files in the editor (Red Hat YAML + `yaml.schemas`) and in library code.
 
 ## Adding library code

@@ -47,6 +47,7 @@
     }
     .gantt-inner {
       min-width: 48rem;
+      position: relative;
     }
     .row {
       display: grid;
@@ -123,6 +124,23 @@
       font-size: 0.7rem;
       color: var(--muted);
       padding-left: 0.75rem;
+    }
+    .dependency-lines {
+      position: absolute;
+      top: 0;
+      left: var(--label-width);
+      pointer-events: none;
+      z-index: 1;
+      overflow: visible;
+    }
+    .dependency-lines path {
+      fill: none;
+      stroke: #aaa;
+      stroke-width: 1.5;
+    }
+    .dependency-lines path.critical {
+      stroke: #c0392b;
+      stroke-width: 2;
     }
   </style>
 </head>

@@ -79,5 +79,5 @@ When an item has multiple predecessors, the **latest** required start date appli
 
 ## Output
 
-- Flat list of items with computed `start`, `finish`, and `is_critical`
+- Flat list of items with computed `start`, `finish`, `is_critical`, and parsed `predecessors`
 - `project_finish` date
