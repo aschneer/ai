@@ -429,7 +429,6 @@ The scheduling engine loads both files and validates each against its schema bef
 ## Out of scope (MVP)
 
 - Interactive Gantt editing (drag bars, drag links)
-- Manual schedule mode (user-fixed dates per task) — future feature
 - Hour-based durations and lag (`8h`) — days and weeks only
 - Engine rewriting schedule file order or content
 - Cross-project predecessor links (`C:\other.mpp\3FF`)
@@ -437,6 +436,55 @@ The scheduling engine loads both files and validates each against its schema bef
 - Cost tracking
 - Partial work days / custom work weeks (e.g. 4-day week)
 - Baselines / actuals / % complete
+
+---
+
+## Implement later
+
+Features designed but not yet built. Full design: `task_timing_modes.md`.
+
+### R19 — Task timing mode (required field)
+
+Every **`kind: task`** item must include a **`timing`** field — never optional, never inferred. Allowed values:
+
+| `timing` | User specifies | Engine computes |
+|----------|----------------|-----------------|
+| `auto` | `duration`, `predecessors` | `start`, `finish` |
+| `start_duration` | `start`, `duration`, `predecessors` | `finish` |
+| `start_finish` | `start`, `finish`, `predecessors` | `duration` |
+| `finish_duration` | `finish`, `duration`, `predecessors` | `start` |
+
+Existing schedules must be updated to include `timing: auto` on every task — no backward compatibility for omitted `timing`.
+
+### R20 — Task date fields by timing mode
+
+- **`auto`:** `start` and `finish` forbidden in the schedule file; computed only.
+- **`start_duration`:** `start` required; `finish` forbidden.
+- **`start_finish`:** `start` and `finish` required; `duration` forbidden.
+- **`finish_duration`:** `finish` required; `start` forbidden.
+
+Milestones keep a single authoritative **`date`** field. Groups have no user-entered dates (R3 unchanged).
+
+### R21 — Predecessors on pinned tasks
+
+`predecessors` remain **required** on all tasks in all timing modes. Fixed `start` / `finish` values are authoritative. Predecessors define earliest allowable bounds — not computed dates for pinned fields.
+
+### R22 — Pinned-task validation (fail fast)
+
+When validation detects an impossible schedule, reject with a hard error before compute:
+
+- Pinned `start` before predecessor-implied earliest start → error
+- Pinned `finish` before predecessor-implied earliest finish → error
+- `start_finish` with `start` after `finish`, or zero working-day span → error
+- Pinned child `start` before parent group floor → error
+
+No warnings channel and no automatic adjustment of user pins.
+
+### R23 — Pinned-task compute
+
+The scheduling engine derives the third field (start, finish, or duration) from the two user-specified fields using working-calendar math. Pinned fields are not overwritten during the fixed-point iteration. `auto` tasks use the existing CPM forward pass unchanged.
+
+**Out of scope for R19–R23:** fixed dates on groups (use milestone + predecessor on the group); hour durations; YAML layout changes.
 
 ---
 
@@ -456,7 +504,7 @@ The scheduling engine loads both files and validates each against its schema bef
 - [x] Milestones: user-entered authoritative `date`; no predecessors; only date constraint mechanism
 - [x] Task kinds: `milestone` / `task` / `group` discriminator with JSON Schema validation
 - [x] Holiday list: separate calendar file in project directory, path relative to schedule file
-- [x] Manual schedule mode: deferred — future feature, not MVP
+- [x] Task timing modes: designed — see Implement later (R19–R23) and `task_timing_modes.md`
 - [x] Gantt output: static HTML from script
 - [x] Schedule filename: arbitrary; skill asks user for path
 - [x] Engine: read-only — validate, compute, warn; never edit schedule files
