@@ -66,7 +66,7 @@ For each link type, the engine computes the **earliest allowed start** for the s
 
 | Link | Anchor from predecessor | Result |
 |------|-------------------------|--------|
-| FS | Predecessor finish | Start after finish (+ lag), normalized to working day |
+| FS | Predecessor finish | Successor starts the next working day after finish (+ lag in working days); ``0FS`` from a milestone starts same day |
 | SS | Predecessor start | Start at same time (+ lag), normalized to working day |
 | FF | Predecessor finish | Back-calculate start so finishes align (+ lag) |
 | SF | Predecessor start | Back-calculate start from predecessor start (+ lag) |

@@ -213,7 +213,7 @@ A task's predecessor list must be **either** `["0FS"]` alone **or** one or more 
 
 | Type | Meaning |
 |------|---------|
-| FS | Successor cannot start until predecessor finishes |
+| FS | Successor cannot start until predecessor finishes (next working day after finish date; ``0FS`` from milestone starts same day) |
 | SS | Successor cannot start until predecessor starts |
 | FF | Successor cannot finish until predecessor finishes |
 | SF | Successor cannot finish until predecessor starts |

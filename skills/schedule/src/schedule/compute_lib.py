@@ -462,7 +462,7 @@ def _constraint_finish(
             return None
         return calendar.apply_lag(anchor_finish, link.lag)
     if link.link_type == LinkType.FS:
-        start = _fs_constraint_start(anchor_finish, link.lag, calendar)
+        start = _fs_constraint_start(anchor_finish, link.lag, calendar, pred_kind=pred.kind)
         if start is None:
             return None
         return calendar.task_finish(start, duration)
@@ -504,7 +504,7 @@ def _constraint_start(
     anchor_start, anchor_finish = _pred_anchors(pred, ctx)
 
     if link.link_type == LinkType.FS:
-        return _fs_constraint_start(anchor_finish, link.lag, ctx.calendar)
+        return _fs_constraint_start(anchor_finish, link.lag, ctx.calendar, pred_kind=pred.kind)
     if link.link_type == LinkType.SS:
         return _ss_constraint_start(anchor_start, link.lag, ctx.calendar)
     if link.link_type == LinkType.FF:
@@ -518,12 +518,23 @@ def _fs_constraint_start(
     anchor_finish: date | None,
     lag: str | None,
     calendar: WorkingCalendar,
+    *,
+    pred_kind: ItemKind,
 ) -> date | None:
-    """Finish-to-start: successor starts after predecessor finishes."""
+    """Finish-to-start: successor starts after predecessor finishes.
+
+    MS Project day scheduling: zero lag means the next working day after the
+    predecessor finish date. Positive lag adds that many working days from the
+    finish date. Milestone predecessors with zero lag (``0FS``) start the same day.
+    """
     if anchor_finish is None:
         return None
-    anchor = calendar.apply_lag(anchor_finish, lag)
-    return calendar.normalize_to_working_day(anchor)
+    lag_days = parse_duration_to_working_days(lag) if lag else 0
+    anchor = calendar.normalize_to_working_day(anchor_finish)
+    if pred_kind == ItemKind.MILESTONE and lag_days == 0:
+        return anchor
+    gap = lag_days if lag_days > 0 else 1
+    return calendar.add_working_days(anchor, gap)
 
 
 def _ss_constraint_start(

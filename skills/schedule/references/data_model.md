@@ -88,7 +88,7 @@ Only **immediate** predecessors. No transitive chain.
 
 | Type | Meaning |
 |------|---------|
-| FS | Successor cannot start until predecessor finishes |
+| FS | Successor cannot start until predecessor finishes (next working day; ``0FS`` same day) |
 | SS | Successor cannot start until predecessor starts |
 | FF | Successor cannot finish until predecessor finishes |
 | SF | Successor cannot finish until predecessor starts |

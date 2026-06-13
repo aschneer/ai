@@ -22,8 +22,8 @@ def test_home_renovation_schedule_dates() -> None:
     assert by_id[0].start == date(2026, 6, 2)
     assert by_id[5].start == date(2026, 6, 16)
     assert by_id[11].start == date(2026, 6, 16)
-    assert by_id[12].finish == date(2026, 6, 23)
-    assert by_id[10].finish == date(2026, 6, 23)
+    assert by_id[12].finish == date(2026, 6, 24)
+    assert by_id[10].finish == date(2026, 6, 24)
     assert by_id[20].start == date(2026, 7, 1)
     assert by_id[42].start == date(2026, 8, 3)
     assert by_id[42].timing == "start_duration"
@@ -102,6 +102,37 @@ def test_finish_to_finish_link() -> None:
 
     assert by_id[1].finish == by_id[2].finish
     assert critical_ids(result) == {0, 1, 2}
+
+
+def test_fs_successor_starts_next_working_day() -> None:
+    schedule_data = {
+        "items": [
+            {"kind": "milestone", "id": 0, "name": "Start", "date": "2026-06-09"},
+            {
+                "kind": "task",
+                "id": 1,
+                "name": "First",
+                "timing": "auto",
+                "duration": "1d",
+                "predecessors": ["0FS"],
+            },
+            {
+                "kind": "task",
+                "id": 2,
+                "name": "Second",
+                "timing": "auto",
+                "duration": "1d",
+                "predecessors": ["1FS"],
+            },
+        ]
+    }
+    result = compute_schedule(schedule_data, CALENDAR)
+    by_id = {item.id: item for item in result.items}
+
+    assert by_id[1].start == date(2026, 6, 9)
+    assert by_id[1].finish == date(2026, 6, 9)
+    assert by_id[2].start == date(2026, 6, 10)
+    assert by_id[2].finish == date(2026, 6, 10)
 
 
 def test_lag_delays_start() -> None:
