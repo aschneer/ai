@@ -26,6 +26,7 @@ Historical checklist — decisions now reflected in `prd.md`, `data_model.md`, o
 | Task timing modes | Implemented — R19–R23; `timing` required on every task |
 | Gantt output | Static HTML/JS + JSON in project directory via `compute` |
 | Gantt timeline rendering | Single SVG layer for bars + dependency links (print fidelity; ADR-002) |
+| Gantt charting library | Plain HTML/CSS/JS + SVG — no D3 (ADR-003) |
 | Gantt viewing | HTTP URLs printed; user opens manually; network-reachable when remote |
 | Critical path | Per-item marking in computed output and Gantt styling |
 | Schedule filename | Arbitrary; skill asks user for path |
@@ -113,3 +114,37 @@ PRD **R26** requires a printable Gantt: users must be able to print or export a 
 ### Revisit if
 
 Print quality is insufficient (e.g. multi-page pagination, exact page sizing) — consider server-generated PDF or a print-specific layout pass without abandoning the single-SVG timeline for on-screen view.
+
+---
+
+## ADR-003 — No D3 for the Gantt viewer (MVP)
+
+**Date:** 2026-06-13  
+**Status:** Accepted
+
+### Context
+
+Freeze-pane scrolling and panning on the static Gantt viewer work acceptably with HTML/CSS sticky positioning and a single SVG timeline layer. D3 (or similar charting libraries) was considered for layout, zoom, and interaction.
+
+### Decision
+
+- **Do not add D3** (or another charting library) to the Gantt viewer for MVP.
+- Keep the viewer as **static HTML/CSS + vanilla JS + SVG** copied from `src/schedule/assets/`.
+
+### Rationale
+
+| Factor | D3 / chart library | Current static viewer |
+|--------|-------------------|------------------------|
+| Dependencies | npm bundle, build or CDN | None — matches ADR-001 |
+| Scrolling / pan | Powerful but adds API surface | CSS sticky + native scroll tested and sufficient |
+| Print (R26) | Extra integration work | Single SVG already satisfies print fidelity |
+| Skill shape | Second frontend stack in a Python skill | One `compute` deploy path |
+
+### Trade-offs
+
+**Pros:** Simpler toolchain, smaller assets, agent-friendly static output, no library lock-in.  
+**Cons:** Manual geometry for bars/links; no built-in zoom brush or drag-edit (already out of scope).
+
+### Revisit if
+
+Interactive zoom/pan beyond native scroll, drag-to-reschedule, or a rich in-browser editing surface becomes in scope — then evaluate D3 or a focused timeline library behind the same static deploy model.
