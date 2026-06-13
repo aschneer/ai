@@ -122,6 +122,21 @@
     .label.group .item-name {
       font-weight: 600;
     }
+    .label-resizer {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: var(--label-width);
+      width: 6px;
+      margin-left: -3px;
+      cursor: col-resize;
+      z-index: 3;
+      touch-action: none;
+    }
+    .label-resizer:hover,
+    .label-resizer.dragging {
+      background: rgba(74, 127, 212, 0.15);
+    }
     .timeline {
       position: relative;
       min-height: 2rem;
@@ -184,6 +199,9 @@
       .timeline-svg {
         print-color-adjust: exact;
         -webkit-print-color-adjust: exact;
+      }
+      .label-resizer {
+        display: none;
       }
     }
   </style>

@@ -10,6 +10,10 @@ const LINK_ANCHORS = {
 };
 
 const LINK_ARROW_INDENT = 8;
+const LABEL_WIDTH_MIN = 120;
+const LABEL_WIDTH_MAX = 720;
+
+let chartData = null;
 
 function parseDate(value) {
   const [year, month, day] = value.split("-").map(Number);
@@ -408,6 +412,56 @@ function renderGantt(data) {
   });
 
   renderTimelineSvg(items, rowEntries, root);
+  appendLabelColumnResizer(root);
+}
+
+function currentLabelWidthPx(root) {
+  const label = root.querySelector(".row:not(.header) .label, .row.header .label");
+  return label?.getBoundingClientRect().width ?? 256;
+}
+
+function appendLabelColumnResizer(root) {
+  const resizer = document.createElement("div");
+  resizer.className = "label-resizer";
+  resizer.setAttribute("role", "separator");
+  resizer.setAttribute("aria-orientation", "vertical");
+  resizer.setAttribute("aria-label", "Resize item column");
+  resizer.title = "Drag to resize item column";
+
+  let startX = 0;
+  let startWidth = 0;
+
+  function stopDragging() {
+    document.removeEventListener("mousemove", onMouseMove);
+    document.removeEventListener("mouseup", stopDragging);
+    resizer.classList.remove("dragging");
+    document.body.style.cursor = "";
+    document.body.style.userSelect = "";
+    if (chartData) {
+      renderGantt(chartData);
+    }
+  }
+
+  function onMouseMove(event) {
+    const width = Math.min(
+      LABEL_WIDTH_MAX,
+      Math.max(LABEL_WIDTH_MIN, startWidth + event.clientX - startX),
+    );
+    document.documentElement.style.setProperty("--label-width", `${width}px`);
+  }
+
+  resizer.addEventListener("mousedown", (event) => {
+    event.preventDefault();
+    startX = event.clientX;
+    startWidth = currentLabelWidthPx(root);
+    resizer.classList.add("dragging");
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", stopDragging);
+  });
+
+  root.appendChild(resizer);
 }
 
 function showError(message) {
@@ -417,7 +471,6 @@ function showError(message) {
 }
 
 async function init() {
-  let chartData = null;
   try {
     const response = await fetch(DATA_URL);
     if (!response.ok) {
