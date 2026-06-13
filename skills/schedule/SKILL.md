@@ -86,7 +86,16 @@ Listing rules:
 
 **Task timing:** every task requires `timing: auto | start_duration | start_finish | finish_duration`. Use `auto` for planning (duration + predecessors → computed dates). Use pinned modes during execution when a start or finish is committed — see `data_model.md`.
 
-**Task order:** controlled by user and agent. Scheduling code does not rewrite file order. Convention: parent group above its children; siblings by computed start date when practical.
+**Task order:** controlled by user and agent. Scheduling code does not rewrite file order. The YAML `items` list is also the **Gantt row order** — readers scan top-to-bottom as a timeline.
+
+When building or restructuring a schedule, order items so the chart reads as a **coherent date sequence**:
+
+- Prefer **chronological flow** over grouping by kind (do not stack all milestones at the top, then all task groups).
+- Place each **parent group immediately above its children**.
+- Among **top-level siblings**, order by computed start date when practical (earlier work higher).
+- Insert **milestones inline** where they fall in the story (e.g. a permit approval between the permit tasks and site work), not in a separate block at the top.
+
+After editing predecessors or durations, re-run `compute` and reorder rows if the Gantt would otherwise show unrelated chunks of work separated vertically.
 
 **Milestones** are the only user-defined date constraints. Their `date` is authoritative and must fall on a working day in the calendar file.
 
