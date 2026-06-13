@@ -95,18 +95,17 @@ function renderRow(item, byId, rangeStart, totalDays) {
   const depth = itemDepth(item, byId);
   const label = document.createElement("div");
   label.className = "label";
-  label.title = item.name;
+  label.title = `${item.kind}: ${item.name}`;
+  label.style.paddingLeft = `${0.75 + depth * 0.75}rem`;
 
-  const kind = document.createElement("span");
-  kind.className = "kind";
-  kind.textContent = item.kind;
-
-  const name = document.createTextNode(`${"  ".repeat(depth)}${item.name}`);
+  const name = document.createElement("span");
+  name.className = "item-name";
+  name.textContent = item.name;
   const dates = document.createElement("div");
   dates.className = "dates";
   dates.textContent = dateLabel(item);
 
-  label.append(kind, name, dates);
+  label.append(name, dates);
 
   const timeline = document.createElement("div");
   timeline.className = "timeline";
