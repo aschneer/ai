@@ -52,14 +52,11 @@
 
 ### 6. Expand evals
 
-- **File:** `skills/schedule/evals/evals.json`
-- Add cases for: validation error listing, cycle/duplicate ID fix, `compute` + Gantt workflow, critical path (once implemented).
+- **Status:** Done — 9 eval cases in `skills/schedule/evals/evals.json`
 
 ### 7. `.gitignore` for generated Gantt artifacts
 
-- Generated in project dirs: `gantt_data.json`, `gantt.html`, `gantt.js`
-- Example run leaves untracked files under `examples/landscaping/`
-- Consider `examples/**/gantt*.json` etc. or document “never commit generated output” in `SKILL.md` only.
+- **Status:** Done — root `.gitignore` + note in `SKILL.md` (skill assets excluded)
 
 ---
 

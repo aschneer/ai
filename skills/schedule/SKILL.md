@@ -33,8 +33,12 @@ Each schedule lives in one folder:
 my-renovation/
   schedule.yaml    # any filename
   calendar.yaml    # path relative to schedule file
-  gantt.html       # generated output
+  gantt_data.json  # generated — do not commit
+  gantt.html       # generated — do not commit
+  gantt.js         # generated — do not commit
 ```
+
+`compute` writes Gantt artifacts into the project directory. They are **generated output** — edit `schedule.yaml`, not these files. In this repo they are gitignored (see root `.gitignore`).
 
 The schedule filename is not fixed. Ask the user for the **schedule file path** or **project directory** if not provided.
 
