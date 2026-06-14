@@ -12,7 +12,7 @@
       --muted: #666;
       --task: #4a7fd4;
       --group: #1a1a1a;
-      --milestone: #c45c26;
+      --milestone: #b16286;
       --critical: #c0392b;
       --label-width: 16rem;
       --day-col-min: 1.1rem;
@@ -99,8 +99,8 @@
       box-shadow: 0 0 0 1px #fff, 0 0 0 2px var(--critical);
     }
     .legend-swatch.milestone {
-      width: 0.55rem;
-      height: 0.55rem;
+      width: 0.65rem;
+      height: 0.65rem;
       border-radius: 50%;
       background: var(--milestone);
     }
@@ -305,9 +305,9 @@
     </div>
     <div class="legend" aria-label="Bar colors">
       <span class="legend-item"><span class="legend-swatch task"></span> Task</span>
+      <span class="legend-item"><span class="legend-swatch critical-outline"></span> Critical path</span>
       <span class="legend-item"><span class="legend-swatch group"></span> Group</span>
       <span class="legend-item"><span class="legend-swatch milestone"></span> Milestone</span>
-      <span class="legend-item"><span class="legend-swatch critical-outline"></span> Critical path</span>
     </div>
   </header>
   <p id="error" class="error" hidden></p>
