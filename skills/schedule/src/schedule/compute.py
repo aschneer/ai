@@ -14,9 +14,11 @@ from pathlib import Path
 from schedule.compute_lib import computed_schedule_to_dict, compute_schedule
 from schedule.gantt_lib import (
     GANTT_DATA_FILENAME,
+    SITE_DIR,
     deploy_gantt_assets,
     schedule_payload,
     serve_project_directory,
+    site_directory,
     write_gantt_data,
 )
 from schedule.io_lib import load_schedule_project
@@ -29,7 +31,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--data",
         type=Path,
-        help=f"JSON output path (default: {GANTT_DATA_FILENAME} beside the schedule file)",
+        help=f"JSON output path (default: {SITE_DIR}/{GANTT_DATA_FILENAME} beside the schedule file)",
     )
     parser.add_argument(
         "--title",
@@ -46,7 +48,7 @@ def main(argv: list[str] | None = None) -> int:
         "--serve",
         action=argparse.BooleanOptionalAction,
         default=True,
-        help="Serve the project directory after compute (default: true)",
+        help="Serve the project site/ directory after compute (default: true)",
     )
     parser.add_argument(
         "--host",
@@ -68,13 +70,22 @@ def main(argv: list[str] | None = None) -> int:
     payload = schedule_payload(computed_schedule_to_dict(result), title=title)
 
     project_dir = project.schedule_path.parent
-    data_path = (args.data or project_dir / GANTT_DATA_FILENAME).resolve()
+    site_dir = site_directory(project_dir)
+    data_path = (args.data or site_dir / GANTT_DATA_FILENAME).resolve()
     write_gantt_data(data_path, payload)
-    asset_paths = deploy_gantt_assets(project_dir)
+    asset_paths = deploy_gantt_assets(site_dir)
 
-    print(f"ok: {data_path.name}", file=sys.stderr)
+    try:
+        data_rel = data_path.relative_to(project_dir.resolve())
+    except ValueError:
+        data_rel = data_path
+    print(f"ok: {data_rel}", file=sys.stderr)
     for path in asset_paths:
-        print(f"ok: {path.name}", file=sys.stderr)
+        try:
+            rel = path.relative_to(project_dir.resolve())
+        except ValueError:
+            rel = path
+        print(f"ok: {rel}", file=sys.stderr)
 
     if args.stdout:
         print(json.dumps(payload, indent=2))

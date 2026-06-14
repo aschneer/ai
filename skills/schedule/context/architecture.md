@@ -37,12 +37,14 @@ Defined in **`prd.md`** § Agent vs deterministic code. Implementation notes:
 my-project/
   schedule.yaml      # any filename
   calendar.yaml      # path relative to schedule file
-  gantt_data.json   # generated
-  gantt.html        # generated (copied from skill assets)
-  gantt.js
+  site/              # generated viewer (do not edit)
+    gantt_data.json
+    gantt.html
+    gantt.js
+    gantt_theme.css
 ```
 
-The skill asks for the schedule file or project directory. All artifacts for one schedule stay co-located.
+The skill asks for the schedule file or project directory. Source YAML stays at the project root; generated viewer files live under **`site/`**.
 
 ---
 
@@ -103,10 +105,10 @@ Algorithm detail: `scheduling_algorithm.md`.
 
 1. Validates (as above)
 2. Runs CPM
-3. Writes **`gantt_data.json`** (items with start, finish, duration, `is_critical`, parsed `predecessors`, etc.)
-4. Copies static **`gantt.html`** + **`gantt.js`** from `src/schedule/assets/` into the project directory
+3. Writes **`site/gantt_data.json`** (items with start, finish, duration, `is_critical`, parsed `predecessors`, etc.)
+4. Copies static **`gantt.html`**, **`gantt.js`**, and **`gantt_theme.css`** into **`site/`**
 5. Prints JSON to stdout (default `--stdout`)
-6. Optionally serves the project directory (default `--serve`)
+6. Optionally serves **`site/`** as the HTTP docroot (default `--serve`)
 
 The viewer fetches `gantt_data.json` over HTTP — `file://` does not work.
 

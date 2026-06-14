@@ -24,7 +24,7 @@ Historical checklist — decisions now reflected in `prd.md`, `data_model.md`, o
 | Validation | JSON Schema files in YAML; same schemas in editor and runtime |
 | Holiday file location | Project directory; path relative to schedule file |
 | Task timing modes | Implemented — R19–R23; `timing` required on every task |
-| Gantt output | Static HTML/JS + JSON in project directory via `compute` |
+| Gantt output | Static HTML/JS/CSS + JSON in **`site/`** via `compute` |
 | Gantt timeline rendering | Single SVG layer for bars + dependency links (print fidelity; ADR-002) |
 | Gantt charting library | Plain HTML/CSS/JS + SVG — no D3 (ADR-003) |
 | Gantt viewing | HTTP URLs printed; user opens manually; network-reachable when remote |
@@ -53,7 +53,7 @@ The Gantt viewer is static HTML/JS served over HTTP. Users run `compute` locally
 ### Decision
 
 - **No Vite / Node frontend toolchain** for the skill.
-- Keep **static assets** in `src/schedule/assets/`; `compute` copies them to the user’s project directory with `gantt_data.json`.
+- Keep **static assets** in `src/schedule/assets/`; `compute` copies them to the project’s **`site/`** directory with `gantt_data.json`.
 - Serve with **Python `http.server`**, default bind **`0.0.0.0`** (`--host auto`), print **local + network** URLs; user opens manually (no auto-open).
 - Optional **`SCHEDULE_VIEWER_HOST`** env var to override the network hostname (e.g. Tailscale DNS).
 

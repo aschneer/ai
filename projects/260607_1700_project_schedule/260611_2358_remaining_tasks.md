@@ -25,8 +25,8 @@ Canonical status: **`skills/schedule/context/prd.md`** § MVP status.
 
 - JSON Schema + logic validation (fail-fast before compute)
 - CPM compute (`compute_lib.py`) with critical path
-- CLIs: `validate`, `compute` (writes `gantt_data.json`, deploys viewer, stdout + serve by default)
-- Static Gantt viewer (`gantt.html`, `gantt.js`, `gantt_theme.css`) — bars, milestones, dependency lines, critical styling
+- CLIs: `validate`, `compute` (writes `site/gantt_data.json`, deploys viewer, stdout + serve by default)
+- Static Gantt viewer under `site/` (`gantt.html`, `gantt.js`, `gantt_theme.css`) — bars, milestones, dependency lines, critical styling
 - Task timing modes (R19–R23)
 - Architecture docs, examples, evals
 - Agent workflow in `SKILL.md` (don’t modify skill code; propose fixes before editing YAML)
@@ -41,7 +41,7 @@ All items **done**. See § Done and § MVP complete above.
 
 - **Status:** Done
 - **What:** Identify and expose the longest dependent chain (determines project finish).
-- **Where:** `compute_lib.py` + `gantt_data.json` / stdout JSON (`is_critical` on each item).
+- **Where:** `compute_lib.py` + `site/gantt_data.json` / stdout JSON (`is_critical` on each item).
 
 ### 2. Gantt dependency lines
 

@@ -7,8 +7,10 @@ from schedule.gantt_lib import (
     GANTT_HTML_FILENAME,
     GANTT_JS_FILENAME,
     GANTT_THEME_FILENAME,
+    SITE_DIR,
     deploy_gantt_assets,
     schedule_payload,
+    site_directory,
     write_gantt_data,
 )
 from schedule.io_lib import load_yaml
@@ -23,9 +25,9 @@ def test_write_gantt_data_and_deploy_assets(tmp_path: Path) -> None:
     result = compute_schedule(schedule_data, calendar_data)
     payload = schedule_payload(computed_schedule_to_dict(result), title="Home renovation")
 
-    data_path = tmp_path / GANTT_DATA_FILENAME
+    data_path = site_directory(tmp_path) / GANTT_DATA_FILENAME
     write_gantt_data(data_path, payload)
-    assets = deploy_gantt_assets(tmp_path)
+    assets = deploy_gantt_assets(site_directory(tmp_path))
 
     assert data_path.is_file()
     loaded = json.loads(data_path.read_text(encoding="utf-8"))
@@ -39,8 +41,9 @@ def test_write_gantt_data_and_deploy_assets(tmp_path: Path) -> None:
 
     asset_names = {path.name for path in assets}
     assert asset_names == {GANTT_HTML_FILENAME, GANTT_JS_FILENAME, GANTT_THEME_FILENAME}
-    assert "fetch(" in (tmp_path / GANTT_JS_FILENAME).read_text(encoding="utf-8")
-    assert GANTT_DATA_FILENAME in (tmp_path / GANTT_JS_FILENAME).read_text(encoding="utf-8")
+    assert (tmp_path / SITE_DIR / GANTT_JS_FILENAME).is_file()
+    assert "fetch(" in (tmp_path / SITE_DIR / GANTT_JS_FILENAME).read_text(encoding="utf-8")
+    assert GANTT_DATA_FILENAME in (tmp_path / SITE_DIR / GANTT_JS_FILENAME).read_text(encoding="utf-8")
 
 
 def test_schedule_payload_adds_title() -> None:

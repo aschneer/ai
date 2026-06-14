@@ -16,7 +16,13 @@ GANTT_DATA_FILENAME = "gantt_data.json"
 GANTT_HTML_FILENAME = "gantt.html"
 GANTT_JS_FILENAME = "gantt.js"
 GANTT_THEME_FILENAME = "gantt_theme.css"
+SITE_DIR = "site"
 ASSET_NAMES = (GANTT_HTML_FILENAME, GANTT_JS_FILENAME, GANTT_THEME_FILENAME)
+
+
+def site_directory(project_dir: Path) -> Path:
+    """Path to the generated static viewer directory inside a schedule project."""
+    return project_dir / SITE_DIR
 
 
 @dataclass(frozen=True)
@@ -34,15 +40,16 @@ def schedule_payload(result_dict: dict[str, Any], *, title: str) -> dict[str, An
 
 def write_gantt_data(path: Path, payload: dict[str, Any]) -> None:
     """Write schedule JSON for the Gantt viewer."""
+    path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
 
-def deploy_gantt_assets(output_dir: Path) -> list[Path]:
-    """Copy gantt.html, gantt.js, and gantt_theme.css into the project directory."""
-    output_dir.mkdir(parents=True, exist_ok=True)
+def deploy_gantt_assets(site_dir: Path) -> list[Path]:
+    """Copy gantt.html, gantt.js, and gantt_theme.css into the site directory."""
+    site_dir.mkdir(parents=True, exist_ok=True)
     written: list[Path] = []
     for name in ASSET_NAMES:
-        destination = output_dir / name
+        destination = site_dir / name
         destination.write_text(_read_asset(name), encoding="utf-8")
         written.append(destination)
     return written
@@ -98,14 +105,14 @@ def print_viewer_links(urls: ViewerUrls) -> None:
 
 
 def serve_project_directory(
-    directory: Path,
+    project_dir: Path,
     *,
     port: int = 8000,
     host: str = "auto",
     page: str = GANTT_HTML_FILENAME,
 ) -> None:
-    """Serve the project directory until interrupted."""
-    directory = directory.resolve()
+    """Serve the project's site/ viewer directory until interrupted."""
+    directory = site_directory(project_dir).resolve()
     bind_host = resolve_bind_host(host)
     urls = build_viewer_urls(port, page)
 

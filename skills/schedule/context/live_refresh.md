@@ -19,7 +19,7 @@ While developing a schedule, the user edits YAML, regenerates dates, and sees th
 3. Edit `schedule.yaml` or `calendar.yaml`.
 4. Ctrl+C the server (or use a second terminal with `compute --no-serve`).
 5. Re-run `compute`.
-6. **Refresh the browser** to load new `gantt_data.json`.
+6. **Refresh the browser** to load new `site/gantt_data.json`.
 
 This is sufficient for occasional edits and agent-driven workflows.
 
@@ -45,7 +45,7 @@ There is no project registry. Paths come from the **schedule file argument** to 
 | Path | Resolution |
 |------|------------|
 | Schedule file | CLI argument (any filename) |
-| Project directory | `schedule_path.parent` — where Gantt artifacts are written and served |
+| Project directory | `schedule_path.parent` — schedule inputs live here; generated viewer lives in **`site/`** |
 | Calendar file | `calendar:` in schedule YAML, resolved relative to the schedule file (`io_lib.calendar_path_for_schedule`) |
 
 A watcher should monitor **resolved file paths**, not “scan a directory”:
@@ -55,14 +55,14 @@ A watcher should monitor **resolved file paths**, not “scan a directory”:
 
 Re-resolve `calendar_path` after each successful reload in case `calendar:` changed in the schedule file.
 
-Ignore generated artifacts (`gantt_data.json`, `gantt.html`, `gantt.js`) to avoid feedback loops.
+Ignore generated artifacts under **`site/`** (`gantt_data.json`, `gantt.html`, `gantt.js`, `gantt_theme.css`) to avoid feedback loops.
 
 ---
 
 ## Proposed architecture (two layers)
 
 ```text
-  schedule.yaml ──► compute (validate + CPM) ──► gantt_data.json
+  schedule.yaml ──► compute (validate + CPM) ──► site/gantt_data.json
         ▲                      ▲                        │
         │                      │                        │
    [--watch]              [manual or                  [browser poll]
@@ -75,7 +75,7 @@ Ignore generated artifacts (`gantt_data.json`, `gantt.html`, `gantt.js`) to avoi
 
 **Purpose:** Open Gantt tab once; pick up new JSON without F5.
 
-- Poll `gantt_data.json` every ~2s with `fetch(..., { cache: "no-store" })`.
+- Poll `site/gantt_data.json` every ~2s with `fetch(..., { cache: "no-store" })`.
 - Compare `JSON.stringify(data)` to last snapshot; re-render on change.
 - Preserve scroll position across re-renders.
 - On poll failure: `console.warn` only; keep showing last good chart.
@@ -95,13 +95,13 @@ uv run compute path/to/schedule.yaml --watch
 
 **Behavior:**
 
-1. Initial validate + compute → write `gantt_data.json`, deploy viewer assets once.
+1. Initial validate + compute → write `site/gantt_data.json`, deploy viewer assets once.
 2. Start HTTP server on a **daemon thread** (main thread runs watch loop), or equivalent.
 3. Poll mtimes of `schedule_path` and `calendar_path` every ~1s (stdlib — no new dependency).
 4. Debounce saves (~300–500ms) so partial editor writes don’t spam compute.
-5. On change: `load_schedule_project` → compute → overwrite `gantt_data.json`.
+5. On change: `load_schedule_project` → compute → overwrite `site/gantt_data.json`.
 6. On validation error: print errors to stderr; **keep last good JSON** in the chart.
-7. Redeploy `gantt.html` / `gantt.js` on startup only (not every recompute).
+7. Redeploy viewer assets on startup only (not every recompute).
 
 **Flags:**
 
@@ -133,11 +133,11 @@ uv run compute path/to/schedule.yaml --watch
 ## Terminal UX (when implemented)
 
 ```text
-ok: gantt_data.json
-ok: gantt.html
-ok: gantt.js
+ok: site/gantt_data.json
+ok: site/gantt.html
+ok: site/gantt.js
 Gantt chart (local): http://127.0.0.1:8000/gantt.html
-Serving .../farmers_market on 0.0.0.0:8000 (Ctrl+C to stop)
+Serving .../farmers_market/site on 0.0.0.0:8000 (Ctrl+C to stop)
 watching schedule.yaml, calendar.yaml
 
 # user saves schedule.yaml
@@ -145,7 +145,7 @@ ok: recomputed (project_finish 2026-07-08)
 
 # user saves invalid YAML
 error: task 42: ...
-(watching; last good gantt_data.json unchanged)
+(watching; last good site/gantt_data.json unchanged)
 ```
 
 ---

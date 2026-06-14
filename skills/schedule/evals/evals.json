@@ -49,7 +49,7 @@
     {
       "id": 8,
       "prompt": "Run compute on skills/schedule/examples/farmers_market/schedule.yaml and tell me the project finish date, which tasks are on the critical path, and how to open the Gantt chart.",
-      "expected_output": "Runs uv run compute from skills/schedule/, reports project_finish 2026-07-06 and critical items 60 and 70 from library JSON (is_critical), does not hand-calculate dates, mentions browser URLs or generated gantt artifacts in the project directory",
+      "expected_output": "Runs uv run compute from skills/schedule/, reports project_finish 2026-07-06 and critical items 60 and 70 from library JSON (is_critical), does not hand-calculate dates, mentions browser URLs or generated artifacts under site/",
       "files": [
         "skills/schedule/examples/farmers_market/schedule.yaml",
         "skills/schedule/examples/farmers_market/calendar.yaml"

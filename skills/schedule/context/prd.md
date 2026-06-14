@@ -353,7 +353,7 @@ The engine derives the third field from the two user-specified fields using work
 
 ### R17 — Project directory
 
-Each schedule project lives in **one directory** containing the schedule file, calendar file, and generated artifacts (Gantt, JSON). The skill asks for the schedule file path or project directory. Schedule filename is not prescribed. Calendar path is relative to the schedule file.
+Each schedule project lives in **one directory** containing the schedule file, calendar file, and a **`site/`** subfolder for generated viewer artifacts. The skill asks for the schedule file path or project directory. Schedule filename is not prescribed. Calendar path is relative to the schedule file.
 
 ### R9 — Gantt chart
 
@@ -363,7 +363,7 @@ The schedule must be viewable as a **Gantt chart**:
 - Regenerated when the user or agent runs a compute step
 - **Interactive drag-and-drop editing is not required**
 
-Generated viewer artifacts are written into the **project directory** alongside the schedule. Implementation details: `architecture.md`.
+Generated viewer artifacts are written into **`site/`** under the project directory (not beside the YAML source files). Implementation details: `architecture.md`.
 
 ### R25 — Critical path
 

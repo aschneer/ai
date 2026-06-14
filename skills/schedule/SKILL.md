@@ -33,12 +33,14 @@ Each schedule lives in one folder:
 my-renovation/
   schedule.yaml    # any filename
   calendar.yaml    # path relative to schedule file
-  gantt_data.json  # generated — do not commit
-  gantt.html       # generated — do not commit
-  gantt.js         # generated — do not commit
+  site/            # generated — do not commit
+    gantt_data.json
+    gantt.html
+    gantt.js
+    gantt_theme.css
 ```
 
-`compute` writes Gantt artifacts into the project directory. They are **generated output** — edit `schedule.yaml`, not these files. In this repo, generated Gantt files under `examples/` are gitignored (`skills/schedule/.gitignore`).
+`compute` writes Gantt artifacts into **`site/`** under the project directory. They are **generated output** — edit `schedule.yaml`, not these files. In this repo, `examples/**/site/` is gitignored (`skills/schedule/.gitignore`).
 
 **Repo demos:** `examples/farmers_market/` is a small intro schedule; `examples/farmers_market_full/` is a full-season stress-test (~150 tasks). Regression tests use frozen fixtures under `tests/fixtures/` — not `examples/`.
 
@@ -110,14 +112,14 @@ uv sync
 # Validate schedule + calendar (JSON Schema + logic rules)
 uv run validate <schedule-file>
 
-# Compute, write gantt_data.json, deploy Gantt viewer, print JSON, serve locally
+# Compute, write site/gantt_data.json, deploy Gantt viewer, print JSON, serve locally
 uv run compute <schedule-file>
 
 # Non-default: file only, no terminal JSON, no server
 uv run compute <schedule-file> --no-stdout --no-serve
 ```
 
-**`compute`** validates, runs CPM, writes **`gantt_data.json`**, copies **`gantt.html`** and **`gantt.js`** into the project directory, prints JSON to stdout (default), and starts a dev server (default). It prints **local** and **network** Gantt URLs — use whichever opens from your machine (see `context/decisions.md`). Use **`--no-serve`** for CI or when you only need the files.
+**`compute`** validates, runs CPM, writes **`site/gantt_data.json`**, copies the Gantt viewer into **`site/`**, prints JSON to stdout (default), and serves **`site/`** (default). It prints **local** and **network** Gantt URLs — use whichever opens from your machine (see `context/decisions.md`). Use **`--no-serve`** for CI or when you only need the files.
 
 When validation fails, read **all** error messages. Do not patch the skill library to bypass a rule.
 
