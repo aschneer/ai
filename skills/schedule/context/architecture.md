@@ -49,7 +49,7 @@ The skill asks for the schedule file or project directory. All artifacts for one
 | Layer | Module | Purpose | On failure |
 |-------|--------|---------|------------|
 | **Structural** | `validate_lib.py` | JSON Schema — shape, required/forbidden fields, kinds | List every schema error; stop |
-| **Logical** | `logic_validate_lib.py` | IDs, predecessor refs, cycles, listing rules, milestone working days | List every logic error; stop |
+| **Logical** | `logic_validate_lib.py` | IDs, predecessor refs, cycles, listing rules, milestone working days, pinned bounds, milestone reachability | List every logic error; stop |
 | **Compute** | `compute_lib.py` | CPM forward pass | Assumes valid input; no warnings channel |
 
 Compute does not paper over bad data. Collect **all** validation errors before returning.
@@ -60,6 +60,7 @@ Example messages:
 schedule: items: duplicate id 1: 'First' and 'Duplicate'
 schedule: item 5: predecessor 99: unknown task id
 schedule: milestone 13: date 2026-06-20 falls on a non-working day
+schedule: milestone 13: date 2026-06-20 cannot be reached — predecessor chain for item 14 finishes 2026-06-23
 schedule: cyclic predecessor dependency: 1 → 2 → 1
 ```
 
@@ -155,5 +156,5 @@ tests/
 - `data_model.md` — YAML editing reference
 - `scheduling_algorithm.md` — CPM steps
 - `decisions.md` — ADRs (Gantt stack, single SVG timeline, no Vite, etc.)
-- `task_timing_modes.md` — planned pinned-date feature
+- `task_timing_modes.md` — pinned-date feature (R19–R23)
 - `context.md` — glossary

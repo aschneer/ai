@@ -134,10 +134,7 @@ def validate_pinned_task_bounds(
     calendar_data: dict[str, Any],
 ) -> list[str]:
     """Return logic errors for pinned tasks that violate predecessor or parent bounds."""
-    ctx = _build_scheduling_context(schedule_data, calendar_data)
-    ctx.auto_only = True
-    _apply_milestone_dates(ctx)
-    _run_until_fixed_point(ctx)
+    ctx = _validation_scheduling_context(schedule_data, calendar_data, auto_only=True)
 
     errors: list[str] = []
     for task in ctx.tasks:
@@ -145,6 +142,105 @@ def validate_pinned_task_bounds(
             continue
         errors.extend(_pinned_task_bound_errors(task, ctx))
     return errors
+
+
+def validate_milestone_reachability(
+    schedule_data: dict[str, Any],
+    calendar_data: dict[str, Any],
+) -> list[str]:
+    """Return logic errors when predecessor chains finish after a milestone they must reach (R18).
+
+    When item S lists milestone M among its predecessors, every other transitive predecessor
+    of S must finish on or before M's authoritative date. Otherwise M's date is unreachable.
+    """
+    ctx = _validation_scheduling_context(schedule_data, calendar_data)
+
+    errors: list[str] = []
+    for milestone in ctx.milestones:
+        if milestone.id == 0 or milestone.milestone_date is None:
+            continue
+
+        violation = _worst_upstream_finish_for_milestone(milestone, ctx)
+        if violation is None:
+            continue
+
+        worst_finish, worst_item_id = violation
+        if worst_finish <= milestone.milestone_date:
+            continue
+
+        errors.append(
+            f"schedule: milestone {milestone.id}: date {milestone.milestone_date} "
+            f"cannot be reached — predecessor chain for item {worst_item_id} "
+            f"finishes {worst_finish}"
+        )
+
+    return errors
+
+
+def _validation_scheduling_context(
+    schedule_data: dict[str, Any],
+    calendar_data: dict[str, Any],
+    *,
+    auto_only: bool = False,
+) -> SchedulingContext:
+    """Build scheduling context and run forward pass for validation helpers."""
+    ctx = _build_scheduling_context(schedule_data, calendar_data)
+    ctx.auto_only = auto_only
+    _apply_milestone_dates(ctx)
+    _run_until_fixed_point(ctx)
+    return ctx
+
+
+def _worst_upstream_finish_for_milestone(
+    milestone: ScheduleItem,
+    ctx: SchedulingContext,
+) -> tuple[date, int] | None:
+    """Return the latest upstream finish and the dependent item that exposes it."""
+    worst_finish: date | None = None
+    worst_item_id: int | None = None
+
+    for item in ctx.items:
+        if item.kind == ItemKind.MILESTONE:
+            continue
+        if not any(link.task_id == milestone.id for link in item.predecessors):
+            continue
+
+        upstream_ids = _collect_upstream_predecessor_ids(item, milestone.id, ctx.by_id)
+        for upstream_id in upstream_ids:
+            upstream = ctx.by_id.get(upstream_id)
+            if upstream is None or not upstream.is_scheduled or upstream.finish is None:
+                continue
+            if worst_finish is None or upstream.finish > worst_finish:
+                worst_finish = upstream.finish
+                worst_item_id = item.id
+
+    if worst_finish is None or worst_item_id is None:
+        return None
+    return worst_finish, worst_item_id
+
+
+def _collect_upstream_predecessor_ids(
+    item: ScheduleItem,
+    exclude_id: int,
+    by_id: dict[int, ScheduleItem],
+) -> set[int]:
+    """Transitive predecessor IDs for item, excluding exclude_id and not walking through milestones."""
+    seen: set[int] = set()
+    stack = [link.task_id for link in item.predecessors if link.task_id != exclude_id]
+
+    while stack:
+        pred_id = stack.pop()
+        if pred_id in seen:
+            continue
+        seen.add(pred_id)
+        pred = by_id.get(pred_id)
+        if pred is None or pred.kind == ItemKind.MILESTONE:
+            continue
+        for link in pred.predecessors:
+            if link.task_id not in seen:
+                stack.append(link.task_id)
+
+    return seen
 
 
 def _schedule_item_from_raw(raw: dict[str, Any], parent_id: int | None) -> ScheduleItem:

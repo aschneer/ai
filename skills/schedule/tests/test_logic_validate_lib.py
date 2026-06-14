@@ -321,3 +321,74 @@ def test_milestone_checks_require_calendar() -> None:
     errors = validate_schedule_logic(schedule_data, None)
 
     assert any("calendar file required for logic validation" in error for error in errors)
+
+
+def test_milestone_unreachable_when_predecessor_chain_finishes_later() -> None:
+    schedule_data = {
+        "items": [
+            {"kind": "milestone", "id": 0, "name": "Start", "date": "2026-06-09"},
+            {
+                "kind": "task",
+                "id": 10,
+                "name": "Long work",
+                "timing": "auto",
+                "duration": "2w",
+                "predecessors": ["0FS"],
+            },
+            {
+                "kind": "milestone",
+                "id": 13,
+                "name": "Permit approved",
+                "date": "2026-06-15",
+            },
+            {
+                "kind": "task",
+                "id": 14,
+                "name": "After permit",
+                "timing": "auto",
+                "duration": "1d",
+                "predecessors": ["10FS", "13FS"],
+            },
+        ]
+    }
+
+    errors = validate_schedule_logic(schedule_data, CALENDAR)
+
+    assert any(
+        "milestone 13" in error and "cannot be reached" in error and "2026-06-15" in error
+        for error in errors
+    )
+
+
+def test_milestone_reachable_when_chain_finishes_before_milestone_date() -> None:
+    schedule_data = {
+        "items": [
+            {"kind": "milestone", "id": 0, "name": "Start", "date": "2026-06-09"},
+            {
+                "kind": "task",
+                "id": 10,
+                "name": "Short work",
+                "timing": "auto",
+                "duration": "1w",
+                "predecessors": ["0FS"],
+            },
+            {
+                "kind": "milestone",
+                "id": 13,
+                "name": "Permit approved",
+                "date": "2026-06-20",
+            },
+            {
+                "kind": "task",
+                "id": 14,
+                "name": "After permit",
+                "timing": "auto",
+                "duration": "1d",
+                "predecessors": ["10FS", "13FS"],
+            },
+        ]
+    }
+
+    errors = validate_schedule_logic(schedule_data, CALENDAR)
+
+    assert not any("cannot be reached" in error for error in errors)

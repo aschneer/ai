@@ -9,7 +9,7 @@ Implementation: `src/schedule/compute_lib.py`. Calendar math: `calendar_lib.py`.
 Before compute runs, `load_schedule_project()` (or equivalent) must pass:
 
 1. **JSON Schema validation** — shape and field constraints
-2. **Logic validation** — unique IDs, valid predecessor refs, acyclic graph, listing rules, milestones on working days
+2. **Logic validation** — unique IDs, valid predecessor refs, acyclic graph, listing rules, milestones on working days, pinned bounds, milestone reachability (R18)
 
 If validation fails, compute is not run. Fix the schedule file and re-validate.
 
