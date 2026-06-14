@@ -103,12 +103,14 @@ Only **immediate** predecessors. No transitive chain.
 
 | Type | Meaning |
 |------|---------|
-| FS | Successor cannot start until predecessor finishes (next working day; ``0FS`` same day) |
+| FS | Successor cannot start until predecessor finishes |
 | SS | Successor cannot start until predecessor starts |
 | FF | Successor cannot finish until predecessor finishes |
 | SF | Successor cannot finish until predecessor starts |
 
-**Milestone targets:** all link types resolve to the milestone's single `date`.
+**FS start day.** With zero lag, an FS successor of a **task or group** starts the **next working day** after the predecessor's finish — the predecessor occupies its finish day, so the successor cannot begin until the day after. An FS successor of a **milestone** (including `0FS` from project start) starts **on** the milestone date itself. This matches Microsoft Project: a zero-duration milestone is an instantaneous point at the *start* of its day, so its FS successor begins the same day. To push a milestone's successor to the next day instead, add lag — e.g. `13FS+1d`. Positive lag counts working days from the finish for either kind.
+
+**Milestone targets:** because a milestone's start and finish are the same date, all link types (FS/SS/FF/SF) resolve to that single `date`.
 
 **Milestone on a working day:** milestone `date` values must fall on a working day in the calendar file. Validation fails with an error if not — move the date to a working day before computing.
 
