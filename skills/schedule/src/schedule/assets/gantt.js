@@ -202,6 +202,20 @@ function remPx() {
   return parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
 }
 
+function timelineGutterPx() {
+  const raw = getComputedStyle(document.documentElement).getPropertyValue("--timeline-gutter").trim();
+  if (!raw) {
+    return 0;
+  }
+  if (raw.endsWith("rem")) {
+    return parseFloat(raw) * remPx();
+  }
+  if (raw.endsWith("px")) {
+    return parseFloat(raw);
+  }
+  return parseFloat(raw) || 0;
+}
+
 function chartColors() {
   const styles = getComputedStyle(document.documentElement);
   return {
@@ -246,15 +260,17 @@ function barGeometry(entry, box, timelineWidth) {
     return null;
   }
   const rem = remPx();
-  const left = (metrics.leftPct / 100) * timelineWidth;
-  const width = Math.max((metrics.widthPct / 100) * timelineWidth, 2);
+  const gutter = timelineGutterPx();
+  const plotWidth = Math.max(timelineWidth - gutter, 1);
+  const left = gutter + (metrics.leftPct / 100) * plotWidth;
+  const width = Math.max((metrics.widthPct / 100) * plotWidth, 2);
 
   if (item.kind === "milestone") {
     return {
       kind: "milestone",
       cx: left,
       cy: box.top + box.height / 2,
-      r: 5,
+      r: 7,
       item,
     };
   }

@@ -18,6 +18,7 @@
       --day-col-min: 1.1rem;
       --weekend-bg: #d8d8d8;
       --header-major-border: #888;
+      --timeline-gutter: 0.5rem;
       --critical-ring: 0 0 0 1px #fff, 0 0 0 3px var(--critical);
     }
     * { box-sizing: border-box; }
@@ -177,6 +178,7 @@
       position: relative;
       min-height: 2rem;
       z-index: 0;
+      padding-left: var(--timeline-gutter);
     }
     .timeline-header {
       display: grid;
