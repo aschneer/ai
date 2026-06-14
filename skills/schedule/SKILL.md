@@ -42,7 +42,7 @@ my-renovation/
     gantt_theme.css
 ```
 
-`compute` writes Gantt artifacts into **`site/`** under the project directory. They are **generated output** — edit `schedule.yaml`, not these files.
+`compute` writes Gantt artifacts into **`site/`** under the project directory. They are **generated — never edit; safe to delete**; edit `schedule.yaml` instead.
 
 The schedule filename is not fixed. Ask the user for the **schedule file path** or **project directory** if not provided.
 
