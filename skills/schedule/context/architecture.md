@@ -1,14 +1,8 @@
 # Architecture
 
-How the Schedule skill is built. **Hard requirements** (file format, behavior): `prd.md`. **Editing examples**: `data_model.md`.
+How the Schedule skill is **built** — engineering structure and implementation choices. What the product does and the rules it enforces are in `prd.md` (requirements) and `data_model.md` (file shape); how a user or agent runs it is in `README.md` and `SKILL.md`. This document does not restate those; it covers code.
 
-**MVP status:** Complete (2026-06-14). See `prd.md` § MVP status.
-
----
-
-## Deliverable
-
-An **AI agent skill** (`SKILL.md` + Python libraries + JSON Schema files), not a standalone application. Users and agents edit YAML in a project directory; libraries validate, compute, and render.
+The deliverable is an **AI agent skill** (`SKILL.md` + Python libraries + JSON Schema files), not a standalone application.
 
 ---
 
@@ -24,27 +18,7 @@ An **AI agent skill** (`SKILL.md` + Python libraries + JSON Schema files), not a
 
 ## Agent vs deterministic code
 
-Defined in **`prd.md`** § Agent vs deterministic code. Implementation notes:
-
-- When validation fails, list every error before the agent edits YAML (unless the user already asked for fixes).
-- Before adding library code for a new capability, ask whether the skill can instruct the agent instead — prefer code only where correctness requires it (validation, graph algorithms, calendar math, rendering).
-
----
-
-## Project directory
-
-```
-my-project/
-  schedule.yaml      # any filename
-  calendar.yaml      # path relative to schedule file
-  site/              # generated viewer (do not edit)
-    gantt_data.json
-    gantt.html
-    gantt.js
-    gantt_theme.css
-```
-
-The skill asks for the schedule file or project directory. Source YAML stays at the project root; generated viewer files live under **`site/`**.
+The agent/library responsibility split is defined in **`prd.md`** § Agent vs deterministic code. The one engineering rule: before adding library code for a new capability, ask whether the skill can instruct the agent instead — prefer code only where correctness requires it (validation, graph algorithms, calendar math, rendering).
 
 ---
 
@@ -81,14 +55,6 @@ Schemas live in `schemas/*.schema.yaml` (JSON Schema authored in YAML). Same sch
 
 ---
 
-## Data model (implementation)
-
-Three **`kind`** values: `milestone`, `task`, `group`. The `kind` field is first on every item and drives which other fields are legal. **`group`** = Microsoft Project summary task.
-
-Full field constraints, predecessor listing rules, and examples: **`data_model.md`**.
-
----
-
 ## Scheduling pipeline
 
 1. `load_schedule_project()` — load YAML, run schema + logic validation
@@ -99,37 +65,11 @@ Algorithm detail: `scheduling_algorithm.md`.
 
 ---
 
-## Gantt output
+## Gantt output (implementation)
 
-**`compute`** (default):
+`gantt_lib.py` writes **`site/gantt_data.json`** (the serialized computed schedule) and copies the static viewer assets (`gantt.html`, `gantt.js`, `gantt_theme.css`) into **`site/`**. The viewer fetches `gantt_data.json` over HTTP, so it must be served — `file://` does not work; the server is Python `http.server` (no Vite/Node). The output dict shape is locked by `tests/test_compute_lib.py`; user-facing CLI flags and viewing are in `README.md`; the chart's required features are PRD R9/R24/R25/R26.
 
-1. Validates (as above)
-2. Runs CPM
-3. Writes **`site/gantt_data.json`** (items with start, finish, duration, `is_critical`, parsed `predecessors`, etc.)
-4. Copies static **`gantt.html`**, **`gantt.js`**, and **`gantt_theme.css`** into **`site/`**
-5. Prints JSON to stdout (default `--stdout`)
-6. Optionally serves **`site/`** as the HTTP docroot (default `--serve`)
-
-The viewer fetches `gantt_data.json` over HTTP — `file://` does not work.
-
-**Rendering:** Item labels and the week header are HTML. The timeline column is a **single SVG** (`.timeline-svg`) containing task bars, group bracket paths, milestone markers, and dependency links in one coordinate system — required for faithful browser print (PRD R26). See **`decisions.md` ADR-002**.
-
-Viewer features: task/group bars, milestones, SVG dependency links (FS/SS/FF/SF anchors), critical bar styling, print-friendly layout.
-
----
-
-## Dev server and viewing
-
-Implemented in `gantt_lib.py` with Python `http.server` (no Vite/Node). See **`decisions.md` ADR-001**.
-
-| CLI | Behavior |
-|-----|----------|
-| `--host auto` (default) | Bind `0.0.0.0`; print local + network URLs |
-| `--host 127.0.0.1` | Loopback only |
-| `--no-serve` | Write files only (CI) |
-| `--port` | Default 8000 |
-
-Prints clickable **local** (`127.0.0.1`) and **network** (LAN IP or `SCHEDULE_VIEWER_HOST`) URLs. User opens manually — no auto-open. Over SSH, local URL works with Cursor/VS Code port forwarding or `ssh -L`.
+**Rendering:** item labels and the week header are HTML; the timeline column is a **single SVG** (`.timeline-svg`) holding task bars, group bracket paths, milestone markers, and dependency links in one coordinate system — required for faithful browser print. See **`decisions.md` ADR-002** (single SVG) and **ADR-001** (Python server, no Vite).
 
 ---
 
@@ -145,7 +85,7 @@ src/schedule/
   gantt_lib.py
   calendar_lib.py
   predecessors_lib.py
-  assets/                     # gantt.html, gantt.js
+  assets/                     # gantt.html, gantt.js, gantt_theme.css
 schemas/
 tests/
 ```
