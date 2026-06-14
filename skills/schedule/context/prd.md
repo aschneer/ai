@@ -1,7 +1,7 @@
 # Project Schedule — Product Requirements Document
 
-**Status:** Active  
-**Last updated:** 2026-06-07
+**Status:** MVP complete  
+**Last updated:** 2026-06-14
 
 ## Purpose
 
@@ -27,6 +27,10 @@ An **AI agent skill** (`SKILL.md` + validation schemas + scheduling libraries), 
 6. **Read-only engine** — scheduling code validates and computes; it never modifies schedule or calendar files
 
 Engineering choices (modules, CLIs, algorithms): `architecture.md`. Examples and editing cheat sheet: `data_model.md`.
+
+## MVP status
+
+**MVP is complete** (2026-06-14). Requirements **R0–R26** in this document are implemented in `skills/schedule/` except **R10 (live refresh)**, which remains shelved (`live_refresh.md`). Post-MVP work is limited to shelved nice-to-haves and items in § Out of scope (MVP) unless product scope changes.
 
 ---
 
@@ -411,3 +415,4 @@ While developing a schedule, the Gantt **updates when the schedule file changes*
 | CPM algorithm steps | `scheduling_algorithm.md` |
 | Glossary | `context.md` |
 | Live refresh plan (shelved) | `live_refresh.md` |
+| MVP backlog (complete) | `projects/260607_1700_project_schedule/260611_2358_remaining_tasks.md` |

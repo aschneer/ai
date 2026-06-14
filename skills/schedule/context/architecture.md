@@ -2,6 +2,8 @@
 
 How the Schedule skill is built. **Hard requirements** (file format, behavior): `prd.md`. **Editing examples**: `data_model.md`.
 
+**MVP status:** Complete (2026-06-14). See `prd.md` § MVP status.
+
 ---
 
 ## Deliverable

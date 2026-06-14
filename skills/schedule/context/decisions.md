@@ -33,6 +33,7 @@ Historical checklist — decisions now reflected in `prd.md`, `data_model.md`, o
 | Engine mutability | Read-only on source YAML — validate, compute, write separate outputs only |
 | Impossible schedules | **Hard errors** (R18), not warnings — no auto-fix |
 | Deliverable | AI agent skill with composable libraries, not a standalone app |
+| MVP | **Complete** (2026-06-14) — see `prd.md` § MVP status; R10 live refresh shelved |
 
 ### Group kind naming (R1 / schedule format)
 

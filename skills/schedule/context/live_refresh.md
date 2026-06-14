@@ -125,7 +125,7 @@ uv run compute path/to/schedule.yaml --watch
 |-------|--------|
 | Browser poll | `src/schedule/assets/gantt.js` |
 | CLI watch | `src/schedule/compute.py`, new `watch_lib.py`, tests |
-| Docs | `SKILL.md`, `architecture.md`, `decisions.md`, `remaining_tasks.md` |
+| Docs | `SKILL.md`, `architecture.md`, `decisions.md`, `projects/260607_1700_project_schedule/260611_2358_remaining_tasks.md` |
 | Tests | `test_gantt_lib.py` (deployed JS contains poll constant); `test_watch_lib.py` (mtime/debounce with tmp paths) |
 
 ---

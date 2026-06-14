@@ -2,6 +2,8 @@
 
 A text-native alternative to Microsoft Project Auto Schedule — delivered as an AI agent skill with modular library code for deterministic schedule calculation.
 
+**MVP status:** Complete (2026-06-14). Canonical requirements and docs live in this directory (`prd.md`, `architecture.md`). Implementation: `skills/schedule/`.
+
 ## Language
 
 **Schedule**:

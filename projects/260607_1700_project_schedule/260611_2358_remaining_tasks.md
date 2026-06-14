@@ -1,29 +1,47 @@
 # Schedule Skill — Remaining Tasks
 
 **Created:** 2026-06-11 23:58  
-**Status:** Active backlog  
+**Status:** MVP complete (2026-06-14)  
 **Skill location:** `skills/schedule/`  
 **Design docs:** `projects/260607_1700_project_schedule/`, `skills/schedule/context/`
+
+## MVP complete
+
+All MVP requirements (PRD R0–R26) are implemented except **R10 live refresh**, which remains shelved. There is no active MVP backlog.
+
+Final MVP work completed after the original backlog was written:
+
+- R18 milestone reachability validation (`validate_milestone_reachability`)
+- Accessible Gantt color theme (`gantt_theme.css`)
+- Gantt viewer polish (multi-row header, freeze panes, dependency lines, critical path styling, legend)
+- `farmers_market` and `farmers_market_full` examples; home renovation test fixture
+- 45+ tests passing
+
+Canonical status: **`skills/schedule/context/prd.md`** § MVP status.
+
+---
 
 ## Done (for context)
 
 - JSON Schema + logic validation (fail-fast before compute)
-- CPM compute (`compute_lib.py`)
-- CLIs: `validate`, `compute` (merged render; writes `gantt_data.json`, deploys viewer, stdout + serve by default)
-- Static Gantt viewer (`assets/gantt.html`, `assets/gantt.js`) — bars, milestones, dependency lines, critical styling
-- Architecture docs, farmers market demo example, home renovation test fixture, critical path in compute output, 40+ tests passing
+- CPM compute (`compute_lib.py`) with critical path
+- CLIs: `validate`, `compute` (writes `gantt_data.json`, deploys viewer, stdout + serve by default)
+- Static Gantt viewer (`gantt.html`, `gantt.js`, `gantt_theme.css`) — bars, milestones, dependency lines, critical styling
+- Task timing modes (R19–R23)
+- Architecture docs, examples, evals
 - Agent workflow in `SKILL.md` (don’t modify skill code; propose fixes before editing YAML)
 
 ---
 
 ## High priority — MVP gaps
 
+All items **done**. See § Done and § MVP complete above.
+
 ### 1. Critical path
 
 - **Status:** Done
 - **What:** Identify and expose the longest dependent chain (determines project finish).
 - **Where:** `compute_lib.py` + `gantt_data.json` / stdout JSON (`is_critical` on each item).
-- **Notes:** Backward walk from terminal tasks; Gantt viewer styles critical bars in a distinct color.
 
 ### 2. Gantt dependency lines
 
@@ -40,7 +58,7 @@
 
 - **Status:** Done
 - Exact `["0FS"]` for top-level project anchor; exact `["{parentId}SS"]` when child lists only its parent
-- Calendar required for logic validation when schedule has milestones (working-day and pinned-task checks)
+- Calendar required for logic validation when schedule has milestones (working-day, pinned-task, and milestone-reachability checks)
 
 ---
 
@@ -56,7 +74,7 @@
 
 ### 7. `.gitignore` for generated Gantt artifacts
 
-- **Status:** Done — root `.gitignore` + note in `SKILL.md` (skill assets excluded)
+- **Status:** Done — `skills/schedule/.gitignore` + note in `SKILL.md`
 
 ---
 
@@ -75,13 +93,13 @@
 ### 10. Editor schema hints
 
 - **Status:** Done
-- Modelines on example and fixture schedule/calendar YAML; agent guidance in `SKILL.md` (Red Hat extension + modelines; workspace settings optional).
+- Modelines on example and fixture schedule/calendar YAML; agent guidance in `SKILL.md`.
 
 ---
 
 ## Explicitly out of scope (MVP — do not implement unless scope changes)
 
-From `context/prd.md`:
+From `skills/schedule/context/prd.md`:
 
 - Interactive Gantt editing (drag bars, links)
 - Fixed dates on groups (use milestone + predecessor)
@@ -94,23 +112,12 @@ From `context/prd.md`:
 
 ## Suggested implementation order
 
+All MVP steps complete or shelved:
+
 1. ~~Critical path (JSON + agent reporting)~~
 2. ~~Predecessors in JSON + Gantt dependency lines~~
 3. ~~Task timing modes~~
 4. ~~Stricter listing validation~~
-5. PRD sync (validate-first drift)
+5. ~~PRD sync (validate-first drift)~~
 6. ~~Hot reload~~ — shelved (`live_refresh.md`)
-7. Evals + gitignore
-
----
-
-## File touch map (when implementing)
-
-| Task | Likely files |
-|------|----------------|
-| Critical path | `compute_lib.py`, tests, `scheduling_algorithm.md`, `gantt_data.json` shape |
-| Dependency lines | `compute_lib.py` (JSON), `assets/gantt.js`, `assets/gantt.html` |
-| Listing validation | `logic_validate_lib.py`, `test_logic_validate_lib.py`, `data_model.md` |
-| Task timing modes | `task_timing_modes.md`, schema, `logic_validate_lib.py`, `compute_lib.py`, tests, examples |
-| PRD sync | `context/prd.md`, `projects/.../PRD.md` |
-| Editor schema hints | `SKILL.md`, modelines on YAML |
+7. ~~Evals + gitignore~~
