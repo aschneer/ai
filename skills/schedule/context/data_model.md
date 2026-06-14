@@ -1,6 +1,6 @@
 # Data Model
 
-Quick reference and examples for editing schedule YAML. **Hard requirements** (field rules, listing rules, validation): `prd.md` § Schedule file format and requirements R0–R18. Implementation: `architecture.md`. Glossary: `context.md`. Schemas: `schemas/schedule.schema.yaml`, `schemas/calendar.schema.yaml`.
+**Canonical definition of the schedule and calendar file shape** — field rules, predecessor format, listing rules, timing modes, and examples. The product requirements behind these rules are in `prd.md` (§ Product requirements — data model); the behavioral requirements that build on them are `prd.md` R0–R26. Enforced by `schemas/schedule.schema.yaml` and `schemas/calendar.schema.yaml`. Implementation: `architecture.md`. Term definitions: `glossary.md`.
 
 ## Schedule file header
 
@@ -45,6 +45,19 @@ items:
 | `predecessors` | forbidden | required | required |
 | `children` | forbidden | forbidden | required (min 1) |
 
+### Field order
+
+`kind` is always first, then `id`, then the remaining fields for that kind:
+
+```yaml
+- kind: task
+  id: 11
+  name: Trim the hedges
+  timing: auto
+  duration: 2d
+  predecessors: ["10SS"]
+```
+
 ## ID 0 — project start
 
 Every schedule must include a project start milestone:
@@ -60,13 +73,15 @@ ID 0 is reserved. IDs 1+ are assigned at creation and **never renumbered** when 
 
 ## Predecessors
 
-Inline list of MS Project format strings only:
+Always an **inline** list of MS Project format strings (never a block-style bulleted list):
 
 ```yaml
 predecessors: ["0FS"]
 predecessors: ["5FS", "7SS+2d"]
 predecessors: ["10SS"]
 ```
+
+A predecessor list is **either** `["0FS"]` alone **or** one or more other links with no `0FS` mixed in (see Listing rules below).
 
 | Component | Format | Default |
 |-----------|--------|---------|
@@ -122,6 +137,10 @@ Pinned `start` / `finish` values are authoritative; predecessors define earliest
 ## Durations
 
 Days and weeks only: `4d`, `2w`. No hours. Lag uses the same units (`5FS+3d`, `7SS+1w`).
+
+## Item order
+
+The order of items in the file is controlled by the user and agent — the engine never rewrites it — and is also the **Gantt row order** (top-to-bottom timeline). Recommended convention: order items as a coherent date sequence rather than grouped by kind — each parent group directly above its children, top-level siblings by computed start date, and milestones inline where they fall (not stacked at the top).
 
 ## Groups
 

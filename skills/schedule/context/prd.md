@@ -26,7 +26,42 @@ An **AI agent skill** (`SKILL.md` + validation schemas + scheduling libraries), 
 5. **Human-readable projects** — one folder per schedule, version-control friendly
 6. **Read-only engine** — scheduling code validates and computes; it never modifies schedule or calendar files
 
-Engineering choices (modules, CLIs, algorithms): `architecture.md`. Examples and editing cheat sheet: `data_model.md`.
+Engineering choices (modules, CLIs, algorithms): `architecture.md`. The concrete file shape, field rules, and examples are defined canonically in `data_model.md`.
+
+## Product requirements — data model
+
+These are the product-level capabilities the data model must support, phrased as user-facing functionality. They state **what the product lets a user express and rely on**, not how the YAML is shaped — the concrete file format, field-by-field rules, and examples live in **`data_model.md`**, and the shipped JSON Schemas enforce them.
+
+### What a schedule is made of
+
+- **DM1 — Three item types.** A user builds a schedule from exactly three kinds of items: **milestones** (fixed points in time), **tasks** (work that takes time), and **groups** (containers that organize and roll up other items). Every item declares which kind it is.
+- **DM2 — One project anchor.** Every schedule has a single project-start point that anchors all other work; the user sets its date.
+- **DM3 — Arbitrary hierarchy.** Groups can contain tasks, milestones, and other groups to any depth, so a user can organize a project into phases and sub-phases.
+
+### What the user controls vs. what the tool computes
+
+- **DM4 — Milestones are the dependency anchor for fixed dates.** A milestone is the way a user places a fixed point in time that **other items can depend on** (e.g. a permit-approved date that downstream work keys off). Tasks can also carry committed dates for their own scheduling via timing modes (DM10), but only a milestone is a shared, dependable date anchor in the dependency graph.
+- **DM5 — Durations on work, not containers.** A user gives a duration to a task (the work it represents); a group's duration and dates are **derived** from its children and never entered by hand.
+- **DM6 — Computed dates are not authored.** For ordinary planning, the user never types start/finish dates onto tasks or groups; the tool computes them. (Committed task dates are available through timing modes — DM10.)
+
+### Dependencies
+
+- **DM7 — Dependencies on work and containers only.** Tasks and groups can depend on other items; milestones cannot depend on anything (they are fixed points others depend on). This reflects that a milestone is a target, not work to be scheduled.
+- **DM8 — Microsoft Project link semantics.** Users express dependencies with the four standard MS Project link types (finish-to-start, start-to-start, finish-to-finish, start-to-finish) and optional lead/lag time, so the behavior matches what MS Project users expect.
+- **DM9 — Group acts as a local start.** When a group has dependencies, none of its children can start before the group does — a group behaves as a "local project start" for its subtree.
+
+### Committed (pinned) task dates
+
+- **DM10 — Timing modes for execution.** Beyond plain auto-scheduling, a user can commit a task to a specific start, a specific finish, or a fixed start-and-finish window, and the tool computes the remaining field. This supports execution workflows ("the crew starts Monday") without abandoning dependency checking.
+- **DM11 — Commitments are checked, not silently bent.** A committed date that conflicts with the task's dependencies is reported as an error for the user to resolve; the tool never silently moves a date the user pinned.
+
+### Identity, ordering, and trust
+
+- **DM12 — Stable identifiers.** Each item has a permanent identifier that does not change when items are reordered, so dependencies stay valid as the schedule evolves.
+- **DM13 — User-controlled ordering.** The order of items in the schedule is controlled by the user and agent (and drives the order rows appear in the Gantt); the tool never reorders the user's file.
+- **DM14 — The file is the source of truth.** The tool reads the schedule and writes only generated output; it never edits the user's schedule or calendar files.
+
+Concrete realization of all of the above — field names, allowed/forbidden fields per kind, predecessor string format, listing rules, and worked examples — is in **`data_model.md`**.
 
 ## MVP status
 
@@ -53,83 +88,11 @@ When validation fails, the agent fixes the **schedule file** — never patches s
 
 ---
 
-## Schedule file format
+## File format and validation
 
-These are **hard requirements** on what users and agents write. The skill ships schemas that enforce this structure; invalid files are rejected (R15).
+The concrete file shape is defined canonically in **`data_model.md`**: the schedule header (`calendar` + `items`), the three `kind` sub-schemas and their allowed/forbidden fields, item field order, the predecessor string format and listing rules, timing modes, and the calendar file shape. The product requirements those rules satisfy are above (§ Product requirements — data model); the behavioral requirements that depend on them are below (R0–R26).
 
-### Header
-
-```yaml
-calendar: calendar.yaml   # optional; path relative to this schedule file
-items:
-  - kind: milestone
-    ...
-```
-
-Schedule items live under **`items`**. The schedule filename is not prescribed.
-
-### Three kinds
-
-Every item is **`milestone`**, **`task`**, or **`group`**. The **`kind`** field is the primary discriminator — it is **always the first field** on every item and determines which other fields are legal. No field may appear on a kind that forbids it.
-
-| | **Milestone** | **Task** | **Group** |
-|--|---------------|----------|----------------------|
-| **Purpose** | Pin a fixed date | Work that takes time | Roll-up container for children |
-| **Duration** | Zero (implicit) | User-entered (`4d`, etc.) | Derived from children's span |
-| **`date` in file** | User-set, authoritative | Forbidden — computed | Forbidden — computed |
-| **Predecessors** | Forbidden | Required inline list | Required inline list |
-| **Children** | Forbidden | Forbidden | Required (minimum 1, strict) |
-| **MS Project parallel** | Milestone | Regular task | Summary task |
-
-We use **`group`**, not `summary` or `phase` — see `decisions.md` (Resolved product decisions).
-
-### Field constraints by kind
-
-| Field | Milestone | Task | Group |
-|-------|-----------|------|-------|
-| `kind` | `milestone` | `task` | `group` |
-| `id` | required | required | required |
-| `name` | required | required | required |
-| `date` | required (user-set) | **forbidden** | **forbidden** |
-| `timing` | **forbidden** | required | **forbidden** |
-| `duration` | **forbidden** | conditional | **forbidden** |
-| `start` / `finish` | **forbidden** | conditional | **forbidden** |
-| `predecessors` | **forbidden** | required | required |
-| `children` | **forbidden** | **forbidden** | required (**min 1**) |
-
-### Item field order
-
-`kind` first, then `id`, then remaining fields for that kind:
-
-```yaml
-- kind: task
-  id: 11
-  name: Trim the hedges
-  duration: 2d
-  predecessors: ["10SS"]
-```
-
-### Validation
-
-- Schedule and calendar files must conform to this format. The skill ships **JSON Schema** files authored in YAML (`schemas/schedule.schema.yaml`, `schemas/calendar.schema.yaml`).
-- The same schemas power **editor validation** via Red Hat YAML and a modeline on each file (`# yaml-language-server: $schema=…` on schedule and calendar). Workspace `yaml.schemas` is optional; see `SKILL.md` **Editor hints**.
-- **`kind`** selects a sub-schema; forbidden fields on a kind are **schema errors**, not runtime surprises.
-- A group with zero children is invalid at schema level.
-
-More examples: `data_model.md`.
-
----
-
-## Calendar file format
-
-Holidays and weekend configuration live in a **separate YAML file** in the project directory. The schedule references it by relative path (R13).
-
-```yaml
-weekends: [sat, sun]
-holidays:
-  - 2026-07-04
-  - 2026-12-25
-```
+Both schedule and calendar files are validated against shipped **JSON Schema** files (authored in YAML: `schemas/schedule.schema.yaml`, `schemas/calendar.schema.yaml`) — the same schemas run at compute time and, via Red Hat YAML, in the editor. Files that violate the format are **rejected with clear errors** (R15); invalid field combinations are schema errors, not runtime surprises.
 
 ---
 
@@ -151,7 +114,7 @@ Task 0 is the global scheduling anchor, analogous to how a parent group anchors 
 The system tracks a list of schedule items. Every item has:
 
 - A stable integer **Unique ID** (not list position; never renumbered)
-- A **`kind`** discriminator as the **first field** (see Schedule file format)
+- A **`kind`** discriminator as the **first field** (see `data_model.md`)
 - A **name** (human-readable label)
 
 Additional fields depend on `kind`.
@@ -185,42 +148,7 @@ Groups and milestones have no user-entered duration — computed (group) or zero
 
 ### R5 — Predecessor relationships
 
-The user defines predecessor relationships using **Microsoft Project link semantics**.
-
-**Storage format:** On `task` and `group` items, `predecessors` is **always an inline YAML list** of MS Project format strings:
-
-```yaml
-predecessors: ["5FS", "7SS+2d"]
-predecessors: ["0FS"]
-predecessors: ["10SS"]
-```
-
-Block-style bulleted lists must not be used.
-
-| Component | Format | Default |
-|-----------|--------|---------|
-| Task reference | Integer Unique ID | — |
-| Link type | `FS`, `SS`, `FF`, `SF` | `FS` |
-| Lag / lead | `+3d` (lag), `-2d` (lead) | zero |
-
-**Predecessor listing rules** — each task lists only **immediate** predecessors:
-
-| Situation | Required predecessors |
-|-----------|----------------------|
-| Top-level task, no other predecessors | `["0FS"]` — task 0 only |
-| Child task, no other predecessors | `["{parentId}SS"]` — parent only, start-to-start (R2) |
-| Task with specific predecessors | Those predecessors only — **never** include `0FS` |
-
-A task's predecessor list must be **either** `["0FS"]` alone **or** one or more other links with no `0FS` mixed in.
-
-**Link types:**
-
-| Type | Meaning |
-|------|---------|
-| FS | Successor cannot start until predecessor finishes (next working day after finish date; ``0FS`` from milestone starts same day) |
-| SS | Successor cannot start until predecessor starts |
-| FF | Successor cannot finish until predecessor finishes |
-| SF | Successor cannot finish until predecessor starts |
+The user defines predecessor relationships using **Microsoft Project link semantics**: the four link types (FS, SS, FF, SF) with optional lead/lag, listing only **immediate** predecessors. Tasks and groups carry predecessors; milestones do not (R11). The concrete string format, listing rules, and link-type meanings are defined in `data_model.md`.
 
 **Milestone predecessor equivalence (R11):** When a predecessor link targets a milestone, all link types resolve to that milestone's single `date`.
 
@@ -256,7 +184,7 @@ Schedule data is **indented YAML** that:
 - A user and agent can read and edit directly
 - Supports version control (git diffs)
 - Shows hierarchy clearly (indentation)
-- **Task order** is controlled by the user and agent — never rewritten by tooling (recommended convention: `context.md` → Task order)
+- **Task order** is controlled by the user and agent — never rewritten by tooling (recommended ordering convention: `data_model.md`)
 
 Non-milestone items have **no date fields** in the schedule file (R14). Computed dates appear only in engine output (Gantt, reports).
 
@@ -279,14 +207,7 @@ In the schedule file, **only milestones** have a `date` field. All other timing 
 
 ### R12 — Duration notation
 
-Durations and lag/lead use **Microsoft Project suffix notation**. MVP: **days and weeks only**:
-
-| Suffix | Meaning |
-|--------|---------|
-| `d` | working days |
-| `w` | weeks (converted via calendar) |
-
-Examples: `4d`, `2w`, `5FS+3d`, `7SS+1w`. A duration of `4d` means four **working** days (R13).
+Durations and lag/lead use **Microsoft Project suffix notation**, **days and weeks only** (no hours in MVP). A `4d` duration means four **working** days (R13). Exact notation: `data_model.md`.
 
 ### R13 — Working calendar
 
@@ -294,13 +215,13 @@ Examples: `4d`, `2w`, `5FS+3d`, `7SS+1w`. A duration of `4d` means four **workin
 - **Holidays:** no work on configured holidays (MVP)
 - Schedule dates are **calendar dates**; durations are **working-day durations**
 - Start/finish calculations skip non-working days when counting duration and applying lag/lead
-- Calendar lives in a **separate file** referenced from the schedule (see Calendar file format)
+- Calendar lives in a **separate file** referenced from the schedule (shape in `data_model.md`)
 
 Both files are validated before calculating.
 
 ### R15 — Validation before compute
 
-Schedule and calendar files must conform to the **Schedule file format** and schemas. The engine validates **before** calculating — invalid files are **rejected with clear errors**. The user or agent fixes the file and retries.
+Schedule and calendar files must conform to the file format (`data_model.md`) and schemas. The engine validates **before** calculating — invalid files are **rejected with clear errors**. The user or agent fixes the file and retries.
 
 ### R16 — Read-only scheduling engine
 
@@ -319,25 +240,11 @@ The engine does not auto-fix or silently adjust user data.
 
 ### R19 — Task timing mode (required field)
 
-Every **`kind: task`** item must include a **`timing`** field — never optional, never inferred:
-
-| `timing` | User specifies | Engine computes |
-|----------|----------------|-----------------|
-| `auto` | `duration`, `predecessors` | `start`, `finish` |
-| `start_duration` | `start`, `duration`, `predecessors` | `finish` |
-| `start_finish` | `start`, `finish`, `predecessors` | `duration` |
-| `finish_duration` | `finish`, `duration`, `predecessors` | `start` |
-
-Every task must set `timing` explicitly, including `timing: auto`.
+Every **`kind: task`** item must declare a **`timing`** mode explicitly — never optional, never inferred. The modes let the user auto-schedule, or commit a start, a finish, or a start-and-finish window, with the engine computing the remaining field (product capability DM10). The mode names, and which fields each requires, are defined in `data_model.md`.
 
 ### R20 — Task date fields by timing mode
 
-- **`auto`:** `start` and `finish` forbidden in the schedule file
-- **`start_duration`:** `start` required; `finish` forbidden
-- **`start_finish`:** `start` and `finish` required; `duration` forbidden
-- **`finish_duration`:** `finish` required; `start` forbidden
-
-Milestones keep authoritative **`date`**. Groups have no user-entered dates (R3 unchanged).
+The fields a task may carry depend on its `timing` mode (defined in `data_model.md`): the engine computes the field(s) the user did not commit. Milestones keep their authoritative **`date`**; groups have no user-entered dates (R3 unchanged).
 
 ### R21 — Predecessors on pinned tasks
 
@@ -408,8 +315,8 @@ While developing a schedule, the Gantt **updates when the schedule file changes*
 
 | You need… | Document |
 |-----------|----------|
-| Hard requirements (this file) | `prd.md` |
-| YAML examples and editing cheat sheet | `data_model.md` |
+| Product & behavioral requirements (this file) | `prd.md` |
+| Canonical data model — file shape, fields, examples | `data_model.md` |
 | How it's built (modules, CLIs, serve) | `architecture.md` |
 | Resolved product & engineering choices | `decisions.md` |
 | CPM algorithm steps | `scheduling_algorithm.md` |
