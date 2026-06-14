@@ -218,11 +218,13 @@ function timelineGutterPx() {
 
 function chartColors() {
   const styles = getComputedStyle(document.documentElement);
+  const token = (name) => styles.getPropertyValue(`--color-${name}`).trim();
   return {
-    task: styles.getPropertyValue("--task").trim(),
-    group: styles.getPropertyValue("--group").trim(),
-    milestone: styles.getPropertyValue("--milestone").trim(),
-    critical: styles.getPropertyValue("--critical").trim(),
+    task: token("task"),
+    group: token("group"),
+    milestone: token("milestone"),
+    critical: token("critical"),
+    link: token("link"),
   };
 }
 
@@ -336,7 +338,7 @@ function dependencyPath(x1, y1, x2, y2) {
 
 function addDependencyArrowMarkers(defs, colors) {
   for (const [id, fill] of [
-    ["dependency-arrow", "#aaa"],
+    ["dependency-arrow", colors.link],
     ["dependency-arrow-critical", colors.critical],
   ]) {
     const marker = document.createElementNS("http://www.w3.org/2000/svg", "marker");

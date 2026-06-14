@@ -15,7 +15,8 @@ from typing import Any
 GANTT_DATA_FILENAME = "gantt_data.json"
 GANTT_HTML_FILENAME = "gantt.html"
 GANTT_JS_FILENAME = "gantt.js"
-ASSET_NAMES = (GANTT_HTML_FILENAME, GANTT_JS_FILENAME)
+GANTT_THEME_FILENAME = "gantt_theme.css"
+ASSET_NAMES = (GANTT_HTML_FILENAME, GANTT_JS_FILENAME, GANTT_THEME_FILENAME)
 
 
 @dataclass(frozen=True)
@@ -37,7 +38,7 @@ def write_gantt_data(path: Path, payload: dict[str, Any]) -> None:
 
 
 def deploy_gantt_assets(output_dir: Path) -> list[Path]:
-    """Copy gantt.html and gantt.js into the project directory."""
+    """Copy gantt.html, gantt.js, and gantt_theme.css into the project directory."""
     output_dir.mkdir(parents=True, exist_ok=True)
     written: list[Path] = []
     for name in ASSET_NAMES:

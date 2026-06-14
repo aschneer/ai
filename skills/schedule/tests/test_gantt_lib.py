@@ -6,6 +6,7 @@ from schedule.gantt_lib import (
     GANTT_DATA_FILENAME,
     GANTT_HTML_FILENAME,
     GANTT_JS_FILENAME,
+    GANTT_THEME_FILENAME,
     deploy_gantt_assets,
     schedule_payload,
     write_gantt_data,
@@ -37,7 +38,7 @@ def test_write_gantt_data_and_deploy_assets(tmp_path: Path) -> None:
     assert punch["is_critical"] is True
 
     asset_names = {path.name for path in assets}
-    assert asset_names == {GANTT_HTML_FILENAME, GANTT_JS_FILENAME}
+    assert asset_names == {GANTT_HTML_FILENAME, GANTT_JS_FILENAME, GANTT_THEME_FILENAME}
     assert "fetch(" in (tmp_path / GANTT_JS_FILENAME).read_text(encoding="utf-8")
     assert GANTT_DATA_FILENAME in (tmp_path / GANTT_JS_FILENAME).read_text(encoding="utf-8")
 

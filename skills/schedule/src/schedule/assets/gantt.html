@@ -4,23 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Schedule</title>
+  <link rel="stylesheet" href="gantt_theme.css">
   <style>
-    :root {
-      --bg: #fafafa;
-      --grid: #e8e8e8;
-      --text: #1a1a1a;
-      --muted: #666;
-      --task: #4a7fd4;
-      --group: #1a1a1a;
-      --milestone: #b16286;
-      --critical: #c0392b;
-      --label-width: 16rem;
-      --day-col-min: 1.1rem;
-      --weekend-bg: #d8d8d8;
-      --header-major-border: #888;
-      --timeline-gutter: 0.5rem;
-      --critical-ring: 0 0 0 1px #fff, 0 0 0 3px var(--critical);
-    }
     * { box-sizing: border-box; }
     html, body {
       height: 100%;
@@ -29,8 +14,8 @@
       margin: 0;
       font-family: system-ui, sans-serif;
       font-size: 14px;
-      color: var(--text);
-      background: var(--bg);
+      color: var(--color-text);
+      background: var(--color-bg);
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -43,8 +28,8 @@
       gap: 0.75rem 1.25rem;
       flex-wrap: wrap;
       padding: 0.5rem 1.25rem;
-      border-bottom: 1px solid var(--grid);
-      background: #fff;
+      border-bottom: 1px solid var(--color-border);
+      background: var(--color-surface);
     }
     .page-header-main {
       display: flex;
@@ -61,7 +46,7 @@
     header p {
       margin: 0;
       font-size: 0.85rem;
-      color: var(--muted);
+      color: var(--color-text-muted);
       white-space: nowrap;
     }
     .legend {
@@ -70,7 +55,7 @@
       align-items: center;
       gap: 0.5rem 1rem;
       font-size: 0.7rem;
-      color: var(--muted);
+      color: var(--color-text-muted);
     }
     .legend-item {
       display: inline-flex;
@@ -84,30 +69,30 @@
       border-radius: 2px;
       flex-shrink: 0;
     }
-    .legend-swatch.task { background: var(--task); }
+    .legend-swatch.task { background: var(--color-task); }
     .legend-swatch.group {
       background: transparent;
-      border-top: 2px solid var(--group);
-      border-left: 2px solid var(--group);
-      border-right: 2px solid var(--group);
+      border-top: 2px solid var(--color-group);
+      border-left: 2px solid var(--color-group);
+      border-right: 2px solid var(--color-group);
       border-bottom: none;
       border-radius: 0;
       height: 0.5rem;
     }
     .legend-swatch.critical-outline {
-      background: var(--task);
-      box-shadow: 0 0 0 1px #fff, 0 0 0 2px var(--critical);
+      background: var(--color-task);
+      box-shadow: 0 0 0 1px var(--color-critical-halo), 0 0 0 2px var(--color-critical);
     }
     .legend-swatch.milestone {
       width: 0.65rem;
       height: 0.65rem;
       border-radius: 50%;
-      background: var(--milestone);
+      background: var(--color-milestone);
     }
     .error {
       flex-shrink: 0;
       margin: 0.5rem 1.25rem;
-      color: #a33;
+      color: var(--color-error);
     }
     .gantt {
       flex: 1;
@@ -122,18 +107,18 @@
     .row {
       display: grid;
       grid-template-columns: var(--label-width) 1fr;
-      border-bottom: 1px solid var(--grid);
+      border-bottom: 1px solid var(--color-border);
       min-height: 2rem;
-      background: #fff;
+      background: var(--color-surface);
     }
     .row.header {
       position: sticky;
       top: 0;
       z-index: 2;
-      background: #f3f3f3;
+      background: var(--color-surface-muted);
       font-size: 0.75rem;
-      color: var(--muted);
-      box-shadow: 0 1px 0 var(--grid);
+      color: var(--color-text-muted);
+      box-shadow: 0 1px 0 var(--color-border);
     }
     .row.header .label {
       position: sticky;
@@ -142,18 +127,18 @@
       display: flex;
       align-items: flex-end;
       padding-bottom: 0.35rem;
-      background: #f3f3f3;
+      background: var(--color-surface-muted);
     }
     .label {
       position: sticky;
       left: 0;
       z-index: 10;
       padding: 0.35rem 0.75rem;
-      border-right: 1px solid var(--grid);
+      border-right: 1px solid var(--color-border);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      background: #fff;
+      background: var(--color-surface);
     }
     .label .item-name {
       display: block;
@@ -172,7 +157,7 @@
     }
     .label-resizer:hover,
     .label-resizer.dragging {
-      background: rgba(74, 127, 212, 0.15);
+      background: var(--color-resizer-hover);
     }
     .timeline {
       position: relative;
@@ -207,20 +192,20 @@
       justify-content: center;
       text-align: center;
       padding: 0.15rem 0.2rem;
-      border-bottom: 1px solid var(--grid);
+      border-bottom: 1px solid var(--color-border);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
     .year-start,
     .month-start {
-      border-left: 2px solid var(--header-major-border);
+      border-left: 2px solid var(--color-border-strong);
     }
     .day-col {
       text-align: center;
       padding: 0.1rem 0;
-      border-right: 1px solid #efefef;
-      border-bottom: 1px solid var(--grid);
+      border-right: 1px solid var(--color-border-subtle);
+      border-bottom: 1px solid var(--color-border);
       font-size: 0.65rem;
     }
     .weekday-cell {
@@ -230,8 +215,8 @@
       border-right: none;
     }
     .day-col.weekend {
-      background: var(--weekend-bg);
-      color: #444;
+      background: var(--color-weekend);
+      color: var(--color-text-subtle);
     }
     .bar-area {
       position: absolute;
@@ -249,16 +234,16 @@
     }
     .timeline-svg .links path {
       fill: none;
-      stroke: #aaa;
+      stroke: var(--color-link);
       stroke-width: 1.5;
     }
     .timeline-svg .links path.critical {
-      stroke: var(--critical);
+      stroke: var(--color-critical);
       stroke-width: 2;
     }
     .dates {
       font-size: 0.7rem;
-      color: var(--muted);
+      color: var(--color-text-muted);
       padding-left: 0.75rem;
     }
     @media print {
@@ -268,10 +253,10 @@
       }
       body {
         display: block;
-        background: #fff;
+        background: var(--color-surface);
       }
       header {
-        border-bottom: 1px solid #ccc;
+        border-bottom: 1px solid var(--color-border-print);
       }
       .gantt {
         overflow: visible;

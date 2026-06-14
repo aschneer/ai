@@ -2,3 +2,4 @@
 examples/**/gantt_data.json
 examples/**/gantt.html
 examples/**/gantt.js
+examples/**/gantt_theme.css

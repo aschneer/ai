@@ -25,6 +25,7 @@ packages = ["src/schedule"]
 [tool.hatch.build.targets.wheel.force-include]
 "src/schedule/assets/gantt.html" = "schedule/assets/gantt.html"
 "src/schedule/assets/gantt.js" = "schedule/assets/gantt.js"
+"src/schedule/assets/gantt_theme.css" = "schedule/assets/gantt_theme.css"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -1,0 +1,48 @@
+/**
+ * Schedule Gantt viewer — accessible color theme.
+ *
+ * Single source of truth for palette tokens. Semantic bar hues follow
+ * Okabe–Ito–style discrimination (blue / teal / orange-red) so task,
+ * milestone, and critical path remain distinguishable for common color-vision
+ * deficiencies. Text and borders target WCAG AA contrast on light surfaces.
+ *
+ * Edit this file only — gantt.html and gantt.js read these CSS variables.
+ */
+
+:root {
+  /* Surfaces */
+  --color-bg: #f7f9fc;
+  --color-surface: #ffffff;
+  --color-surface-muted: #eef2f7;
+  --color-weekend: #dde3ec;
+
+  /* Text */
+  --color-text: #1a2332;
+  --color-text-muted: #4a5568;
+  --color-text-subtle: #3d4a5c;
+  --color-error: #c92a2a;
+
+  /* Borders & dividers */
+  --color-border: #d8e0ea;
+  --color-border-subtle: #e8edf3;
+  --color-border-strong: #7b8fa6;
+  --color-border-print: #b8c2ce;
+
+  /* Schedule bar semantics */
+  --color-task: #0277bd;
+  --color-group: #1a2332;
+  --color-milestone: #9333ea;
+  --color-critical: #d84315;
+
+  /* Dependencies & chrome */
+  --color-link: #8b97a8;
+  --color-resizer-hover: color-mix(in srgb, var(--color-task) 18%, transparent);
+  --color-critical-halo: #ffffff;
+  --shadow-critical-ring: 0 0 0 1px var(--color-critical-halo),
+    0 0 0 3px var(--color-critical);
+
+  /* Layout (non-color) */
+  --label-width: 16rem;
+  --day-col-min: 1.1rem;
+  --timeline-gutter: 0.5rem;
+}
