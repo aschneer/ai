@@ -36,6 +36,44 @@ def test_home_renovation_schedule_dates() -> None:
     assert not by_id[42].is_critical
 
 
+def test_computed_output_dict_contract() -> None:
+    """Lock the JSON shape the Gantt viewer (gantt.js) consumes."""
+    schedule_data = {
+        "items": [
+            {"kind": "milestone", "id": 0, "name": "Start", "date": "2026-06-09"},
+            {
+                "kind": "task",
+                "id": 1,
+                "name": "Work",
+                "timing": "auto",
+                "duration": "2d",
+                "predecessors": ["0FS+1d"],
+            },
+        ]
+    }
+    payload = computed_schedule_to_dict(compute_schedule(schedule_data, CALENDAR))
+
+    assert set(payload) == {"items", "project_finish"}
+    item_keys = {
+        "id",
+        "kind",
+        "name",
+        "parent_id",
+        "start",
+        "finish",
+        "timing",
+        "duration",
+        "milestone_date",
+        "is_critical",
+        "predecessors",
+    }
+    for item in payload["items"]:
+        assert set(item) == item_keys
+
+    task = next(item for item in payload["items"] if item["id"] == 1)
+    assert task["predecessors"] == [{"task_id": 0, "link_type": "FS", "lag": "+1d"}]
+
+
 def test_nested_groups_schedule() -> None:
     schedule_data = {
         "items": [
