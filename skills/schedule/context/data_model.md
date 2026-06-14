@@ -140,11 +140,7 @@ holidays:
 
 ## Valid example
 
-See `examples/farmers_market/` for a small intro schedule and `examples/farmers_market_full/` for a full-season stress-test example.
-
-Regression tests use a separate fixture at `tests/fixtures/home_renovation/` — do not point tests at `examples/`.
-
-Abbreviated demo snippet:
+A complete, self-contained schedule (every referenced id is defined). For larger, runnable schedules see `examples/farmers_market/` and `examples/farmers_market_full/`; regression tests use `tests/fixtures/home_renovation/` (do not point tests at `examples/`).
 
 ```yaml
 calendar: calendar.yaml
@@ -160,6 +156,13 @@ items:
     predecessors: ["0FS"]
     children:
       - kind: task
+        id: 21
+        name: Draft vendor prospectus
+        timing: auto
+        duration: 1w
+        predecessors: ["20SS"]
+
+      - kind: task
         id: 22
         name: Confirm anchor vendors
         timing: start_duration
@@ -172,7 +175,7 @@ items:
     name: Send press release
     timing: auto
     duration: 2d
-    predecessors: ["41FS+3d"]
+    predecessors: ["22FS+3d"]
 ```
 
 ## Invalid examples

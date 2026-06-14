@@ -9,6 +9,8 @@ If this skill is invoked, apply every standard below in full.
 
 A text-native alternative to Microsoft Project Auto Schedule. The schedule lives in YAML files the user and agent edit. **Library code calculates dates (CPM); the agent never does date math.**
 
+`README.md` holds the human-facing guide (how to run the tool, the compute→refresh loop, viewing the Gantt). Read it when the user asks you to do something operational on their behalf — running commands, explaining how to view or refresh the chart, or setting up editor validation.
+
 ## Core split
 
 | Agent | Library code |
@@ -33,16 +35,14 @@ Each schedule lives in one folder:
 my-renovation/
   schedule.yaml    # any filename
   calendar.yaml    # path relative to schedule file
-  site/            # generated — do not commit
+  site/            # generated viewer — never edit; safe to delete
     gantt_data.json
     gantt.html
     gantt.js
     gantt_theme.css
 ```
 
-`compute` writes Gantt artifacts into **`site/`** under the project directory. They are **generated output** — edit `schedule.yaml`, not these files. In this repo, `examples/**/site/` is gitignored (`skills/schedule/.gitignore`).
-
-**Repo demos:** `examples/farmers_market/` is a small intro schedule; `examples/farmers_market_full/` is a full-season stress-test (~150 tasks). Regression tests use frozen fixtures under `tests/fixtures/` — not `examples/`.
+`compute` writes Gantt artifacts into **`site/`** under the project directory. They are **generated output** — edit `schedule.yaml`, not these files.
 
 The schedule filename is not fixed. Ask the user for the **schedule file path** or **project directory** if not provided.
 
@@ -86,67 +86,53 @@ Listing rules:
 
 **Durations and lag:** days and weeks only (`4d`, `2w`). No hours.
 
-**Task timing:** every task requires `timing: auto | start_duration | start_finish | finish_duration`. Use `auto` for planning (duration + predecessors → computed dates). Use pinned modes during execution when a start or finish is committed — see `data_model.md`.
+**Task timing:** every task requires `timing: auto | start_duration | start_finish | finish_duration`. Use `auto` for planning (duration + predecessors → computed dates). Use pinned modes during execution when a start or finish is committed — see `context/data_model.md`. Pinned `start`/`finish` values are authoritative; predecessors and the parent group define earliest allowable bounds. A pin earlier than those bounds is a **hard validation error** (`validate_pinned_task_bounds`) — adjust the pin, predecessors, or milestone gates, never the tool.
 
-**Task order:** controlled by user and agent. Scheduling code does not rewrite file order. The YAML `items` list is also the **Gantt row order** — readers scan top-to-bottom as a timeline.
+**Milestone reachability:** a milestone `date` that its own predecessor chain cannot finish by is a **hard error** (`validate_milestone_reachability`). Fix by moving the milestone date later, shortening upstream durations, or relaxing predecessors.
 
-When building or restructuring a schedule, order items so the chart reads as a **coherent date sequence**:
+**Calendar file** — `weekends` and `holidays` are both required (`holidays` may be empty):
 
-- Prefer **chronological flow** over grouping by kind (do not stack all milestones at the top, then all task groups).
-- Place each **parent group immediately above its children**.
-- Among **top-level siblings**, order by computed start date when practical (earlier work higher).
-- Insert **milestones inline** where they fall in the story (e.g. a permit approval between the permit tasks and site work), not in a separate block at the top.
+```yaml
+weekends: [sat, sun]      # any of mon..sun; non-working days
+holidays:                 # ISO dates excluded from working days
+  - 2026-07-04
+```
 
-After editing predecessors or durations, re-run `compute` and reorder rows if the Gantt would otherwise show unrelated chunks of work separated vertically.
+Durations and lag count working days only. Milestone dates must fall on a working day.
+
+**Task order:** controlled by user and agent — scheduling code never rewrites it. The `items` list is also the **Gantt row order** (top-to-bottom timeline), so order items as a coherent date sequence, not grouped by kind: each parent group directly above its children, top-level siblings by computed start date, and milestones inline where they fall (not stacked at the top). After changing predecessors or durations, recompute and reorder rows if unrelated work would otherwise be separated vertically.
 
 **Milestones** are the only user-defined date constraints. Their `date` is authoritative and must fall on a working day in the calendar file.
 
 ### 3. Run the toolchain (library)
 
-Run from `skills/schedule/` (uv project — run `uv sync` once to install dependencies):
+From `skills/schedule/` (run `uv sync` once):
 
 ```bash
-cd skills/schedule
-uv sync
-
-# Validate schedule + calendar (JSON Schema + logic rules)
-uv run validate <schedule-file>
-
-# Compute, write site/gantt_data.json, deploy Gantt viewer, print JSON, serve locally
-uv run compute <schedule-file>
-
-# Non-default: file only, no terminal JSON, no server
-uv run compute <schedule-file> --no-stdout --no-serve
+uv run validate <schedule-file>   # validate only (JSON Schema + logic rules)
+uv run compute <schedule-file>    # validate, compute CPM, render Gantt, serve
 ```
 
-**`compute`** validates, runs CPM, writes **`site/gantt_data.json`**, copies the Gantt viewer into **`site/`**, prints JSON to stdout (default), and serves **`site/`** (default). It prints **local** and **network** Gantt URLs — use whichever opens from your machine (see `context/decisions.md`). Use **`--no-serve`** for CI or when you only need the files.
+`compute` validates, runs CPM, deploys the Gantt viewer into `site/`, and serves it (add `--no-serve` for CI). Full flags and the view/refresh loop are in `README.md`.
 
-When validation fails, read **all** error messages. Do not patch the skill library to bypass a rule.
+When validation fails, read **all** error messages — each is specific (duplicate id, unknown predecessor, non-working-day milestone, cycle, listing-rule, pinned-bound, unreachable milestone). Fix the **schedule or calendar YAML** they point to; never patch the library to bypass a rule.
 
-**Before editing YAML to fix validation errors**, present to the user:
+**Before editing YAML to fix errors**, present to the user (unless they already asked you to fix it):
 
-1. **Every validation error** — quote or list each message from the tool output
-2. **Planned fix for each** — what you will change in the schedule or calendar file and why
+1. **Every error** — quote each message from the tool output.
+2. **Your planned fix for each** — what changes in the YAML and why.
 
-Wait for the user to confirm (or proceed if they already asked you to fix it). Then edit the schedule/calendar YAML, re-run validate, and repeat until clean.
-
-The library never writes these fixes for you — that is always the agent's job, and the user should see the plan first.
+Then edit, re-run `validate`, and repeat until clean. The library never writes fixes — that is always the agent's job.
 
 ### 4. Report results (agent)
 
-Present computed dates (from JSON or stdout), call out critical items (`is_critical: true`), and the Gantt URLs printed by `compute` when serving.
+The Gantt viewer is the user's source of truth for computed dates and critical path — point them to it (the URLs `compute` prints) rather than transcribing the JSON. Summarize only what's useful in chat (e.g. project finish, a notable conflict).
 
-If validation failed and you have not yet fixed the file: list every error and your planned YAML changes — do not edit until the user has seen the plan (unless they already asked you to fix it).
+Never fix a validation problem by writing computed `start`/`finish` onto tasks or groups — only milestones have user-set dates, via `date`.
 
-Do not fix validation problems by writing computed `start`/`finish` dates onto non-milestone items — only milestones have user-set dates.
+## Editor hints
 
-## Editor hints (optional)
-
-Inline schema validation while editing is **optional** — the skill does not require workspace settings.
-
-1. Install the [Red Hat YAML](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml) extension (Cursor / VS Code).
-2. Copy `schemas/schedule.schema.yaml` and `schemas/calendar.schema.yaml` into the user’s project (e.g. a `schemas/` folder).
-3. Add a modeline as the **first line** of **both** the schedule file and the calendar file:
+When you create or edit a user project, add a schema modeline as the **first line** of both files (so Red Hat YAML validates inline), unless the user opts out:
 
 ```yaml
 # yaml-language-server: $schema=./schemas/schedule.schema.yaml
@@ -156,37 +142,17 @@ Inline schema validation while editing is **optional** — the skill does not re
 # yaml-language-server: $schema=./schemas/calendar.schema.yaml
 ```
 
-Adjust relative paths to match where the schemas live.
-
-When creating or editing a user project, include both modelines unless the user opts out. Repo examples already have modelines configured.
-
-**Optional:** workspace `yaml.schemas` in `.vscode/settings.json` can map globs to schemas without modelines in every file — not required; modelines are sufficient and travel with the file.
+Adjust the relative path to where the schemas live. Setup detail for the user is in `README.md`.
 
 ## When NOT to use
 
 - User wants interactive Gantt drag-and-drop editing
-- User wants manual fixed dates on every task (out of scope for MVP)
 - User wants resource leveling, cost tracking, or cross-project links
 
 ## References
 
+- `README.md` — human-facing guide (running the tool, viewing/refreshing the Gantt, editor setup)
+- `context/data_model.md` — field rules, predecessor and timing examples (read when authoring or restructuring items)
 - `context/context.md` — domain glossary (read before editing)
-- `context/architecture.md` — validate-first design, module layout, implementation
-- `context/prd.md` — product requirements and schedule file format (hard requirements)
-- `context/data_model.md` — YAML examples and editing cheat sheet
-- `context/decisions.md` — architecture decisions (ADR-style) and resolved product decisions
-- `context/live_refresh.md` — shelved plan for browser poll + `compute --watch` (PRD R10)
-- `schemas/` — JSON Schema files **written in YAML** (e.g. `schedule.schema.yaml`, `calendar.schema.yaml`). JSON Schema is the validation standard; YAML is the authoring format. The same schema validates at runtime via `jsonschema` and in the editor via Red Hat YAML + per-file modelines (see **Editor hints** above).
-
-## Adding library code
-
-Python code lives in `src/schedule/`. Library modules use the `_lib.py` suffix (e.g. `validate_lib.py`, `io_lib.py`). Runnable entry points (`validate.py`, `compute.py`) live in the same package and are exposed as uv commands (`validate`, `compute`). Static Gantt assets live in `src/schedule/assets/`. Tests live in `tests/`. Dependencies are managed with **uv** — `pyproject.toml` and `uv.lock` in this skill directory.
-
-New code must be modular and composable:
-
-- One capability per module (parse predecessors, validate, CPM forward pass, calendar, render)
-- Modules callable independently
-- Unit-testable in isolation
-- Thin scripts compose modules; the agent may also compose them step by step
-
-Full specification: `context/prd.md` (product) and `context/architecture.md` (implementation).
+- `schemas/schedule.schema.yaml`, `schemas/calendar.schema.yaml` — the validation contract, JSON Schema authored in YAML; same schemas run at validate time and (via Red Hat YAML) in the editor
+- `context/prd.md`, `context/architecture.md`, `context/scheduling_algorithm.md` — deeper background on requirements, design, and the CPM algorithm

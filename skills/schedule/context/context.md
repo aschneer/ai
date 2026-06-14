@@ -35,8 +35,12 @@ A zero-duration point in the schedule with a user-entered `date`. Cannot have pr
 _Avoid_: Checkpoint, marker, event
 
 **Task** (`kind: task`):
-A leaf work item with a `duration` and `predecessors` list. No `date`, no `children`. Timing is computed.
+A leaf work item with a required `timing` mode and `predecessors`. No `date`, no `children`. Which of `duration` / `start` / `finish` are user-set vs. computed depends on `timing` (see **Timing mode**).
 _Avoid_: Activity, item, row
+
+**Timing mode** (`timing` on a task):
+Required on every `kind: task`. Declares which fields the user supplies and which the engine computes: `auto` (duration + predecessors → dates), `start_duration`, `start_finish`, `finish_duration`. Pinned `start`/`finish` are authoritative; predecessors and the parent group set earliest allowable bounds, and a pin earlier than those bounds is a hard validation error.
+_Avoid_: Mode, schedule type, constraint type
 
 **Group** (`kind: group`):
 A parent item that groups children. Has `predecessors` and `children` (minimum one child, schema-strict). No `date`, no `duration` — dates and duration span are derived from descendants. Microsoft Project equivalent: summary task.
@@ -95,5 +99,5 @@ The sequence items appear in the schedule file, controlled by the user and agent
 _Avoid_: WBS order, sort order, row order
 
 **Duration**:
-Working time to complete a task, expressed as days or weeks (`4d`, `2w`). Required on `task` kind only. Counts working days on the calendar.
+Working time to complete a task, expressed as days or weeks (`4d`, `2w`). Counts working days on the calendar. User-set on tasks whose `timing` is `auto`, `start_duration`, or `finish_duration`; derived by the engine for `start_finish`. Forbidden on milestones and groups.
 _Avoid_: Effort, length, elapsed time, hours
