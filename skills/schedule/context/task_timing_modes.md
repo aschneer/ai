@@ -184,7 +184,7 @@ Validation only — no warnings channel, no auto-fix.
 3. Update all test fixtures and examples with explicit `timing: auto`
 4. Logic validation — predecessor bounds, parent floor, `start_finish` sanity
 5. Compute — pinned task branches
-6. `data_model.md`, `scheduling_algorithm.md`, `context.md`, `SKILL.md`
+6. `data_model.md`, `scheduling_algorithm.md`, `glossary.md`, `SKILL.md`
 7. Eval cases for pinned tasks and validation errors
 
 ---

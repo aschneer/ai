@@ -1,10 +1,6 @@
-# Project Scheduling
+# Glossary
 
-A text-native alternative to Microsoft Project Auto Schedule — delivered as an AI agent skill with modular library code for deterministic schedule calculation.
-
-**MVP status:** Complete (2026-06-14). Canonical requirements and docs live in this directory (`prd.md`, `architecture.md`). Implementation: `skills/schedule/`.
-
-## Language
+Canonical definitions of the domain terms used across the Schedule docs and skill. Each entry gives the preferred term and the wording to _avoid_, to keep language consistent. (Product requirements: `prd.md`. File shape: `data_model.md`.)
 
 **Schedule**:
 The complete project plan: tasks, their hierarchy, durations, dependencies, and computed dates.

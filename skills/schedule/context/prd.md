@@ -320,6 +320,6 @@ While developing a schedule, the Gantt **updates when the schedule file changes*
 | How it's built (modules, CLIs, serve) | `architecture.md` |
 | Resolved product & engineering choices | `decisions.md` |
 | CPM algorithm steps | `scheduling_algorithm.md` |
-| Glossary | `context.md` |
+| Glossary | `glossary.md` |
 | Live refresh plan (shelved) | `live_refresh.md` |
 | MVP backlog (complete) | `projects/260607_1700_project_schedule/260611_2358_remaining_tasks.md` |

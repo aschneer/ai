@@ -161,4 +161,4 @@ tests/
 - `scheduling_algorithm.md` — CPM steps
 - `decisions.md` — ADRs (Gantt stack, single SVG timeline, no Vite, etc.)
 - `task_timing_modes.md` — pinned-date feature (R19–R23)
-- `context.md` — glossary
+- `glossary.md` — glossary

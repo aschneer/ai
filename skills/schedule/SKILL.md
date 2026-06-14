@@ -52,7 +52,7 @@ The schedule filename is not fixed. Ask the user for the **schedule file path** 
 
 If the user gives a directory, find the schedule YAML (ask if multiple). If they give a file path, use its parent as the project directory.
 
-Read `context/context.md` before editing — it defines domain terms. Read `context/data_model.md` when creating or structurally changing items. Read `context/architecture.md` for how validation and compute fit together.
+Read `context/glossary.md` before editing — it defines domain terms. Read `context/data_model.md` when creating or structurally changing items. Read `context/architecture.md` for how validation and compute fit together.
 
 ### 2. Edit the schedule (agent)
 
@@ -153,6 +153,6 @@ Adjust the relative path to where the schemas live. Setup detail for the user is
 
 - `README.md` — human-facing guide (running the tool, viewing/refreshing the Gantt, editor setup)
 - `context/data_model.md` — field rules, predecessor and timing examples (read when authoring or restructuring items)
-- `context/context.md` — domain glossary (read before editing)
+- `context/glossary.md` — domain glossary (read before editing)
 - `schemas/schedule.schema.yaml`, `schemas/calendar.schema.yaml` — the validation contract, JSON Schema authored in YAML; same schemas run at validate time and (via Red Hat YAML) in the editor
 - `context/prd.md`, `context/architecture.md`, `context/scheduling_algorithm.md` — deeper background on requirements, design, and the CPM algorithm
