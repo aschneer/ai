@@ -152,12 +152,16 @@ The order of items in the file is controlled by the user and agent — the engin
 
 ## Calendar file
 
+A separate YAML file referenced by the schedule's `calendar` path. Both keys are **required**:
+
 ```yaml
-weekends: [sat, sun]
-holidays:
+weekends: [sat, sun]       # required; one or more of mon, tue, wed, thu, fri, sat, sun
+holidays:                  # required; ISO dates excluded as non-working days (may be an empty list: [])
   - 2026-07-04
   - 2026-12-25
 ```
+
+Weekends and holidays are the **non-working days**. Durations and lag count working days only, and every milestone `date` must fall on a working day (else validation fails).
 
 ## Valid example
 
