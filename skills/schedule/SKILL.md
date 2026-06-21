@@ -1,6 +1,7 @@
 ---
 name: schedule
-description: Text-native Microsoft Project Auto Schedule alternative using YAML schedule files and deterministic CPM calculation. Use whenever the user mentions project schedules, Gantt charts, task dependencies, predecessors, milestones, critical path, MS Project-style planning, landscaping/construction/renovation timelines, or wants to create, edit, or visualize a schedule without a traditional PM app — even if they do not say "schedule file" or name this skill.
+description: Only use when explicitly invoked as /schedule. Text-native Microsoft Project Auto Schedule alternative using YAML schedule files and deterministic CPM calculation.
+disable-model-invocation: true
 ---
 
 # Schedule

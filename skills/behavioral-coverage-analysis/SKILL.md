@@ -1,6 +1,7 @@
 ---
 name: behavioral-coverage-analysis
-description: Use when assessing test quality across a codebase, when traditional line/branch coverage looks high but bugs still slip through, when reviewing whether tests meaningfully verify behavior rather than merely executing code, or when auditing a function/class for missing edge-case tests.
+description: Only use when explicitly invoked as /behavioral-coverage-analysis. Assesses test quality across a codebase, analyzes whether tests meaningfully verify behavior rather than merely executing code, and audits functions/classes for missing edge-case tests.
+disable-model-invocation: true
 ---
 
 # Behavioral Coverage Analysis

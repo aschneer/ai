@@ -1,6 +1,7 @@
 ---
 name: requirements-coverage-analysis
-description: Use when auditing whether a codebase delivers what a product/requirements/spec document promised, when verifying integration or end-to-end tests cover every requirement or user story, when reviewing a PRD or acceptance criteria for test traceability, or when answering "did we actually build what we said we would?"
+description: Only use when explicitly invoked as /requirements-coverage-analysis. Audits whether a codebase delivers what a PRD or spec promised and produces a traceability matrix mapping requirements to tests.
+disable-model-invocation: true
 ---
 
 # Requirements Coverage Analysis

@@ -1,6 +1,7 @@
 ---
 name: research
-description: 'Verify facts through live source checks and produce well-cited research. Use when the user invokes /research or asks to research, look up, investigate, find out, compare, fact-check, or gather verified information. Triggers: "/research", "research", "look up", "find out", "investigate", "what does X say about", "compare options", "fact check", "verify", "sources for", "is it true that".'
+description: Only use when explicitly invoked as /research. Verifies facts through live source checks and produces well-cited research.
+disable-model-invocation: true
 ---
 
 # Research

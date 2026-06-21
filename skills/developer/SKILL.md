@@ -1,14 +1,7 @@
 ---
 name: developer
-description: >-
-  Apply clean-code standards when writing, refactoring, or reviewing code in any
-  language. Use whenever the user asks you to write new code, improve readability,
-  refactor, do a code review, fix code smells, name things better, reduce complexity,
-  organize imports, or follow team coding conventions — even if they do not say "style
-  guide". Also use when editing Python, C++, or Go and language-specific conventions
-  matter. Triggers: "clean code", "code review", "refactor", "naming", "code smells",
-  "DRY", "single responsibility", "reduce nesting", "organize imports", "style guide",
-  "best practices", "readable code", "maintainable code".
+description: Only use when explicitly invoked as /developer. Applies clean-code standards when writing, refactoring, or reviewing code in any language, including Python, C++, and Go.
+disable-model-invocation: true
 ---
 
 # Developer
