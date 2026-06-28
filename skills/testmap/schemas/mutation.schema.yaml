@@ -1,0 +1,35 @@
+# yaml-language-server: $schema=https://json-schema.org/draft/2020-12/schema
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: mutation.schema.yaml
+title: Mutation testing results
+description: >
+  Per-symbol mutation testing results (PRD 7). A map of symbol_id -> mutation
+  record. Produced by the optional mutate stage; present only when mutation testing
+  was run.
+type: object
+additionalProperties:
+  $ref: "#/$defs/mutation"
+$defs:
+  mutation:
+    type: object
+    additionalProperties: false
+    required:
+      - survived
+      - killed
+      - tool
+      - exit_code
+    properties:
+      survived:
+        type: integer
+        minimum: 0
+        description: Survived mutant count (PRD 7.2.1).
+      killed:
+        type: integer
+        minimum: 0
+        description: Killed mutant count (PRD 7.2.2).
+      tool:
+        type: string
+        description: Mutation tool name (PRD 7.2.3).
+      exit_code:
+        type: integer
+        description: Tool exit code (PRD 7.2.4).

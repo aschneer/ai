@@ -1,0 +1,51 @@
+# yaml-language-server: $schema=https://json-schema.org/draft/2020-12/schema
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: meta.schema.yaml
+title: Run metadata
+description: Metadata for a single testmap run (PRD 9.3). Produced by the report stage.
+type: object
+additionalProperties: false
+required:
+  - target_dir
+  - git_commit
+  - run_timestamp
+  - scope_mode
+  - total_symbols
+  - analyzed_this_run
+  - tool_versions
+properties:
+  target_dir:
+    type: string
+    description: Target directory path (PRD 9.3.1).
+  repo_remote_url:
+    type: ["string", "null"]
+    description: Target repository remote URL, if available (PRD 9.3.2).
+  git_commit:
+    type: ["string", "null"]
+    description: >
+      Git commit hash of the target at run time (PRD 9.3.3). Null when the target
+      is not a git repository.
+  run_timestamp:
+    type: string
+    format: date-time
+    pattern: "Z$"
+    description: Run timestamp, ISO 8601, UTC (must end in Z) (PRD 9.3.4).
+  scope_mode:
+    type: string
+    enum: [all, high_only, custom]
+    description: Scope of analysis (PRD 9.3.5).
+  total_symbols:
+    type: integer
+    minimum: 0
+    description: Total symbols discovered (PRD 9.3.6).
+  analyzed_this_run:
+    type: integer
+    minimum: 0
+    description: Total symbols analyzed this run (PRD 9.3.7).
+  tool_versions:
+    type: object
+    additionalProperties:
+      type: string
+    description: >
+      Versions of tools used: tree-sitter and any mutation tools invoked
+      (PRD 9.3.8). Map of tool name -> version string.

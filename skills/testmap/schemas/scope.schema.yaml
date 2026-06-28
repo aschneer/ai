@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://json-schema.org/draft/2020-12/schema
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: scope.schema.yaml
+title: Analysis scope
+description: >
+  The confirmed set of symbols to analyze this run (PRD 4.5-4.6; architecture
+  stage 3). Ephemeral — written under testmap_output/temp/ and gitignored. The
+  contract the analyze stage consumes.
+type: object
+additionalProperties: false
+required:
+  - mode
+  - symbol_ids
+properties:
+  mode:
+    type: string
+    enum: [all, high_only, custom]
+    description: >
+      Which scope the user confirmed (PRD 4.5). Recorded in meta.json (PRD 9.3.5).
+  symbol_ids:
+    type: array
+    uniqueItems: true
+    items:
+      type: string
+    description: Symbol IDs (index keys) to analyze this run.

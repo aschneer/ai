@@ -1,0 +1,102 @@
+# yaml-language-server: $schema=https://json-schema.org/draft/2020-12/schema
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: index.schema.yaml
+title: Symbol index
+description: >
+  Complete set of symbols discovered in the target directory (PRD 2). A map of
+  symbol_id -> symbol record. Always complete: every discovered symbol is listed
+  regardless of analysis state (PRD 9.2). Produced by the discover stage.
+type: object
+additionalProperties:
+  $ref: "#/$defs/symbol"
+$defs:
+  symbol:
+    type: object
+    additionalProperties: false
+    required:
+      - qualified_name
+      - kind
+      - file_path
+      - start_line
+      - end_line
+      - language
+      - signature
+      - body_hash
+      - signature_hash
+      - cyclomatic_complexity
+      - has_error_paths
+      - decorators
+      - visibility
+      - is_test_file
+    properties:
+      qualified_name:
+        type: string
+        description: PRD 2.3.1.
+      kind:
+        type: string
+        enum: [function, method, class]
+        description: PRD 2.3.2.
+      file_path:
+        type: string
+        description: Path relative to the target directory (PRD 2.3.3).
+      start_line:
+        type: integer
+        minimum: 1
+        description: PRD 2.3.4.
+      end_line:
+        type: integer
+        minimum: 1
+        description: PRD 2.3.4.
+      language:
+        $ref: "#/$defs/language"
+      signature:
+        type: string
+        description: First line of the symbol node (PRD 2.3.6).
+      body_hash:
+        type: string
+        description: Content hash of the full symbol node, signature + body (PRD 2.3.7).
+      signature_hash:
+        type: string
+        description: Content hash of the signature line only (PRD 2.3.8).
+      cyclomatic_complexity:
+        type: integer
+        minimum: 0
+        description: Branch-keyword count estimate (PRD 2.3.9).
+      has_error_paths:
+        type: boolean
+        description: >
+          Whether explicit error paths are present (PRD 2.3.10). Best-effort for
+          C/C++ (no standard error-path syntax).
+      decorators:
+        type: array
+        items:
+          type: string
+        description: Decorator/annotation list (PRD 2.3.11).
+      visibility:
+        type: string
+        enum: [public, private, protected, default]
+        description: >
+          Access modifier, or inferred default when the language has no explicit
+          modifier (PRD 2.3.12).
+      is_test_file:
+        type: boolean
+        description: Whether the symbol lives in a test file (PRD 2.3.13).
+  language:
+    type: string
+    enum:
+      - python
+      - javascript
+      - typescript
+      - tsx
+      - ruby
+      - go
+      - rust
+      - java
+      - kotlin
+      - csharp
+      - php
+      - c
+      - cpp
+      - swift
+      - scala
+    description: Supported languages (PRD 2.2).

@@ -1,0 +1,112 @@
+# yaml-language-server: $schema=https://json-schema.org/draft/2020-12/schema
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: analysis.schema.yaml
+title: Behavioral analysis
+description: >
+  Per-symbol behavioral analysis (PRD 5, 6). A map of symbol_id -> analysis record.
+  Agent-produced; validated against this schema on assembly (architecture §2, §8).
+type: object
+additionalProperties:
+  $ref: "#/$defs/analysis"
+$defs:
+  analysis:
+    type: object
+    additionalProperties: false
+    required:
+      - spec
+      - behavior_matrix
+      - test_difficulty
+      - body_hash
+      - covering_test_hashes
+      - timestamp
+    properties:
+      spec:
+        type: string
+        description: Inferred one-sentence specification (PRD 6.1, 6.8.1).
+      behavior_matrix:
+        type: array
+        items:
+          $ref: "#/$defs/cell"
+        description: List of (input_class, expected_behavior) cells (PRD 6.5, 6.8.2).
+      test_difficulty:
+        $ref: "#/$defs/test_difficulty"
+        description: Testability rating and the signals behind it (PRD 5, 6.8.3).
+      body_hash:
+        type: string
+        description: Symbol body hash at time of analysis (PRD 6.8.4).
+      covering_test_hashes:
+        type: object
+        additionalProperties:
+          type: string
+        description: >
+          Map of covering test file path -> content hash at analysis time, for
+          staleness detection (PRD 6.8.5; PRD 3.1).
+      timestamp:
+        type: string
+        format: date-time
+        pattern: "Z$"
+        description: ISO 8601 analysis timestamp, UTC (must end in Z) (PRD 6.8.6).
+  cell:
+    type: object
+    additionalProperties: false
+    required:
+      - input_class
+      - expected_behavior
+      - status
+    properties:
+      input_class:
+        type: string
+        description: Input class description (PRD 6.8.2.1).
+      expected_behavior:
+        type: string
+        description: Expected behavior description (PRD 6.8.2.2).
+      status:
+        type: string
+        enum: [covered, gap, unspecified]
+        description: Cell classification (PRD 6.7, 6.8.2.3).
+      covering_tests:
+        type: array
+        description: For covered cells (PRD 6.8.2.4).
+        items:
+          type: object
+          additionalProperties: false
+          required: [test_name, brittle]
+          properties:
+            test_name:
+              type: string
+            brittle:
+              type: boolean
+              description: >
+                Asserts on implementation details or has execution-order
+                dependencies (PRD 6.6.2, 6.6.4).
+            brittle_reason:
+              type: string
+      gap_note:
+        type: string
+        description: >
+          Why the cell is uncovered — weak assertion, no test, wrong input class
+          (PRD 6.8.2.5). For gap cells.
+      test_prescription:
+        type: string
+        description: >
+          One-sentence description of the missing test: what input to pass and what
+          to assert (PRD 6.8.2.7). For gap cells.
+      unspecified_reason:
+        type: string
+        description: >
+          Reasoning for why the behavior is ambiguous (PRD 6.8.2.6). For unspecified
+          cells.
+  test_difficulty:
+    type: object
+    additionalProperties: false
+    required: [rating, signals_note]
+    properties:
+      rating:
+        type: string
+        enum: [high, medium, low]
+        description: high means difficult to test (PRD 5.1).
+      signals_note:
+        type: string
+        description: >
+          Brief note identifying the primary signals that drove the rating
+          (PRD 5.4).

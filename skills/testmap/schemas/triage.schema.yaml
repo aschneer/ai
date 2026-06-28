@@ -1,0 +1,67 @@
+# yaml-language-server: $schema=https://json-schema.org/draft/2020-12/schema
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: triage.schema.yaml
+title: Risk triage
+description: >
+  Per-symbol risk triage (PRD 4). A map of symbol_id -> triage record. Produced by
+  the triage stage; one entry per symbol in the index. Never written back to
+  index.json (architecture §3).
+type: object
+additionalProperties:
+  $ref: "#/$defs/triage"
+$defs:
+  triage:
+    type: object
+    additionalProperties: false
+    required:
+      - priority
+      - score
+      - signals
+    properties:
+      priority:
+        type: string
+        enum: [high, medium, low]
+        description: Priority bucket (PRD 4.2, 4.3.1).
+      score:
+        type: number
+        description: Composite risk score (PRD 4.3.2).
+      signals:
+        type: object
+        additionalProperties: false
+        description: Raw value for each signal in PRD 4.1 (PRD 4.3.3).
+        required:
+          - cyclomatic_complexity
+          - has_error_paths
+          - sensitivity_match
+          - churn
+          - no_analysis
+          - public_api
+        properties:
+          cyclomatic_complexity:
+            type: integer
+            minimum: 0
+            description: PRD 4.1.1.
+          has_error_paths:
+            type: boolean
+            description: PRD 4.1.2.
+          sensitivity_match:
+            type: array
+            items:
+              type: string
+            description: >
+              Sensitivity keywords matched in the symbol name/path (PRD 4.1.3).
+              Empty array if none.
+          churn:
+            type: ["integer", "null"]
+            minimum: 0
+            description: >
+              Commit count touching the symbol over the last 90 days (PRD 4.1.4).
+              Null when the target is not a git repository.
+          no_analysis:
+            type: boolean
+            description: >
+              Whether the symbol has no analysis entry yet; ranks higher than stale
+              symbols of equal score (PRD 4.1.5).
+          public_api:
+            type: boolean
+            description: Whether the symbol has public visibility (PRD 4.1.6).

@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=https://json-schema.org/draft/2020-12/schema
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: report_content.schema.yaml
+title: Agent report content
+description: >
+  Dynamic agent-written report content (PRD 8.1.4). Narrative summary and insights
+  as markdown, fetched and rendered by the report's rendering layer. The only file
+  the agent writes in the report stage.
+type: object
+additionalProperties: false
+required:
+  - narrative_summary
+  - insights
+properties:
+  narrative_summary:
+    type: string
+    description: >
+      Plain-language narrative summary of key findings, markdown (PRD 8.2.1.5).
+  insights:
+    type: array
+    description: >
+      Open-ended agent insight blocks, rendered as stacked sections (PRD 8.2.10).
+      Count and content left to agent judgment.
+    items:
+      type: object
+      additionalProperties: false
+      required: [title, body]
+      properties:
+        title:
+          type: string
+        body:
+          type: string
+          description: Insight body, markdown.
