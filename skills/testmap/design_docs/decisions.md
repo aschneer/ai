@@ -156,7 +156,19 @@ Refined by 2026-06-28 22:15:00 UTC — grammars now come from `tree-sitter-langu
 
 ---
 
-## 2026-06-28 17:50:00 UTC — Sensitivity keywords in annotated markdown file
+## 2026-06-29 00:05:00 UTC — Sensitivity matching is mechanical code, not agent judgment
+
+**What:** Amends 2026-06-28 17:50:00 UTC. Triage signal 4.1.3 is computed by the triage stage (code): it parses the backticked keywords out of `sensitivity_keywords.md` and word/substring-matches them against each symbol's name and file path. The agent does not judge sensitivity. `sensitivity_keywords.md` keeps its categories and risk rationale — they document intent for human readers and let the keyword list be maintained thoughtfully — but the matching itself is deterministic.
+
+**Why:** Triage must be a reproducible pure function of its inputs (architecture §2, §4) so `triage.json` is stable across runs and triage needs no agent pass before scope confirmation. Triage is directional, not precise (decision 2026-06-28 19:45), so the marginal precision from agent-judged borderline matches does not justify making one of six signals non-reproducible and inserting an extra agent step. Word/substring matching catches the common cases (`auth` matches `authenticate`).
+
+**Trade-offs:** Loses nuanced judgment on partial-word and out-of-list matches. Acceptable for a directional signal; the keyword list can be extended if recall is poor.
+
+---
+
+## 2026-06-28 17:50:00 UTC — ~~Sensitivity keywords in annotated markdown file~~ (amended)
+
+Amended by 2026-06-29 00:05:00 UTC — the agent no longer matches sensitivity; matching is mechanical code over the same file.
 
 **What:** Security/correctness sensitivity keywords for triage signal 4.1.3 live in `sensitivity_keywords.md`, categorized with risk rationale. Agent reads this file at triage time.
 
