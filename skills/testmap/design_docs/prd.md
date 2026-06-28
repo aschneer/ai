@@ -16,6 +16,10 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
 - 1.3.1. Files intended to be saved, committed, and version-controlled (symbol index, analysis, report folder) live at the root of the output directory.
 - 1.3.2. Ephemeral intermediate files (if any) live in a `temp/` subfolder, which should be gitignored. If no ephemeral files are produced, this subfolder is not created.
 
+1.4. An optional `testmap_config.json` configuration file may be placed in the target directory. If absent, all defaults apply. Supported fields:
+- 1.4.1. `exclude` — array of glob patterns; matching files and directories are skipped during symbol discovery (e.g. `["vendor/**", "generated/**"]`)
+- 1.4.2. `languages` — array of language names; restricts analysis to this subset of supported languages (e.g. `["python", "typescript"]`)
+
 ---
 
 ## 2. Symbol Discovery
@@ -71,7 +75,7 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
 4.1. The skill must score each symbol by risk using the following signals:
 - 4.1.1. Cyclomatic complexity
 - 4.1.2. Presence of error paths
-- 4.1.3. Name/path match against security/correctness sensitivity keywords
+- 4.1.3. Name/path match against security/correctness sensitivity keywords defined in `skills/testmap/sensitivity_keywords.md`
 - 4.1.4. Call-site count (via grep)
 - 4.1.5. Git churn over the last 90 days
 - 4.1.6. Whether the symbol has no analysis entry yet (no-analysis symbols rank higher than stale ones of equivalent score)
@@ -79,7 +83,7 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
 
 4.2. Symbols must be bucketed as `high`, `medium`, or `low` priority.
 
-4.3. The following must be written back to `index.json` per symbol:
+4.3. Triage results must be written to `<output_dir>/triage.json`, one entry per symbol, keyed by symbol ID. Each entry must include:
 - 4.3.1. Priority bucket (`high`/`medium`/`low`)
 - 4.3.2. Composite risk score
 - 4.3.3. Raw value for each signal defined in 4.1
@@ -88,6 +92,7 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
 - 4.4.1. Total symbols found, broken down by kind (functions, methods, classes) and by priority bucket
 - 4.4.2. Number of symbols with no prior analysis vs. stale vs. up-to-date
 - 4.4.3. Estimated scope of work (large symbol counts should include an explicit warning that the analysis may take significant time and tokens)
+- 4.4.4. A notice that results will be written to `testmap_output/` and will overwrite any existing output — the user should commit any changes they want to keep before proceeding
 
 4.5. After presenting the summary, the skill must ask the user whether to:
 - 4.5.1. Analyze all symbols (default)
@@ -185,7 +190,7 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
 - 7.1.8. Ruby — mutant
 - 7.1.9. PHP — infection
 
-7.2. Mutation results must be written to the symbol's `analysis.json` entry, including:
+7.2. Mutation results must be written to `<output_dir>/mutation.json`, one entry per symbol, keyed by symbol ID. Each entry must include:
 - 7.2.1. Survived count
 - 7.2.2. Killed count
 - 7.2.3. Tool name
@@ -197,7 +202,7 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
 
 ## 8. Reporting
 
-8.1. The skill must produce a gap report from `analysis.json` in the following format:
+8.1. The skill must produce a gap report by joining `index.json`, `triage.json`, `analysis.json`, and (if present) `mutation.json`. Output:
 - 8.1.1. `<output_dir>/report/report.html` — primary report; committed to version control; richly visual with charts, collapsible sections, search, and filter controls
 - 8.1.2. All report dependencies (e.g. Chart.js, CSS) must live in `<output_dir>/report/` alongside `report.html`. External network dependencies are not permitted — all assets must be local files within the report folder.
 
@@ -293,7 +298,7 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
 
 - 8.2.13. **Footer** — disclaimers: behavioral coverage is agent-assessed and may contain errors; the symbol matrix is the source of truth; unspecified cells require human clarification before they can be tested.
 
-8.3. The report must be fully regenerable from the output files (`analysis.json`, `index.json`, `meta.json`) without re-running the analysis.
+8.3. The report must be fully regenerable from the pipeline output files (`index.json`, `triage.json`, `analysis.json`, `mutation.json`, `meta.json`) without re-running the analysis.
 
 ---
 
@@ -313,8 +318,6 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
 - 9.3.7. Total symbols analyzed this run
 - 9.3.8. Tool versions (tree-sitter, any mutation tools invoked)
 
-9.4. Before starting a new analysis run, the skill must warn the user that existing output in `testmap_output/` will be overwritten and ask for confirmation before proceeding.
-
 ---
 
 ## 10. Output Folder README
@@ -325,11 +328,29 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
 
 10.3. The README must include:
 - 10.3.1. What the `testmap_output/` folder is and its purpose
-- 10.3.2. Description of each file in the folder and how to use it: `index.json`, `analysis.json`, `report.html`, `meta.json`
-- 10.3.3. A note that `report.html` is the primary human-readable report and `meta.json` contains run-specific details about when and how the analysis was performed
+- 10.3.2. Description of each file in the folder and how to use it: `index.json`, `triage.json`, `analysis.json`, `mutation.json` (if present), `meta.json`, and the `report/` folder
+- 10.3.3. A note that `report/report.html` is the primary human-readable report and `meta.json` contains run-specific details about when and how the analysis was performed
 - 10.3.4. A note that this folder lives inside the analyzed target directory and the analysis covers all source files and subdirectories within it
 - 10.3.5. Skill name (`testmap`), described as an agent skill
 - 10.3.6. Author: Andrew Schneer — GitHub profile `https://github.com/aschneer`, skill source `https://github.com/aschneer/ai/tree/main/skills/testmap`
+
+---
+
+## 11. Analysis CLI
+
+The skill must provide a Python CLI (`scripts/analysis_cli.py`) that the agent uses to interact with `analysis.json` without loading the full file into context. All commands operate on the `analysis.json` in the output directory passed as the first argument.
+
+11.1. Required commands:
+
+- 11.1.1. `read <output_dir> <symbol_key>` — print one symbol's analysis entry as JSON to stdout
+- 11.1.2. `write <output_dir> <symbol_key> <json>` — update one symbol's entry in `analysis.json`; creates the file if absent
+- 11.1.3. `list-keys <output_dir>` — print all symbol keys, one per line
+- 11.1.4. `list-stale <output_dir>` — print keys of all symbols whose analysis is stale or missing
+- 11.1.5. `summary <output_dir>` — print a JSON summary of counts (total, analyzed, stale, by priority bucket) without loading full entries
+
+11.2. Symbol keys must be stable, unique identifiers composed of `<relative_file_path>::<qualified_name>`.
+
+11.3. All commands must exit with code 0 on success and non-zero on error, with a human-readable error message to stderr.
 
 ---
 
