@@ -233,7 +233,7 @@ Run as `uv run discover <target_dir>`, etc.
 
 ## 7. Dependencies
 
-- `tree-sitter` + per-language grammar packages — lazy-loaded; `languages_lib` installs/loads only grammars for file extensions detected in the target directory.
+- `tree-sitter` + `tree-sitter-language-pack` — the language pack bundles all supported grammars in one dependency. `languages_lib` loads a grammar lazily (`get_parser(lang)`) only for languages whose file extensions are detected in the target directory. (Chosen over 15 separate per-language grammar packages: one dep and no per-extension install logic, at the cost of carrying all grammars on disk. See `decisions.md`.)
 - `jsonschema` — schema validation.
 - `pyyaml` — read schemas (authored in YAML).
 - Mutation tools (mutmut, Stryker, PIT, …) are **not** Python deps — they are external per-language tools dispatched by subprocess and assumed present in the target's toolchain; absence is handled gracefully (stage 5 records the failure and the report omits mutation data).

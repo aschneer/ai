@@ -4,7 +4,13 @@ Most recent first.
 
 ---
 
-## 2026-06-28 21:30:00 UTC — Symbol ID disambiguated by normalized signature, not ordinal
+## 2026-06-28 22:15:00 UTC — Use tree-sitter-language-pack instead of per-language grammar packages
+
+**What:** One dependency (`tree-sitter-language-pack`) bundles all supported grammars. `languages_lib` still loads lazily — only grammars for extensions present in the target are parsed via `get_parser(lang)`. Refines the earlier "grammars lazy-loaded" decision (2026-06-28 17:52:00 UTC), which assumed separate per-language packages installed on demand.
+
+**Why:** Installing/managing 15 separate grammar packages needs an extension→package map plus runtime install logic (network at analysis time, failure handling). The language pack gives every grammar in one pinned dep with no install step; lazy `get_parser` keeps the runtime-load benefit.
+
+**Trade-offs:** Carries all grammars on disk even when the target uses one language — a few MB, paid once at install. Acceptable vs. the code and runtime-install complexity avoided. Runtime parsing stays lazy, so unused grammars are never loaded into memory.
 
 **What:** The symbol-ID join key is `relative_path::qualified_name::normalized_signature`, where `normalized_signature` is the signature line with all whitespace removed. The signature component is appended to every key uniformly, not only when a name collision exists. Supersedes the ordinal-suffix scheme (2026-06-28 17:53:00 UTC).
 
@@ -121,6 +127,8 @@ Superseded by 2026-06-28 21:30:00 UTC — ordinal suffix replaced by normalized 
 ---
 
 ## 2026-06-28 17:52:00 UTC — Tree-sitter grammars lazy-loaded
+
+Refined by 2026-06-28 22:15:00 UTC — grammars now come from `tree-sitter-language-pack` (one dep, no per-language install); runtime loading stays lazy.
 
 **What:** `languages_lib` installs and loads only grammars for file extensions detected in the target directory.
 
