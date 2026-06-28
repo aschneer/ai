@@ -217,7 +217,7 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
     - 0–24: Critical
   - 8.2.1.3. Raw behavioral coverage % alongside the composite score
   - 8.2.1.4. All run metadata fields defined in 9.3
-  - 8.2.1.5. A 2–4 sentence plain-language narrative of the key takeaway, written by the agent
+  - 8.2.1.5. A plain-language narrative summary of the key findings, written by the agent, covering the overall health of the test suite and the most significant issues identified
   - 8.2.1.6. Mutation results are displayed separately in the KPI strip and do not affect the composite score
 
 - 8.2.2. **KPI strip** — key metrics at a glance:
@@ -237,22 +237,48 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
   - 8.2.5.1. Symbol name and priority bucket
   - 8.2.5.2. Specific gaps to close, drawn from test prescriptions in `analysis.json`
 
-- 8.2.6. **Agent insights** — one or more open-ended sections where the agent surfaces notable findings not captured elsewhere: unusual patterns, systemic issues, surprising results, alternative views of the data, or anything the agent judges worth highlighting. Multiple blocks may be stacked. Content and structure left to agent judgment.
+- 8.2.6. **Test prescription table** — a flat, scannable table of all gap cells across all analyzed symbols, intended as a work list for writing missing tests. Each row includes:
+  - 8.2.6.1. Symbol qualified name
+  - 8.2.6.2. Priority bucket
+  - 8.2.6.3. Input class
+  - 8.2.6.4. Expected behavior
+  - 8.2.6.5. Test prescription
 
-- 8.2.7. **Symbol coverage matrix** — the complete, authoritative dataset; all other sections are summaries derived from this. Must include:
-  - 8.2.7.1. Grouped by file/module (HTML: collapsible; Markdown: headed sections), with per-group coverage %, and `N symbols · X/Y cells` summary
-  - 8.2.7.2. Per-symbol row showing: symbol name, priority bucket, covered/gap cell counts, coverage %
-  - 8.2.7.3. Each symbol expands (HTML) or has a subsection (Markdown) showing: inferred spec, test difficulty rating and primary signals, and the full behavior matrix
-  - 8.2.7.4. Behavior matrix: one row per cell with status (covered / gap / unspecified), input class, expected behavior, and:
-    - Covered: covering test name(s); brittle tests visually distinguished with brittle reason
-    - Gap: gap note and test prescription
-    - Unspecified: unspecified reason
-  - 8.2.7.5. Mutation results per symbol (survived/killed, tool, covered-but-survived discrepancies), if available
-  - 8.2.7.6. HTML controls: search (symbol / file / spec), filter chips (All, Has gaps, Fully covered, High priority, Error paths), Expand all / Collapse all acting on visible rows
-  - 8.2.7.7. One-line legend defining covered / gap / unspecified and the coverage-% formula
-  - 8.2.7.8. Symbols deferred from analysis listed at bottom as stub entries with a note, so every symbol in the index is findable
+- 8.2.7. **Agent insights** — one or more open-ended sections where the agent surfaces notable findings not captured elsewhere: unusual patterns, systemic issues, surprising results, alternative views of the data, or anything the agent judges worth highlighting. Multiple blocks may be stacked. Content and structure left to agent judgment.
 
-- 8.2.8. **Footer** — disclaimers: behavioral coverage is agent-assessed and may contain errors; the symbol matrix is the source of truth; unspecified cells require human clarification before they can be tested.
+- 8.2.8. **Symbol coverage matrix** — the complete, authoritative dataset; all other sections are summaries derived from this. Organized in three nested levels:
+
+  - 8.2.8.1. **Module/file level** (outermost grouping):
+    - 8.2.8.1.1. Grouped by file/module (HTML: collapsible; Markdown: headed sections)
+    - 8.2.8.1.2. Per-group coverage bar (HTML) or coverage % (Markdown)
+    - 8.2.8.1.3. Per-group summary: `N symbols · X covered / Y gap / Z unspecified cells`
+
+  - 8.2.8.2. **Symbol level** (within each module):
+    - 8.2.8.2.1. Symbol name
+    - 8.2.8.2.2. Priority bucket
+    - 8.2.8.2.3. Covered / gap / unspecified cell counts
+    - 8.2.8.2.4. Coverage % and bar (HTML) or coverage % (Markdown)
+    - 8.2.8.2.5. Inferred spec (shown on expand in HTML; in subsection in Markdown)
+    - 8.2.8.2.6. Test difficulty rating and primary signals
+    - 8.2.8.2.7. Mutation results (survived/killed, tool, covered-but-survived discrepancies), if available
+
+  - 8.2.8.3. **Behavior cell level** (within each symbol, one row per cell):
+    - 8.2.8.3.1. Status indicator (covered / gap / unspecified)
+    - 8.2.8.3.2. Input class
+    - 8.2.8.3.3. Expected behavior
+    - 8.2.8.3.4. For covered cells: covering test name(s); brittle tests visually distinguished with brittle reason
+    - 8.2.8.3.5. For gap cells: gap note and test prescription
+    - 8.2.8.3.6. For unspecified cells: unspecified reason
+
+  - 8.2.8.4. **Controls** (HTML only): search (symbol / file / spec), filter chips (All, Has gaps, Fully covered, High priority, Error paths), Expand all / Collapse all acting on visible rows
+
+  - 8.2.8.5. **Legend**: one-line definition of covered / gap / unspecified and the coverage-% formula
+
+  - 8.2.8.6. **Deferred symbol stubs**: symbols not analyzed in this run listed at bottom with a "not yet analyzed" note, so every symbol in the index is findable in the matrix
+
+- 8.2.9. **Footer** — disclaimers: behavioral coverage is agent-assessed and may contain errors; the symbol matrix is the source of truth; unspecified cells require human clarification before they can be tested.
+
+8.3. The report must be fully regenerable from the output files (`analysis.json`, `index.json`, `meta.json`) without re-running the analysis.
 
 ---
 
