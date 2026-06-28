@@ -13,7 +13,7 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
 1.2. The output directory is always `<target_dir>/testmap_output/`.
 
 1.3. The output directory structure:
-- 1.3.1. Files intended to be saved, committed, and version-controlled (symbol index, analysis, report) live at the root of the output directory.
+- 1.3.1. Files intended to be saved, committed, and version-controlled (symbol index, analysis, report folder) live at the root of the output directory.
 - 1.3.2. Ephemeral intermediate files (if any) live in a `temp/` subfolder, which should be gitignored. If no ephemeral files are produced, this subfolder is not created.
 
 ---
@@ -198,9 +198,10 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
 ## 8. Reporting
 
 8.1. The skill must produce a gap report from `analysis.json` in the following format:
-- 8.1.1. `<output_dir>/report.html` — primary report; self-contained HTML (no external dependencies), committed to version control; richly visual with charts, collapsible sections, search, and filter controls
+- 8.1.1. `<output_dir>/report/report.html` — primary report; committed to version control; richly visual with charts, collapsible sections, search, and filter controls
+- 8.1.2. All report dependencies (e.g. Chart.js, CSS) must live in `<output_dir>/report/` alongside `report.html`. External network dependencies are not permitted — all assets must be local files within the report folder.
 
-8.2. Both reports must be structured in the following sections, in order:
+8.2. The report must be structured in the following sections, in order:
 
 - 8.2.1. **Hero summary** — the visual centerpiece of the report. Must include:
   - 8.2.1.1. **Composite score (0–100)** with grade label. Formula (identical regardless of whether mutation testing was run):
