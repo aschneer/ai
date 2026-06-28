@@ -68,6 +68,13 @@ Walk this checklist explicitly for every function/method analyzed. For each cate
 - Lock ordering — does it acquire locks in a consistent order?
 - Interrupt safety (signal handlers, async cancellation)
 
+## 9a. Async-specific (for async/coroutine functions)
+- Cancellation — task cancelled mid-await: does it clean up, or leak resources / leave partial state?
+- Timeout — operation exceeds its deadline: expected behavior and which exception
+- Concurrent invocation — N overlapping calls: independent results, or shared-state corruption?
+- Awaiting an already-completed / already-failed awaitable
+- Backpressure — behavior when a downstream queue/stream is full or slow
+
 ## 10. State and side effects
 - Idempotency — does calling twice produce the same result as calling once?
 - Ordering — does `f(a); f(b)` behave the same as `f(b); f(a)`?
@@ -79,6 +86,13 @@ Walk this checklist explicitly for every function/method analyzed. For each cate
 - **Every `raise` / `throw` / error return must have a test.**
 - Each distinct exception type is a separate cell
 - Each distinct error message/code is a separate cell if the message is part of the contract
+
+## 11a. Negative-space contracts (things that must NOT happen)
+A behavior the function must *never* exhibit is a cell — phrase the expected behavior as the prohibition.
+- Must not mutate its inputs (caller's collection/object unchanged after the call)
+- Must not leak sensitive data in return values, logs, or error messages
+- Must not emit a side effect on the error path (no partial write, no event fired)
+- Must not return a forbidden value (e.g., never `None`, never negative, never an empty result for valid input)
 
 ## 12. Time and ordering (if relevant)
 - Timezone handling (naive vs aware datetimes; DST boundaries)
