@@ -4,6 +4,18 @@ Most recent first.
 
 ---
 
+## 2026-06-28 23:10:00 UTC — Symbol kind (function vs method) inferred from ancestor context, not node type
+
+**What:** Discovery classifies a symbol as `method` vs `function` by its position in the tree — a function-like node whose ancestor chain includes a class/impl/interface body is a `method`; otherwise a `function`. `languages_lib` stores per-language *function-like* node kinds and *class-like* node kinds only; it does not store a separate "method" node kind.
+
+**Why:** Probing all 15 grammars (`tree-sitter-language-pack`) showed most do not have a distinct method node — a method is the same node kind as a free function (e.g. `function_definition` in Python/PHP/C++, `function_declaration` in Kotlin/Swift, `function_item` in Rust), differing only by being nested in a class/impl body. The few that do differ (JS/TS `method_definition`, Go/Java/C# `method_declaration`, Ruby `method`) are handled by also listing those kinds as function-like and letting the same ancestor rule label them. One context rule is simpler and more uniform than a per-language method-kind table.
+
+**Trade-offs:** Requires tracking ancestry during the walk (cheap — the cursor already descends through class bodies). Nested functions (a `def` inside a `def`) are still `function`, not `method`, since no class ancestor — correct.
+
+**Binding note:** `tree-sitter-language-pack` exposes a Rust-backed binding where node accessors are methods, not properties (`node().kind()`, `node().child_count()`, `node().byte_range()`), and traversal is via the `.walk()` cursor (`goto_first_child` / `goto_next_sibling` / `goto_parent`). Discovery code uses the cursor, not a `children` property.
+
+---
+
 ## 2026-06-28 22:15:00 UTC — Use tree-sitter-language-pack instead of per-language grammar packages
 
 **What:** One dependency (`tree-sitter-language-pack`) bundles all supported grammars. `languages_lib` still loads lazily — only grammars for extensions present in the target are parsed via `get_parser(lang)`. Refines the earlier "grammars lazy-loaded" decision (2026-06-28 17:52:00 UTC), which assumed separate per-language packages installed on demand.
