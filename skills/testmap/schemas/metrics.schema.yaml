@@ -69,10 +69,3 @@ properties:
     type: integer
     minimum: 0
     description: High-priority symbols having at least one gap cell (PRD 8.2.2.4).
-  mutation_score:
-    type: ["number", "null"]
-    minimum: 0
-    maximum: 1
-    description: >
-      killed / total mutants across symbols, or null when mutation testing was not
-      run (PRD 8.2.2.7). Does not affect the composite score (PRD 8.2.1.6).

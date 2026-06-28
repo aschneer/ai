@@ -32,7 +32,6 @@ _GRADES = (
 def compute_metrics(
     analysis: dict[str, dict[str, Any]],
     triage: dict[str, dict[str, Any]],
-    mutation: dict[str, dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Compute the composite score, grade, and KPI aggregates from analysis data."""
     tallies = _tally_cells(analysis)
@@ -50,7 +49,6 @@ def compute_metrics(
         "brittle_test_count": tallies["brittle"],
         "symbols_analyzed": len(analysis),
         "high_priority_with_gaps": _high_priority_with_gaps(analysis, triage),
-        "mutation_score": _mutation_score(mutation),
     }
 
 
@@ -96,15 +94,6 @@ def _high_priority_with_gaps(
         if any(cell["status"] == "gap" for cell in entry.get("behavior_matrix", [])):
             count += 1
     return count
-
-
-def _mutation_score(mutation: dict[str, dict[str, Any]] | None) -> float | None:
-    """Aggregate killed / total mutants, or None if mutation testing was not run."""
-    if not mutation:
-        return None
-    killed = sum(record["killed"] for record in mutation.values())
-    total = sum(record["killed"] + record["survived"] for record in mutation.values())
-    return round(killed / total, 4) if total > 0 else None
 
 
 def _ratio(numerator: int, denominator: int) -> float:

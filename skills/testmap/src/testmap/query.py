@@ -1,9 +1,8 @@
 """Read-only CLI for the agent to query pipeline data files (PRD 11).
 
 Usage:
-    uv run query <output_dir> index    <symbol_id>
-    uv run query <output_dir> triage   <symbol_id>
-    uv run query <output_dir> mutation <symbol_id>
+    uv run query <output_dir> index  <symbol_id>
+    uv run query <output_dir> triage <symbol_id>
     uv run query <output_dir> stale
     uv run query <output_dir> summary
 
@@ -24,7 +23,6 @@ from testmap import analysis_lib, schema_lib, staleness_lib
 _PER_FILE = {
     "index": ("index.json", "index"),
     "triage": ("triage.json", "triage"),
-    "mutation": ("mutation.json", "mutation"),
 }
 
 

@@ -4,7 +4,13 @@ Most recent first.
 
 ---
 
-## 2026-06-29 01:10:00 UTC — Composite score normalized to 100; coverage is the sole positive factor
+## 2026-06-29 01:40:00 UTC — Mutation testing deferred
+
+**What:** Stage 5 (mutation testing) is out of scope for the initial implementation. PRD §7 moved to the "Deferred — Implement Later" section (D.2). Removed: `mutate.py`/`mutation_lib.py` (never built), `mutation.schema.yaml` (deleted — recoverable from git), the `mutate` script entry, the `mutation` lookup in `query.py`, the `mutation_score` metric in `report_lib`/`metrics.schema.yaml`, and `_load_mutation` in `report.py`. Kept: the `mutation_tool` field in `languages_lib` (pure data, no dangling dependency) and the conditional mutation-display requirements in PRD §8 (already guarded by "if present", they describe future behavior).
+
+**Why:** Mutation is the worst cost/benefit in the build — nine tools with nine output formats, per-language toolchain assumptions, slow at runtime (10–30 min), and not verifiable in this environment. Its benefit is a single optional KPI that, by PRD 8.2.1.6, does not affect the composite score and is displayed separately. The pipeline was already architected as optional/isolated, so deferring it removes a self-contained leaf with no effect on the core behavioral-coverage skill.
+
+**Trade-offs:** No mutation KPI until implemented. Consumers already tolerate its absence (metrics omit it, query/report run without it). Deleting the schema rather than keeping it idle avoids confusion about what is implemented; git history preserves it for re-implementation.
 
 **What:** The composite-score base weight is `coverage_pct × 100` (was `× 70` in the PRD), with the brittle (−20) and unspecified (−10) penalties subtracting from it. Floor 0, ceiling 100. PRD 8.2.1.1 updated.
 

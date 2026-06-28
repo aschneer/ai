@@ -14,7 +14,6 @@ dependencies = [
 discover = "testmap.discover:main"
 triage = "testmap.triage:main"
 staleness = "testmap.staleness:main"
-mutate = "testmap.mutate:main"
 report = "testmap.report:main"
 analysis-cli = "testmap.analysis_cli:main"
 query = "testmap.query:main"

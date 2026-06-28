@@ -20,7 +20,7 @@ Status: `[ ]` todo · `[~]` in progress · `[x]` done
   - [x] `discover.py` (thin CLI)
 - [x] Stage 2 `triage` → `triage.json` (`churn_lib`, `triage_lib`, `triage.py`)
 - [x] Stage 3 `staleness` → `scope.json` (`staleness_lib`, `staleness.py`; output `.gitignore`)
-- [ ] Stage 5 `mutate` → `mutation.json` (optional)
+- [~] Stage 5 `mutate` → `mutation.json` (optional) — DEFERRED (PRD D.2)
 - [x] Stage 6 `report` code half: composite score + grade, `metrics.json`, `meta.json` (`report_lib`, `report.py`)
 - [x] `analysis_lib` + `analysis_cli.py` (write) + `query.py` (read-only) (PRD §11)
 

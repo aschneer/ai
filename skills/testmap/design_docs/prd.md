@@ -179,24 +179,7 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
 
 ## 7. Mutation Testing
 
-7.1. The skill must dispatch a per-language mutation testing tool against a symbol or file:
-- 7.1.1. Python — mutmut
-- 7.1.2. JavaScript — Stryker
-- 7.1.3. TypeScript — Stryker
-- 7.1.4. C# — Stryker
-- 7.1.5. Java — PIT
-- 7.1.6. Rust — cargo-mutants
-- 7.1.7. Go — gremlins
-- 7.1.8. Ruby — mutant
-- 7.1.9. PHP — infection
-
-7.2. Mutation results must be written to `<output_dir>/mutation.json`, one entry per symbol, keyed by symbol ID. Each entry must include:
-- 7.2.1. Survived count
-- 7.2.2. Killed count
-- 7.2.3. Tool name
-- 7.2.4. Exit code
-
-7.3. If cells are marked `covered` but mutants survive, the discrepancy must be flagged in the report.
+**Deferred — see D.2.** Mutation testing is out of scope for the initial implementation. The full requirement is preserved in the "Deferred — Implement Later" section. The report sections below (§8.2.1.6, §8.2.2.7, §8.2.12.2.7) and §9.3.8 already describe how mutation results are shown *when present*; they degrade gracefully when mutation testing has not been run.
 
 ---
 
@@ -352,3 +335,5 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
 The following requirements are intentionally out of scope for the initial implementation. They are captured here for future consideration.
 
 D.1. **Markdown report** — `<output_dir>/report.md`; a Markdown mirror of `report.html` containing the same sections and core information formatted in idiomatic Markdown; does not attempt to replicate interactive or visual-only elements (charts, collapsible UI) but conveys equivalent information in text/table form; committed to version control.
+
+D.2. **Mutation testing** — dispatch a per-language mutation testing tool against a symbol or file, write results to `<output_dir>/mutation.json` (one entry per symbol keyed by symbol ID: survived count, killed count, tool name, exit code), and flag `covered` cells whose mutants survive in the report. Mutation results are displayed separately and never affect the composite score (§8.2.1.6). Per-language tools: Python — mutmut; JavaScript/TypeScript/C# — Stryker; Java — PIT; Rust — cargo-mutants; Go — gremlins; Ruby — mutant; PHP — infection.
