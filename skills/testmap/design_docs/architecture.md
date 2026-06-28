@@ -98,7 +98,7 @@ Reads `index.json`. For each symbol computes the PRD 4.1 signals — complexity 
 
 ### Stage 4 — `analyze` → `analysis.json` (agent)
 
-The skill drives the agent through each symbol in `scope.json`: infer the one-sentence spec, walk the edge-case taxonomy (`edge-case-taxonomy.md`) to enumerate input classes, enumerate expected behaviors (returns, raises, side effects, negative-space, async — PRD 6.3), build the behavior matrix, grep for and read covering tests, judge each cell covered/gap/unspecified with assertion-quality and brittleness checks, and rate testability. The agent emits, per symbol, a JSON object conforming to `analysis.schema.yaml`. A thin `analysis_lib` validates each object and assembles `analysis.json`. **Incremental:** symbols already up-to-date in the prior `analysis.json` and not in scope are carried forward verbatim; only in-scope symbols are (re)written.
+The skill drives the agent through each symbol in `scope.json`: infer the one-sentence spec, walk the edge-case taxonomy (`edge_case_taxonomy.md`) to enumerate input classes, enumerate expected behaviors (returns, raises, side effects, negative-space, async — PRD 6.3), build the behavior matrix, grep for and read covering tests, judge each cell covered/gap/unspecified with assertion-quality and brittleness checks, and rate testability. The agent emits, per symbol, a JSON object conforming to `analysis.schema.yaml`. A thin `analysis_lib` validates each object and assembles `analysis.json`. **Incremental:** symbols already up-to-date in the prior `analysis.json` and not in scope are carried forward verbatim; only in-scope symbols are (re)written.
 
 ### Stage 5 — `mutate` → `mutation.json` (optional)
 

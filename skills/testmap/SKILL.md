@@ -74,7 +74,7 @@ For each symbol on the work list, the agent does this per-symbol pass:
 
 **4a. Infer the specification.** Read signature, types, body, docstring, name. Write one sentence: "this function is supposed to ___."
 
-**4b. Enumerate input equivalence classes.** Walk the **edge-case taxonomy** (see `edge-case-taxonomy.md`). Do not free-associate — apply the checklist explicitly. For each category, ask: does an instance of this category exist for this function's inputs? Record only the ones that apply.
+**4b. Enumerate input equivalence classes.** Walk the **edge-case taxonomy** (see `edge_case_taxonomy.md`). Do not free-associate — apply the checklist explicitly. For each category, ask: does an instance of this category exist for this function's inputs? Record only the ones that apply.
 
 **4c. Enumerate expected behaviors.** Returns, raises, side effects, state changes. Every `raise`/`throw`/error return in the body is a behavior cell. Every distinct return type or shape is a cell.
 
@@ -149,7 +149,7 @@ This skill produces a gap report. Generating actual test code for identified gap
 
 ## File reference
 
-- `edge-case-taxonomy.md` — the categorical checklist applied at step 4b
+- `edge_case_taxonomy.md` — the categorical checklist applied at step 4b
 - `scripts/build_index.py` — tree-sitter symbol discovery
 - `scripts/find_stale.py` — git-diff + hash-based invalidation
 - `scripts/triage.py` — risk scoring → priority list
