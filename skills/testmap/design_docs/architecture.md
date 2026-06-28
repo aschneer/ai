@@ -27,9 +27,10 @@ The single rule: a capability is **code** only if its output must be identical a
 | Incremental index merge | code | Hash comparison; must not drift. |
 | Staleness detection | code | Pure hash/timestamp comparison. |
 | Risk triage scoring + bucketing | code | A fixed formula over fixed signals (PRD 4.1); must be reproducible. |
-| Call-site count, git churn | code | grep / `git log`; mechanical. |
+| Git churn | code | `git log`; mechanical. |
 | Mutation tool dispatch + result parse | code | Subprocess orchestration; deterministic. |
-| Composite score, grade, all report charts/tables | code | Fixed formulas (PRD 8.2.1) and rendering. |
+| Composite score + grade | code | Fixed formula (PRD 8.2.1); must be reproducible. |
+| **Narrative summary + agent insights** | **agent** | Written in markdown to `report_content.json`; rendered by `render.js` at page load. |
 | **Testability rating + note** | **agent** | Judgment over 8 structural signals (PRD 5.2). |
 | **Spec inference** | **agent** | Reading intent from code. |
 | **Behavior matrix** (input classes × expected behaviors) | **agent** | Requires understanding semantics. |
@@ -105,9 +106,15 @@ The skill drives the agent through each symbol in `scope.json`: infer the one-se
 
 Reads `scope.json` + `index.json`. Groups in-scope symbols by file and language, dispatches the per-language mutation tool once per unique file (not per symbol), parses survived/killed/tool/exit-code, and attributes results to each symbol in that file by line-range intersection. Writes one record per symbol to `mutation.json`. Optional and isolated so a missing or failing mutation tool never blocks the report.
 
-### Stage 6 — `report` → `report/report.html` + `meta.json`
+### Stage 6 — `report` → `report/` + `meta.json`
 
-Reads `index.json`, `triage.json`, `analysis.json`, and (if present) `mutation.json`. Computes the composite score and grade (PRD 8.2.1), renders the HTML report (all sections of PRD 8.2 — hero, KPI strip, heatmap, scatter, tables, symbol matrix), and writes run metadata to `meta.json` (PRD 9.3). Also copies `README_template.md` → `README.md` (PRD 10). The covered-but-survived discrepancy (PRD 7.3) is computed here by joining `analysis.json` cell status against `mutation.json`. Charts use Chart.js, bundled as a local file in `report/` alongside `report.html` — no external network dependencies (PRD 8.1.2).
+Two sub-steps:
+
+1. **Code:** Computes composite score and grade (PRD 8.2.1) from `analysis.json` + `triage.json`. Writes `meta.json` (PRD 9.3). Copies `README_template.md` → `README.md` (PRD 10).
+
+2. **Agent:** Writes `report_content.json` — narrative summary and agent insights in markdown. This is the only file the agent writes in this stage. Agent then prints the local server start command (e.g. `python3 -m http.server 8080` from `testmap_output/`).
+
+`report/report.html`, `report/render.js`, `report/chart.js`, and `report/marked.js` are static assets shipped with the skill and copied into `report/` on each run — never regenerated at runtime. `render.js` fetches `../index.json`, `../triage.json`, `../analysis.json`, `../report_content.json`, and (if present) `../mutation.json` at page load and renders all sections.
 
 ---
 
@@ -119,13 +126,16 @@ Reads `index.json`, `triage.json`, `analysis.json`, and (if present) `mutation.j
 |------|----------|--------|-----------|
 | `index.json` | discover | `index.schema.yaml` | yes |
 | `triage.json` | triage | `triage.schema.yaml` | yes |
-| `scope.json` | staleness/scope | `scope.schema.yaml` | yes |
 | `analysis.json` | analyze (agent) | `analysis.schema.yaml` | yes |
-| `mutation.json` | mutate | `mutation.schema.yaml` | yes |
-| `meta.json` | report | `meta.schema.yaml` | yes |
-| `report/report.html` | report | — | yes |
-| `report/chart.js` | report | — | yes |
+| `mutation.json` | mutate | `mutation.schema.yaml` | yes (if present) |
+| `meta.json` | report (code) | `meta.schema.yaml` | yes |
+| `report_content.json` | report (agent) | `report_content.schema.yaml` | yes |
 | `README.md` | report (copy of template) | — | yes |
+| `report/report.html` | static skill asset | — | yes |
+| `report/render.js` | static skill asset | — | yes |
+| `report/chart.js` | static skill asset | — | yes |
+| `report/marked.js` | static skill asset | — | yes |
+| `temp/scope.json` | staleness/scope | `scope.schema.yaml` | no (gitignored) |
 | `temp/*` | any | — | no (gitignored) |
 
 `scope.json`, `triage.json`, and `mutation.json` are not named in the PRD's output list (PRD 10.3.2 enumerates only `index`/`analysis`/`report`/`meta`). They are pipeline intermediates required by the clean-pipeline design. **Open question for the user:** keep them at root and committed (so re-runs are incremental across machines), or treat them as ephemeral under `temp/`. Recommendation: keep `triage.json` committed (cheap, useful diff signal) and `scope.json`/`mutation.json` likewise committed for reproducibility; revisit if the PRD's file list is meant to be exhaustive.
@@ -179,7 +189,7 @@ skills/testmap/
     staleness_lib.py            # hash/timestamp comparison
     analysis_lib.py             # validate + assemble agent-produced analysis.json
     mutation_lib.py             # per-language tool dispatch + result parse
-    report_lib.py               # join, composite score, HTML/SVG render
+    report_lib.py               # composite score + grade formula, meta.json assembly
     schema_lib.py               # shared: load schema, validate, read/write JSON
     paths_lib.py                # output-dir path resolution
     assets/                     # report HTML template, CSS (inlined at render)

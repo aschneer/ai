@@ -13,7 +13,8 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
 1.2. The output directory is always `<target_dir>/testmap_output/`.
 
 1.3. The output directory structure:
-- 1.3.1. Files intended to be saved, committed, and version-controlled (symbol index, analysis, report folder) live at the root of the output directory.
+- 1.3.1. Data files (`index.json`, `triage.json`, `analysis.json`, `mutation.json`, `meta.json`, `report_content.json`, `README.md`) live at the root of the output directory and are committed to version control.
+- 1.3.2b. The `report/` subfolder contains static rendering assets (`report.html`, `render.js`, `chart.js`, `marked.js`) copied from the skill source on each run. It can be deleted and regenerated without data loss.
 - 1.3.2. Ephemeral intermediate files (if any) live in a `temp/` subfolder, which should be gitignored. If no ephemeral files are produced, this subfolder is not created.
 
 1.4. An optional `testmap_config.json` configuration file may be placed in the target directory. If absent, all defaults apply. Supported fields:
@@ -76,10 +77,9 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
 - 4.1.1. Cyclomatic complexity
 - 4.1.2. Presence of error paths
 - 4.1.3. Name/path match against security/correctness sensitivity keywords defined in `skills/testmap/sensitivity_keywords.md`
-- 4.1.4. Call-site count (via grep)
-- 4.1.5. Git churn over the last 90 days
-- 4.1.6. Whether the symbol has no analysis entry yet (no-analysis symbols rank higher than stale ones of equivalent score)
-- 4.1.7. Public API surface — symbols with public visibility rank higher than private/internal ones of equivalent score
+- 4.1.4. Git churn over the last 90 days
+- 4.1.5. Whether the symbol has no analysis entry yet (no-analysis symbols rank higher than stale ones of equivalent score)
+- 4.1.6. Public API surface — symbols with public visibility rank higher than private/internal ones of equivalent score
 
 4.2. Symbols must be bucketed as `high`, `medium`, or `low` priority.
 
@@ -202,9 +202,15 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
 
 ## 8. Reporting
 
-8.1. The skill must produce a gap report by joining `index.json`, `triage.json`, `analysis.json`, and (if present) `mutation.json`. Output:
-- 8.1.1. `<output_dir>/report/report.html` — primary report; committed to version control; richly visual with charts, collapsible sections, search, and filter controls
-- 8.1.2. All report dependencies (e.g. Chart.js, CSS) must live in `<output_dir>/report/` alongside `report.html`. External network dependencies are not permitted — all assets must be local files within the report folder.
+8.1. The skill must produce a gap report as a browser-based HTML application. Files:
+- 8.1.1. `<output_dir>/report/report.html` — static HTML skeleton; shipped with the skill and copied into `report/` on each run; never regenerated at runtime
+- 8.1.2. `<output_dir>/report/render.js` — static JS rendering logic; shipped with the skill and copied into `report/` on each run; fetches all data files via `fetch()` at page load and populates all report sections; never regenerated at runtime
+- 8.1.3. `<output_dir>/report/chart.js` — Chart.js library bundled locally; no external network dependencies permitted
+- 8.1.4. `<output_dir>/report/marked.js` — Markdown parser bundled locally; used by `render.js` to render narrative summary and agent insights from markdown strings
+- 8.1.5. `<output_dir>/report_content.json` — agent-generated each run; lives at the root of `testmap_output/`; contains all dynamic agent-written content. Structure: `{"narrative_summary": "<markdown>", "insights": [{"title": "<string>", "body": "<markdown>"}, ...]}`
+- 8.1.6. The `report/` folder contains only static rendering assets and can be deleted and regenerated at any time without data loss. All data lives at the root of `testmap_output/`.
+- 8.1.7. The report requires a local web server to view (browsers block `fetch()` on `file://`). After generating the report, the agent must print the command to start one (e.g. `python3 -m http.server 8080`).
+- 8.1.8. `render.js` fetches `../index.json`, `../triage.json`, `../analysis.json`, `../report_content.json`, and (if present) `../mutation.json` at page load. Data files are never embedded in the HTML.
 
 8.2. The report must be structured in the following sections, in order:
 
@@ -222,7 +228,7 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
     - 0–24: Critical
   - 8.2.1.3. Raw behavioral coverage % alongside the composite score
   - 8.2.1.4. All run metadata fields defined in 9.3
-  - 8.2.1.5. A plain-language narrative summary of the key findings, written by the agent, covering the overall health of the test suite and the most significant issues identified
+  - 8.2.1.5. A plain-language narrative summary of the key findings, written by the agent in markdown and stored in `report_content.json`; rendered here at page load
   - 8.2.1.6. Mutation results are displayed separately in the KPI strip and do not affect the composite score
 
 - 8.2.2. **KPI strip** — key metrics at a glance:
@@ -257,7 +263,7 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
   - 8.2.9.2. Input class
   - 8.2.9.3. Unspecified reason
 
-- 8.2.10. **Agent insights** — one or more open-ended sections where the agent surfaces notable findings not captured elsewhere: unusual patterns, systemic issues, surprising results, alternative views of the data, or anything the agent judges worth highlighting. Multiple blocks may be stacked. Content and structure left to agent judgment.
+- 8.2.10. **Agent insights** — one or more open-ended sections where the agent surfaces notable findings not captured elsewhere: unusual patterns, systemic issues, surprising results, alternative views of the data, or anything the agent judges worth highlighting. Content written by agent in markdown and stored as the `insights` array in `report_content.json`; rendered as stacked blocks at page load. Number of blocks and content left to agent judgment.
 
 - 8.2.11. **Test prescription table** — a flat, scannable table of all gap cells across all analyzed symbols, intended as a work list for writing missing tests. Each row includes:
   - 8.2.11.1. Symbol qualified name
