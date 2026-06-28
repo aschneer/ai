@@ -197,9 +197,8 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
 
 ## 8. Reporting
 
-8.1. The skill must produce a gap report from `analysis.json` in two formats:
+8.1. The skill must produce a gap report from `analysis.json` in the following format:
 - 8.1.1. `<output_dir>/report.html` — primary report; self-contained HTML (no external dependencies), committed to version control; richly visual with charts, collapsible sections, search, and filter controls
-- 8.1.2. `<output_dir>/report.md` — Markdown mirror; contains the same sections and core information as the HTML report formatted in idiomatic Markdown; does not attempt to replicate interactive or visual-only elements (charts, collapsible UI) but conveys equivalent information in text/table form; committed to version control
 
 8.2. Both reports must be structured in the following sections, in order:
 
@@ -229,9 +228,9 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
   - 8.2.2.6. Unspecified cell count
   - 8.2.2.7. Mutation score (killed / total mutants), if mutation testing was run
 
-- 8.2.3. **Gaps by module (Pareto)** — gap count per module/package, sorted descending. HTML: vertical bar chart. Markdown: sorted table.
+- 8.2.3. **Gaps by module (Pareto)** — vertical bar chart showing gap count per module/package, sorted descending.
 
-- 8.2.4. **Gaps by file (Pareto)** — gap count per file, sorted descending. HTML: vertical bar chart. Markdown: sorted table.
+- 8.2.4. **Gaps by file (Pareto)** — vertical bar chart showing gap count per file, sorted descending.
 
 - 8.2.5. **Findings — what to fix** — prioritized list of most impactful gaps, ordered by risk × gap count descending. Each entry includes:
   - 8.2.5.1. Symbol name and priority bucket
@@ -249,16 +248,16 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
 - 8.2.8. **Symbol coverage matrix** — the complete, authoritative dataset; all other sections are summaries derived from this. Organized in three nested levels:
 
   - 8.2.8.1. **Module/file level** (outermost grouping):
-    - 8.2.8.1.1. Grouped by file/module (HTML: collapsible; Markdown: headed sections)
-    - 8.2.8.1.2. Per-group coverage bar (HTML) or coverage % (Markdown)
+    - 8.2.8.1.1. Grouped by file/module, collapsible
+    - 8.2.8.1.2. Per-group coverage bar and coverage %
     - 8.2.8.1.3. Per-group summary: `N symbols · X covered / Y gap / Z unspecified cells`
 
   - 8.2.8.2. **Symbol level** (within each module):
     - 8.2.8.2.1. Symbol name
     - 8.2.8.2.2. Priority bucket
     - 8.2.8.2.3. Covered / gap / unspecified cell counts
-    - 8.2.8.2.4. Coverage % and bar (HTML) or coverage % (Markdown)
-    - 8.2.8.2.5. Inferred spec (shown on expand in HTML; in subsection in Markdown)
+    - 8.2.8.2.4. Coverage % and bar
+    - 8.2.8.2.5. Inferred spec (shown on expand)
     - 8.2.8.2.6. Test difficulty rating and primary signals
     - 8.2.8.2.7. Mutation results (survived/killed, tool, covered-but-survived discrepancies), if available
 
@@ -310,8 +309,16 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
 
 10.3. The README must include:
 - 10.3.1. What the `testmap_output/` folder is and its purpose
-- 10.3.2. Description of each file in the folder and how to use it: `index.json`, `analysis.json`, `report.html`, `report.md`, `meta.json`
+- 10.3.2. Description of each file in the folder and how to use it: `index.json`, `analysis.json`, `report.html`, `meta.json`
 - 10.3.3. A note that `report.html` is the primary human-readable report and `meta.json` contains run-specific details about when and how the analysis was performed
 - 10.3.4. A note that this folder lives inside the analyzed target directory and the analysis covers all source files and subdirectories within it
 - 10.3.5. Skill name (`testmap`), described as an agent skill
 - 10.3.6. Author: Andrew Schneer — GitHub profile `https://github.com/aschneer`, skill source `https://github.com/aschneer/ai/tree/main/skills/testmap`
+
+---
+
+## Deferred — Implement Later
+
+The following requirements are intentionally out of scope for the initial implementation. They are captured here for future consideration.
+
+D.1. **Markdown report** — `<output_dir>/report.md`; a Markdown mirror of `report.html` containing the same sections and core information formatted in idiomatic Markdown; does not attempt to replicate interactive or visual-only elements (charts, collapsible UI) but conveys equivalent information in text/table form; committed to version control.
