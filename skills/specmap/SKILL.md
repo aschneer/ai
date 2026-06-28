@@ -1,14 +1,14 @@
 ---
-name: requirements-coverage-analysis
-description: Only use when explicitly invoked as /requirements-coverage-analysis. Audits whether a codebase delivers what a PRD or spec promised and produces a traceability matrix mapping requirements to tests.
+name: specmap
+description: Only use when explicitly invoked as /specmap. Audits whether a codebase delivers what a PRD or spec promised and produces a traceability matrix mapping requirements to tests.
 disable-model-invocation: true
 ---
 
-# Requirements Coverage Analysis
+# Specmap
 
 ## Overview
 
-`behavioral-coverage-analysis` asks "does each function handle all its inputs?" — this skill asks a different question: **"does the product do what we promised?"** Given a requirements document (PRD, spec, user stories, acceptance criteria) and a codebase, produce a traceability matrix mapping each requirement to the integration/end-to-end tests that verify it, and report which requirements are unverified.
+`testmap` asks "does each function handle all its inputs?" — this skill asks a different question: **"does the product do what we promised?"** Given a requirements document (PRD, spec, user stories, acceptance criteria) and a codebase, produce a traceability matrix mapping each requirement to the integration/end-to-end tests that verify it, and report which requirements are unverified.
 
 This skill is **complementary** to behavioral coverage:
 
@@ -33,7 +33,7 @@ Use both. They catch different classes of problem.
 
 ## When NOT to use
 
-- No formal requirements document exists (use `behavioral-coverage-analysis` instead)
+- No formal requirements document exists (use `testmap` instead)
 - Pure library/framework code with no product requirements
 - Throwaway prototypes
 - When the requirements doc is so stale it no longer reflects intent (rewrite it first)
@@ -47,7 +47,7 @@ If the requirements doc has no IDs, the first step is to **add them**. Coverage 
 
 ## Cache layout
 
-Shares the cache directory with `behavioral-coverage-analysis`:
+Shares the cache directory with `testmap`:
 
 ```
 .coverage_cache/
@@ -196,4 +196,4 @@ A more thorough implementation parses the requirements doc and tests programmati
 
 ## Related skills
 
-- `behavioral-coverage-analysis` — complementary code-level coverage. Use both: this skill catches missing requirements, that one catches missing edge cases inside the code that implements them.
+- `testmap` — complementary code-level coverage. Use both: this skill catches missing requirements, that one catches missing edge cases inside the code that implements them.

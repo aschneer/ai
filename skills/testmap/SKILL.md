@@ -1,10 +1,10 @@
 ---
-name: behavioral-coverage-analysis
-description: Only use when explicitly invoked as /behavioral-coverage-analysis. Assesses test quality across a codebase, analyzes whether tests meaningfully verify behavior rather than merely executing code, and audits functions/classes for missing edge-case tests.
+name: testmap
+description: Only use when explicitly invoked as /testmap. Assesses test quality across a codebase, analyzes whether tests meaningfully verify behavior rather than merely executing code, and audits functions/classes for missing edge-case tests.
 disable-model-invocation: true
 ---
 
-# Behavioral Coverage Analysis
+# Testmap
 
 ## Overview
 
@@ -158,4 +158,4 @@ This skill produces a gap report. Generating actual test code for identified gap
 
 ## Related skills
 
-- `requirements-coverage-analysis` — complementary skill for product-level coverage (requirements doc → integration tests). Behavioral coverage catches code bugs; requirements coverage catches "we built the wrong thing." Use both.
+- `specmap` — complementary skill for product-level coverage (requirements doc → integration tests). Testmap catches code bugs; specmap catches "we built the wrong thing." Use both.
