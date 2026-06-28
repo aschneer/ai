@@ -236,14 +236,14 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
   - 8.2.5.1. Symbol name and priority bucket
   - 8.2.5.2. Specific gaps to close, drawn from test prescriptions in `analysis.json`
 
-- 8.2.6. **Test prescription table** — a flat, scannable table of all gap cells across all analyzed symbols, intended as a work list for writing missing tests. Each row includes:
-  - 8.2.6.1. Symbol qualified name
-  - 8.2.6.2. Priority bucket
-  - 8.2.6.3. Input class
-  - 8.2.6.4. Expected behavior
-  - 8.2.6.5. Test prescription
+- 8.2.6. **Agent insights** — one or more open-ended sections where the agent surfaces notable findings not captured elsewhere: unusual patterns, systemic issues, surprising results, alternative views of the data, or anything the agent judges worth highlighting. Multiple blocks may be stacked. Content and structure left to agent judgment.
 
-- 8.2.7. **Agent insights** — one or more open-ended sections where the agent surfaces notable findings not captured elsewhere: unusual patterns, systemic issues, surprising results, alternative views of the data, or anything the agent judges worth highlighting. Multiple blocks may be stacked. Content and structure left to agent judgment.
+- 8.2.7. **Test prescription table** — a flat, scannable table of all gap cells across all analyzed symbols, intended as a work list for writing missing tests. Each row includes:
+  - 8.2.7.1. Symbol qualified name
+  - 8.2.7.2. Priority bucket
+  - 8.2.7.3. Input class
+  - 8.2.7.4. Expected behavior
+  - 8.2.7.5. Test prescription
 
 - 8.2.8. **Symbol coverage matrix** — the complete, authoritative dataset; all other sections are summaries derived from this. Organized in three nested levels:
 
