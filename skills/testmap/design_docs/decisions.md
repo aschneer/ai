@@ -4,6 +4,16 @@ Most recent first.
 
 ---
 
+## 2026-06-28 21:30:00 UTC — Symbol ID disambiguated by normalized signature, not ordinal
+
+**What:** The symbol-ID join key is `relative_path::qualified_name::normalized_signature`, where `normalized_signature` is the signature line with all whitespace removed. The signature component is appended to every key uniformly, not only when a name collision exists. Supersedes the ordinal-suffix scheme (2026-06-28 17:53:00 UTC).
+
+**Why:** The ordinal suffix (`::0`, `::1`) is not stable: inserting or reordering an overload shifts ordinals and breaks the join keys of every overload below it — the same line-number fragility line-exclusion was meant to avoid. The signature is the actual differentiator between overloads (same path + qualified name, different parameters) and is invariant under reordering. It is already extracted at discovery (PRD 2.3.6), so no extra parsing.
+
+**Trade-offs:** Applying the signature uniformly (vs. only on collision) makes the common non-overloaded key longer/noisier, but removes a collision-detection branch and keeps the key format predictable — chosen for simplicity. Reformatting a signature (e.g. a parameter rename) changes the key, so the symbol reads as new on the next run; rare, and arguably correct since a changed signature is a changed contract.
+
+---
+
 ## 2026-06-28 20:06:00 UTC — report/ contains only static rendering assets; all data at root
 
 **What:** `report/` holds only static skill assets (`report.html`, `render.js`, `chart.js`, `marked.js`). All data files (`index.json`, `triage.json`, `analysis.json`, `mutation.json`, `meta.json`, `report_content.json`) live at the root of `testmap_output/`. `report/` can be deleted and regenerated without data loss.
@@ -100,7 +110,9 @@ Most recent first.
 
 ---
 
-## 2026-06-28 17:53:00 UTC — Symbol ID: relative_path::qualified_name (+ordinal)
+## 2026-06-28 17:53:00 UTC — ~~Symbol ID: relative_path::qualified_name (+ordinal)~~ (superseded)
+
+Superseded by 2026-06-28 21:30:00 UTC — ordinal suffix replaced by normalized signature (ordinals are not stable under overload reordering).
 
 **What:** Join key across all pipeline files is `relative_path::qualified_name`, with an ordinal suffix to disambiguate overloads. Line numbers excluded.
 

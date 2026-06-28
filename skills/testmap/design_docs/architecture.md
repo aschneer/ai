@@ -140,7 +140,9 @@ Two sub-steps:
 
 ### Symbol ID
 
-The join key across all files. Deterministic: `"{relative_path}::{qualified_name}::{start_line}"` is too brittle (line shifts break it); instead use `"{relative_path}::{qualified_name}"`, with overload/collision disambiguated by an index-assigned ordinal suffix. Minted in stage 1, stored in `index.json`, referenced everywhere downstream.
+The join key across all files. Deterministic: `"{relative_path}::{qualified_name}::{normalized_signature}"`, where `normalized_signature` is the symbol's signature line with all whitespace stripped. Minted in stage 1, stored in `index.json`, referenced everywhere downstream.
+
+Including line numbers (`::{start_line}`) is too brittle — editing code above a symbol shifts its line and breaks the key with no semantic change. The normalized signature is appended uniformly to every key, not only on collision: it is the only component that distinguishes overloads (same path + same qualified name, different parameters), and a uniform rule avoids a collision-detection branch and keeps keys predictable. The signature is already extracted during discovery (PRD 2.3.6), so this adds no parsing work. Trade-off: reformatting a signature (e.g. renaming a parameter) changes the key, making the symbol look new on the next run — rare, and arguably correct, since a changed signature is a changed contract.
 
 ### Schemas
 
