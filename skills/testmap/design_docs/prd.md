@@ -14,8 +14,8 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
 
 1.3. The output directory structure:
 - 1.3.1. Data files (`index.json`, `triage.json`, `analysis.json`, `mutation.json`, `meta.json`, `report_content.json`, `README.md`) live at the root of the output directory and are committed to version control.
-- 1.3.2b. The `report/` subfolder contains static rendering assets (`report.html`, `render.js`, `chart.js`, `marked.js`) copied from the skill source on each run. It can be deleted and regenerated without data loss.
-- 1.3.2. Ephemeral intermediate files (if any) live in a `temp/` subfolder, which should be gitignored. If no ephemeral files are produced, this subfolder is not created.
+- 1.3.2. The `report/` subfolder contains static rendering assets (`report.html`, `render.js`, `chart.js`, `marked.js`) copied from the skill source on each run. It can be deleted and regenerated without data loss and is committed to version control.
+- 1.3.3. Ephemeral intermediate files live in a `temp/` subfolder, which is gitignored. `temp/scope.json` (the confirmed analysis scope) is the primary ephemeral file. If no ephemeral files are produced, this subfolder is not created.
 
 1.4. An optional `testmap_config.json` configuration file may be placed in the target directory. If absent, all defaults apply. Supported fields:
 - 1.4.1. `exclude` — array of glob patterns; matching files and directories are skipped during symbol discovery (e.g. `["vendor/**", "generated/**"]`)
@@ -54,7 +54,7 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
 - 2.3.7. Body hash — SHA-256 of the full symbol node bytes (signature + body); used for change detection
 - 2.3.8. Signature hash — SHA-256 of the signature line only; stored separately for reference
 - 2.3.9. Cyclomatic complexity estimate (branch-keyword count)
-- 2.3.10. Whether explicit error paths are present (`raise`/`throw`/`panic!`/`return Err`/`return error`)
+- 2.3.10. Whether explicit error paths are present (`raise`/`throw`/`panic!`/`return Err`/`return error`); for C and C++ this is best-effort only (no standard error-path syntax exists)
 - 2.3.11. Decorator/annotation list (e.g. `@property`, `@staticmethod`, `@Override`)
 - 2.3.12. Visibility/access modifier (`public`, `private`, `protected`, or inferred default)
 - 2.3.13. Whether the symbol lives in a test file
@@ -304,7 +304,7 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
 
 - 8.2.13. **Footer** — disclaimers: behavioral coverage is agent-assessed and may contain errors; the symbol matrix is the source of truth; unspecified cells require human clarification before they can be tested.
 
-8.3. The report must be fully regenerable from the pipeline output files (`index.json`, `triage.json`, `analysis.json`, `mutation.json`, `meta.json`) without re-running the analysis.
+8.3. The report must be fully regenerable from the pipeline output files (`index.json`, `triage.json`, `analysis.json`, `mutation.json`, `meta.json`, `report_content.json`) without re-running the analysis.
 
 ---
 
@@ -334,8 +334,8 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
 
 10.3. The README must include:
 - 10.3.1. What the `testmap_output/` folder is and its purpose
-- 10.3.2. Description of each file in the folder and how to use it: `index.json`, `triage.json`, `analysis.json`, `mutation.json` (if present), `meta.json`, and the `report/` folder
-- 10.3.3. A note that `report/report.html` is the primary human-readable report and `meta.json` contains run-specific details about when and how the analysis was performed
+- 10.3.2. Description of each file in the folder and how to use it: `index.json`, `triage.json`, `analysis.json`, `mutation.json` (if present), `meta.json`, `report_content.json`, and the `report/` folder
+- 10.3.3. A note that `report/report.html` is the primary human-readable report (requires a local web server — e.g. `python3 -m http.server 8080` from `testmap_output/`) and `meta.json` contains run-specific details about when and how the analysis was performed
 - 10.3.4. A note that this folder lives inside the analyzed target directory and the analysis covers all source files and subdirectories within it
 - 10.3.5. Skill name (`testmap`), described as an agent skill
 - 10.3.6. Author: Andrew Schneer — GitHub profile `https://github.com/aschneer`, skill source `https://github.com/aschneer/ai/tree/main/skills/testmap`
@@ -344,7 +344,7 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
 
 ## 11. Analysis CLI
 
-The skill must provide a Python CLI (`scripts/analysis_cli.py`) that the agent uses to interact with `analysis.json` without loading the full file into context. All commands operate on the `analysis.json` in the output directory passed as the first argument.
+The skill must provide a Python CLI (`src/testmap/analysis_cli.py`) that the agent uses to interact with `analysis.json` without loading the full file into context. All commands operate on the `analysis.json` in the output directory passed as the first argument.
 
 11.1. Required commands:
 
