@@ -181,7 +181,8 @@ skills/testmap/
     staleness.py                # CLI: stage 3 (staleness compute; scope written by agent)
     mutate.py                   # CLI: stage 5
     report.py                   # CLI: stage 6
-    analysis_cli.py             # CLI: agent interface to analysis.json (read/write/list/summary)
+    analysis_cli.py             # CLI: agent read/write of analysis.json (read/write/list-keys)
+    query.py                    # CLI: read-only cross-file queries (index/triage/mutation/stale/summary)
     discover_lib.py             # tree-sitter walk, symbol extraction, hashing
     languages_lib.py            # language → grammar + node-kind mapping, mutation-tool map
     index_lib.py                # incremental merge, symbol id, load/save index.json
@@ -202,17 +203,25 @@ skills/testmap/
 
 There is no `analyze.py` CLI — stage 4 is agent-driven. `analysis_lib.py` exists only to validate and assemble what the agent writes.
 
-### `analysis_cli.py` — agent interface to `analysis.json` (PRD 11)
+### `analysis_cli.py` and `query.py` — the agent's data interface (PRD 11)
 
-The entry-at-a-time access required by PRD 11.1 is provided by `analysis_cli.py`. All commands take the path to the `analysis.json` file directly as the first argument:
+The entry-at-a-time access required by PRD 11.1 is split across two CLIs so the agent never loads a whole data file into its context. `analysis_cli.py` is the only writer (the agent authors `analysis.json`); it takes the `analysis.json` path directly. `query.py` is read-only and takes the output directory, so cross-file queries resolve every data file from one place rather than inferring siblings.
+
+`analysis_cli.py` (writes `analysis.json`):
 
 | Command | Behavior |
 |---------|----------|
-| `read <analysis_json> <symbol_key>` | Print one symbol's analysis entry as JSON to stdout. |
-| `write <analysis_json> <symbol_key> <json>` | Update one symbol's entry; create the file if absent. |
-| `list-keys <analysis_json>` | Print all symbol keys, one per line. |
-| `list-stale <analysis_json>` | Print keys of all symbols whose analysis is stale or missing. |
-| `summary <analysis_json>` | Print a JSON count summary (total, analyzed, stale, by priority bucket) without loading full entries. |
+| `read <analysis_json> <symbol_key>` | Print one symbol's analysis entry as JSON. |
+| `write <analysis_json> <symbol_key> <json\|->` | Validate and upsert one entry; create the file if absent. `-` reads JSON from stdin. |
+| `list-keys <analysis_json>` | Print all analyzed symbol keys, one per line. |
+
+`query.py` (read-only over the output directory):
+
+| Command | Behavior |
+|---------|----------|
+| `<output_dir> index\|triage\|mutation <symbol_key>` | Print one symbol's record from that data file. |
+| `<output_dir> stale` | Print keys of all symbols whose analysis is stale or missing. |
+| `<output_dir> summary` | Print a JSON count summary (total, analyzed, stale, by priority bucket). |
 
 Symbol keys are the symbol IDs minted in stage 1 (see §5). All commands exit 0 on success, non-zero on error with a human-readable message to stderr.
 
@@ -225,6 +234,7 @@ staleness     = "testmap.staleness:main"
 mutate        = "testmap.mutate:main"
 report        = "testmap.report:main"
 analysis-cli  = "testmap.analysis_cli:main"
+query         = "testmap.query:main"
 ```
 
 Run as `uv run discover <target_dir>`, etc.

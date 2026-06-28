@@ -17,6 +17,7 @@ staleness = "testmap.staleness:main"
 mutate = "testmap.mutate:main"
 report = "testmap.report:main"
 analysis-cli = "testmap.analysis_cli:main"
+query = "testmap.query:main"
 
 [dependency-groups]
 dev = ["pytest>=8.0"]

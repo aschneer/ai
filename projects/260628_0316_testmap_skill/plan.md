@@ -22,7 +22,7 @@ Status: `[ ]` todo · `[~]` in progress · `[x]` done
 - [x] Stage 3 `staleness` → `scope.json` (`staleness_lib`, `staleness.py`; output `.gitignore`)
 - [ ] Stage 5 `mutate` → `mutation.json` (optional)
 - [ ] Stage 6 `report` code half: composite score + grade, `meta.json`
-- [ ] `analysis_cli.py` + `analysis_lib` (validate/assemble agent output; PRD §11)
+- [x] `analysis_lib` + `analysis_cli.py` (write) + `query.py` (read-only) (PRD §11)
 
 ## Phase 3 — Report rendering layer
 - [ ] Static assets: `report.html`, `render.js`, bundled `chart.js` + `marked.js` (PRD §8)
