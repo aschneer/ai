@@ -18,7 +18,7 @@ Status: `[ ]` todo · `[~]` in progress · `[x]` done
   - [x] `discover_lib` (tree-sitter walk, symbol extraction, hashing)
   - [x] `index_lib` (incremental merge, symbol-ID minting, load/save)
   - [x] `discover.py` (thin CLI)
-- [ ] Stage 2 `triage` → `triage.json`
+- [x] Stage 2 `triage` → `triage.json` (`churn_lib`, `triage_lib`, `triage.py`)
 - [ ] Stage 3 `staleness` → `scope.json`
 - [ ] Stage 5 `mutate` → `mutation.json` (optional)
 - [ ] Stage 6 `report` code half: composite score + grade, `meta.json`

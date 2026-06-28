@@ -20,6 +20,12 @@ def is_git_repo(target_dir: Path) -> bool:
     return result is not None and result.strip() == "true"
 
 
+def repo_toplevel(target_dir: Path) -> Path | None:
+    """Return the git repository root containing ``target_dir``, or None."""
+    result = _run_git(target_dir, ["rev-parse", "--show-toplevel"])
+    return Path(result.strip()) if result is not None else None
+
+
 def file_churn(target_dir: Path, relative_paths: set[str]) -> dict[str, int]:
     """Return a commit count per file over the churn window.
 
