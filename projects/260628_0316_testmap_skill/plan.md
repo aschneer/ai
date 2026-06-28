@@ -9,7 +9,7 @@
 
 Work top-down: design before code. Establish the data model first (JSON schemas), then implement scripts against those schemas, then the agent instructions, then the report.
 
-The existing scripts (`build_index.py`, `triage.py`, `find_stale.py`, `report.py`, `run_mutation.py`) are a working prototype that implements a subset of the PRD. The reimplementation reuses their core logic but extends them significantly. Rewrite, don't patch.
+The existing scripts (`build_index.py`, `triage.py`, `find_stale.py`, `report.py`, `run_mutation.py`) and `SKILL.md` are reference material only — they illustrate one approach to the problem but impose no constraint on the new implementation. The architecture, file structure, and code may be completely reconsidered. Full rewrite is the default; retain existing code only where it is clearly the right solution.
 
 ---
 
