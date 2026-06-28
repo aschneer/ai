@@ -18,7 +18,7 @@ from pathlib import Path
 from testmap import index_lib
 from testmap.discover_lib import extract_symbols
 from testmap.languages_lib import detect_language
-from testmap.paths_lib import data_file, output_dir
+from testmap.paths_lib import data_file, ensure_output_dir, output_dir
 
 _CONFIG_NAME = "testmap_config.json"
 
@@ -37,6 +37,7 @@ def main(argv: list[str] | None = None) -> int:
 
     records = _discover(target_dir, exclude, languages_filter, args.test_glob)
 
+    ensure_output_dir(target_dir)
     index_path = data_file(target_dir, "index.json")
     merged = index_lib.merge_index(
         index_lib.load_index(index_path), index_lib.build_index(records)

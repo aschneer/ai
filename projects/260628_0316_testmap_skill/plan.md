@@ -19,7 +19,7 @@ Status: `[ ]` todo · `[~]` in progress · `[x]` done
   - [x] `index_lib` (incremental merge, symbol-ID minting, load/save)
   - [x] `discover.py` (thin CLI)
 - [x] Stage 2 `triage` → `triage.json` (`churn_lib`, `triage_lib`, `triage.py`)
-- [ ] Stage 3 `staleness` → `scope.json`
+- [x] Stage 3 `staleness` → `scope.json` (`staleness_lib`, `staleness.py`; output `.gitignore`)
 - [ ] Stage 5 `mutate` → `mutation.json` (optional)
 - [ ] Stage 6 `report` code half: composite score + grade, `meta.json`
 - [ ] `analysis_cli.py` + `analysis_lib` (validate/assemble agent output; PRD §11)

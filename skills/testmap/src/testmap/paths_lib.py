@@ -21,6 +21,20 @@ def output_dir(target_dir: Path) -> Path:
     return target_dir.resolve() / OUTPUT_DIR_NAME
 
 
+def ensure_output_dir(target_dir: Path) -> Path:
+    """Create the output directory and write its ``.gitignore`` for ``temp/`` (PRD 1.3.3).
+
+    The output folder ships its own gitignore so the ephemeral temp/ is excluded in
+    the target repo without the user configuring anything.
+    """
+    out = output_dir(target_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    gitignore = out / ".gitignore"
+    if not gitignore.is_file():
+        gitignore.write_text("temp/\n", encoding="utf-8")
+    return out
+
+
 def data_file(target_dir: Path, name: str) -> Path:
     """Return the path to a committed data file at the output-dir root (PRD 1.3.1)."""
     return output_dir(target_dir) / name
