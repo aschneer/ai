@@ -30,13 +30,12 @@ The single rule: a capability is **code** only if its output must be identical a
 | Git churn | code | `git log`; mechanical. |
 | Mutation tool dispatch + result parse | code | Subprocess orchestration; deterministic. |
 | Composite score + grade | code | Fixed formula (PRD 8.2.1); must be reproducible. |
-| **Narrative summary + agent insights** | **agent** | Written in markdown to `report_content.json`; rendered by `render.js` at page load. |
 | **Testability rating + note** | **agent** | Judgment over 8 structural signals (PRD 5.2). |
 | **Spec inference** | **agent** | Reading intent from code. |
 | **Behavior matrix** (input classes × expected behaviors) | **agent** | Requires understanding semantics. |
 | **Test-to-cell mapping + assertion-quality / brittleness judgment** | **agent** | The core judgment of the skill. |
 | **Cell classification** (covered/gap/unspecified), gap notes, prescriptions | **agent** | Judgment; must not invent contracts. |
-| **Narrative summary, agent insights** | **agent** | Prose synthesis. |
+| **Narrative summary + agent insights** | **agent** | Written in markdown to `report_content.json`; rendered by `render.js` at page load. |
 
 The agent's behavioral analysis is not a script. The skill (`SKILL.md`) instructs the agent to, per in-scope symbol, read the body and its covering tests and emit a JSON object conforming to `analysis.schema.yaml`. A small library validates that JSON and assembles the per-symbol objects into `analysis.json`; it does not produce the analysis.
 
@@ -67,16 +66,15 @@ Each box is one stage. Arrows are file dependencies. **No back-edges** — a sta
  index.json      │    dispatch per-language mutation tool      │
                  └─────────────────────────────────────────────┘
                  ┌─────────────────────────────────────────────┐
- index.json  ──▶ │ 6. report    (code)                         │──▶ report/report.html
- triage.json     │    join all files by symbol id, render      │   meta.json
- analysis.json   └─────────────────────────────────────────────┘
- mutation.json
- meta.json
+ index.json  ──▶ │ 6. report    (code + agent)                 │──▶ meta.json
+ triage.json     │    code: composite score, meta.json         │   report_content.json
+ analysis.json   │    agent: narrative + insights              │   report/ (static assets)
+ mutation.json   └─────────────────────────────────────────────┘
 ```
 
 ### Why separate files instead of writing back to `index.json`
 
-The PRD says triage results are "written back to `index.json`" (4.3) and mutation results "written to the symbol's `analysis.json` entry" (7.2). We honor the *intent* (that data is associated per symbol and available to the report) while following the clean-pipeline constraint: **triage writes `triage.json`, mutation writes `mutation.json`**, each keyed by symbol ID. The report stage joins them. This keeps every stage idempotent and independently re-runnable, makes each handoff schema-checkable, and means a failed or re-run stage can never corrupt an upstream file. The report is still "fully regenerable from the output files" (PRD 8.3) — it just reads four files instead of two.
+Triage writes `triage.json`; mutation writes `mutation.json` — neither writes back to an upstream file. The report stage joins all files by symbol ID. This keeps every stage idempotent and independently re-runnable, makes each handoff schema-checkable, and means a failed or re-run stage can never corrupt an upstream file. The report is fully regenerable from the pipeline output files (PRD 8.3).
 
 ### Joining
 
@@ -92,7 +90,7 @@ Walks every source file with tree-sitter (one grammar per supported language, PR
 
 ### Stage 2 — `triage` → `triage.json`
 
-Reads `index.json`. For each symbol computes the PRD 4.1 signals — complexity (from index), error-path presence (from index), sensitivity-keyword match (name/path), call-site count (grep), git churn (`git log` over 90 days), no-analysis flag (vs. prior `analysis.json` if present), public-API flag (from index visibility) — combines them into a composite score with a fixed weighting, and buckets into high/medium/low. Writes one record per symbol with bucket, score, and every raw signal value (PRD 4.3). Pure function of its inputs → fully reproducible.
+Reads `index.json`. For each symbol computes the PRD 4.1 signals — complexity (from index), error-path presence (from index), sensitivity-keyword match (name/path), git churn (`git log` over 90 days), no-analysis flag (vs. prior `analysis.json` if present), public-API flag (from index visibility) — combines them into a composite score with a fixed weighting, and buckets into high/medium/low. Writes one record per symbol with bucket, score, and every raw signal value (PRD 4.3). Pure function of its inputs → fully reproducible.
 
 ### Stage 3 — `staleness` + scope → `scope.json`
 
@@ -138,7 +136,7 @@ Two sub-steps:
 | `temp/scope.json` | staleness/scope | `scope.schema.yaml` | no (gitignored) |
 | `temp/*` | any | — | no (gitignored) |
 
-`scope.json`, `triage.json`, and `mutation.json` are not named in the PRD's output list (PRD 10.3.2 enumerates only `index`/`analysis`/`report`/`meta`). They are pipeline intermediates required by the clean-pipeline design. **Open question for the user:** keep them at root and committed (so re-runs are incremental across machines), or treat them as ephemeral under `temp/`. Recommendation: keep `triage.json` committed (cheap, useful diff signal) and `scope.json`/`mutation.json` likewise committed for reproducibility; revisit if the PRD's file list is meant to be exhaustive.
+`scope.json` is ephemeral (temp/); all other files at root are committed. See `decisions.md` for rationale.
 
 ### Symbol ID
 
@@ -174,6 +172,7 @@ skills/testmap/
     analysis.schema.yaml
     mutation.schema.yaml
     meta.schema.yaml
+    report_content.schema.yaml
   src/testmap/
     discover.py                 # CLI: stage 1
     triage.py                   # CLI: stage 2
@@ -185,14 +184,14 @@ skills/testmap/
     languages_lib.py            # language → grammar + node-kind mapping, mutation-tool map
     index_lib.py                # incremental merge, symbol id, load/save index.json
     triage_lib.py               # signal collection + scoring + bucketing
-    churn_lib.py                # git churn + call-site count helpers
+    churn_lib.py                # git churn helpers
     staleness_lib.py            # hash/timestamp comparison
     analysis_lib.py             # validate + assemble agent-produced analysis.json
     mutation_lib.py             # per-language tool dispatch + result parse
     report_lib.py               # composite score + grade formula, meta.json assembly
     schema_lib.py               # shared: load schema, validate, read/write JSON
     paths_lib.py                # output-dir path resolution
-    assets/                     # report HTML template, CSS (inlined at render)
+    assets/                     # static report assets: report.html, render.js, chart.js, marked.js
   tests/
     fixtures/                   # small multi-language sample repos
     test_*.py
@@ -218,7 +217,7 @@ Run as `uv run discover <target_dir>`, etc.
 
 ## 7. Dependencies
 
-- `tree-sitter` + per-language grammar packages (`tree-sitter-python`, `tree-sitter-javascript`, … for the 15 languages in PRD 2.2). **Open question:** these are heavy; confirm bundling all 15 vs. lazy-installing the grammar for languages actually present in the target. Recommendation: lazy — `languages_lib` installs/loads only grammars for detected file extensions.
+- `tree-sitter` + per-language grammar packages — lazy-loaded; `languages_lib` installs/loads only grammars for file extensions detected in the target directory.
 - `jsonschema` — schema validation.
 - `pyyaml` — read schemas (authored in YAML).
 - Mutation tools (mutmut, Stryker, PIT, …) are **not** Python deps — they are external per-language tools dispatched by subprocess and assumed present in the target's toolchain; absence is handled gracefully (stage 5 records the failure and the report omits mutation data).
