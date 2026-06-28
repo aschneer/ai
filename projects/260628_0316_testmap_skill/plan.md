@@ -13,11 +13,11 @@ Status: `[ ]` todo · `[~]` in progress · `[x]` done
 - [x] `schema_lib` + `paths_lib` (shared load/validate/path resolution)
 
 ## Phase 2 — Pipeline code
-- [~] Stage 1 `discover` → `index.json` (architecture §4)
+- [x] Stage 1 `discover` → `index.json` (architecture §4)
   - [x] `languages_lib` (per-language node kinds, keywords, mutation tools)
-  - [ ] `discover_lib` (tree-sitter walk, symbol extraction, hashing)
-  - [ ] `index_lib` (incremental merge, symbol-ID minting, load/save)
-  - [ ] `discover.py` (thin CLI)
+  - [x] `discover_lib` (tree-sitter walk, symbol extraction, hashing)
+  - [x] `index_lib` (incremental merge, symbol-ID minting, load/save)
+  - [x] `discover.py` (thin CLI)
 - [ ] Stage 2 `triage` → `triage.json`
 - [ ] Stage 3 `staleness` → `scope.json`
 - [ ] Stage 5 `mutate` → `mutation.json` (optional)
