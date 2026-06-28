@@ -10,7 +10,7 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
 
 1.1. The user must provide a target directory containing the code to analyze. If not provided, the skill must explicitly ask for it before proceeding.
 
-1.2. The output directory is always `<target_dir>/coverage_analysis/`.
+1.2. The output directory is always `<target_dir>/testmap_output/`.
 
 1.3. The output directory structure:
 - 1.3.1. Files intended to be saved, committed, and version-controlled (symbol index, analysis, report) live at the root of the output directory.
@@ -79,9 +79,22 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
 
 4.2. Symbols must be bucketed as `high`, `medium`, or `low` priority.
 
-4.3. Priority scores must be written back to `index.json`.
+4.3. The following must be written back to `index.json` per symbol:
+- 4.3.1. Priority bucket (`high`/`medium`/`low`)
+- 4.3.2. Composite risk score
+- 4.3.3. Raw value for each signal defined in 4.1
 
-4.4. The triage output must be a priority-ordered work list, with configurable top-N limit.
+4.4. After building the index and completing triage, the skill must report a pre-analysis summary to the user:
+- 4.4.1. Total symbols found, broken down by kind (functions, methods, classes) and by priority bucket
+- 4.4.2. Number of symbols with no prior analysis vs. stale vs. up-to-date
+- 4.4.3. Estimated scope of work (large symbol counts should include an explicit warning that the analysis may take significant time and tokens)
+
+4.5. After presenting the summary, the skill must ask the user whether to:
+- 4.5.1. Analyze all symbols (default)
+- 4.5.2. Analyze only `high` priority symbols now, deferring the rest to future runs
+- 4.5.3. Analyze a custom subset — the skill must propose a specific recommended subset (e.g., top-N by score) and ask for confirmation
+
+4.6. The skill must proceed only after the user confirms the scope of analysis.
 
 ---
 
@@ -118,9 +131,12 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
 
 6.3. The agent must enumerate expected behaviors:
 - 6.3.1. Return values and shapes
-- 6.3.2. Raised exceptions — every `raise`/`throw`/error return in the body is a required cell
-- 6.3.3. Side effects
-- 6.3.4. State changes
+- 6.3.2. Output type contracts — guarantees about the type or shape of the return value (e.g., always returns a list, never returns None)
+- 6.3.3. Raised exceptions — every `raise`/`throw`/error return in the body is a required cell
+- 6.3.4. Side effects
+- 6.3.5. State changes
+- 6.3.6. Negative-space contracts — behaviors that must NOT occur (e.g., must not mutate input, must not leak sensitive data in error messages, must not emit certain side effects)
+- 6.3.7. Async/concurrent behavior — for async functions, expected behavior under concurrent calls, cancellation, and timeout
 
 6.4. For classes, the agent must additionally analyze:
 - 6.4.1. Invariants — properties that must hold across method calls.
@@ -131,14 +147,25 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
 
 6.5. The agent must build a behavior matrix: a list of `(input_class, expected_behavior)` cells.
 
-6.6. The agent must locate existing tests that exercise each symbol (by grepping imports and call sites), read each test body, and judge whether the assertion meaningfully verifies the expected behavior. Weak assertions (e.g., `assert result is not None`) must not be counted as covering a cell.
+6.6. The agent must locate existing tests that exercise each symbol (by grepping imports and call sites), read each test body, and judge whether the assertion meaningfully verifies the expected behavior:
+- 6.6.1. Weak assertions (e.g., `assert result is not None`) must not be counted as covering a cell.
+- 6.6.2. Tests that assert on internal implementation details (private methods, internal state) rather than observable behavior must not be counted as covering a cell and must be flagged as brittle.
+- 6.6.3. Parametrized tests must be unpacked — each parameter set evaluated independently as a candidate for cell coverage.
+- 6.6.4. Tests that appear to depend on execution order or shared state from prior tests must be flagged as unreliable and must not be counted as covering a cell.
 
 6.7. Each cell must be classified as `covered`, `gap`, or `unspecified`. `unspecified` must be used when the function's behavior on an input class is genuinely ambiguous; the agent must not invent a contract.
 
 6.8. Analysis results must be written to `<output_dir>/analysis.json` and committed to version control. Each entry must include:
 - 6.8.1. Inferred spec
-- 6.8.2. Behavior matrix with status per cell
-- 6.8.3. Covering test names per cell
+- 6.8.2. Behavior matrix — a list of cells, each containing:
+  - 6.8.2.1. Input class description
+  - 6.8.2.2. Expected behavior description
+  - 6.8.2.3. Status (`covered`, `gap`, or `unspecified`)
+  - 6.8.2.4. Covering tests (for `covered` cells) — list of `{test_name, brittle: bool, brittle_reason?}` objects, where `brittle` flags tests that assert on implementation details or have execution-order dependencies
+  - 6.8.2.5. Gap note — why the cell is uncovered (weak assertion, no test, wrong input class, etc.) (for `gap` cells)
+  - 6.8.2.6. Unspecified reason — the agent's reasoning for why the behavior is ambiguous (for `unspecified` cells)
+  - 6.8.2.7. Test prescription — for `gap` cells, a one-sentence description of what a test should do: what input to pass and what to assert; sufficient to write the test without re-reading the analysis
+- 6.8.3. Test difficulty rating and primary signals that drove it
 - 6.8.4. Body hash at time of analysis
 - 6.8.5. Covering test file hashes
 - 6.8.6. Timestamp
@@ -147,9 +174,22 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
 
 ## 7. Mutation Testing
 
-7.1. The skill must dispatch a per-language mutation testing tool against a symbol or file: mutmut (Python), Stryker (JS/TS/C#), PIT (Java), cargo-mutants (Rust), gremlins (Go), mutant (Ruby), infection (PHP).
+7.1. The skill must dispatch a per-language mutation testing tool against a symbol or file:
+- 7.1.1. Python — mutmut
+- 7.1.2. JavaScript — Stryker
+- 7.1.3. TypeScript — Stryker
+- 7.1.4. C# — Stryker
+- 7.1.5. Java — PIT
+- 7.1.6. Rust — cargo-mutants
+- 7.1.7. Go — gremlins
+- 7.1.8. Ruby — mutant
+- 7.1.9. PHP — infection
 
-7.2. Mutation results (survived count, killed count, tool name, exit code) must be written to the symbol's `analysis.json` entry.
+7.2. Mutation results must be written to the symbol's `analysis.json` entry, including:
+- 7.2.1. Survived count
+- 7.2.2. Killed count
+- 7.2.3. Tool name
+- 7.2.4. Exit code
 
 7.3. If cells are marked `covered` but mutants survive, the discrepancy must be flagged in the report.
 
@@ -157,17 +197,89 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
 
 ## 8. Reporting
 
-8.1. The skill must produce a gap report from `analysis.json`, rendered as both plain text (stdout) and an HTML file saved to `<output_dir>/report.html`. The HTML report must be committed to version control.
+8.1. The skill must produce a gap report from `analysis.json`, rendered as:
+- 8.1.1. `<output_dir>/report.md` — Markdown format, committed to version control
+- 8.1.2. `<output_dir>/report.html` — HTML format, self-contained, committed to version control
 
-8.2. The report must display per symbol: qualified name, inferred spec, test difficulty rating, behavior matrix with ✓/✗/? glyphs per cell, covering test names for covered cells, gap notes for gap cells, and mutation results if available.
+8.2. The report must display per symbol:
+- 8.2.1. Qualified name
+- 8.2.2. Inferred spec
+- 8.2.3. Test difficulty rating and primary signals
+- 8.2.4. Behavior matrix — each cell must visually indicate its status (covered / gap / unspecified), input class, expected behavior, and covering test names
+- 8.2.5. For covered cells: covering tests, with brittle tests visually distinguished and brittle reason shown
+- 8.2.6. For gap cells: gap note and test prescription
+- 8.2.7. For unspecified cells: unspecified reason
+- 8.2.8. Mutation results, if available — survived/killed counts, tool name, and any covered-but-mutant-survived discrepancies
 
-8.3. The report must include a summary: total cells, covered count, gap count, coverage percentage.
+8.3. The report must include a summary:
+- 8.3.1. Total cells
+- 8.3.2. Covered count
+- 8.3.3. Gap count
+- 8.3.4. Unspecified count
+- 8.3.5. Coverage percentage (covered / total excluding unspecified)
+- 8.3.6. Brittle test count
 
 8.4. The report must support filtering to gaps-only (symbols with at least one gap cell, showing only gap and unspecified cells).
 
 8.5. The report must support filtering to a single symbol by qualified name.
 
-8.6. The HTML report must be self-contained (no external dependencies) and human-navigable: symbol list, jump-to-symbol links, visual distinction between covered/gap/unspecified cells.
+8.6. The HTML report must be self-contained (no external dependencies) and human-navigable:
+- 8.6.1. Symbol index with jump-to-symbol links
+- 8.6.2. Visual distinction between covered, gap, and unspecified cells
+- 8.6.3. Visual distinction for brittle tests
+- 8.6.4. Collapsible sections per symbol
+
+8.7. The report must be structured in the following sections, in order:
+
+- 8.7.1. **Hero summary** — visually rich section combining the overall result narrative and run metadata. Must include:
+  - 8.7.1.1. **Composite score (0–100)** as the visual centerpiece, displayed alongside a grade label. Formula is always the same regardless of whether mutation testing was run:
+    - Base: `coverage_pct × 70` (max 70 pts; coverage_pct = covered / non-unspecified cells)
+    - Brittle penalty: `(brittle_tests / total_covering_tests) × 20` (max −20 pts)
+    - Unspecified penalty: `(unspecified_cells / total_cells) × 10` (max −10 pts)
+    - Floor: 0; ceiling: 100
+    - Mutation results are displayed separately in the KPI strip and report but do not affect the score
+  - 8.7.1.2. **Grade label** derived from composite score:
+    - 90–100: Excellent
+    - 75–89: Good
+    - 50–74: Fair
+    - 25–49: Poor
+    - 0–24: Critical
+  - 8.7.1.3. Raw behavioral coverage % displayed alongside the composite score for reference
+  - 8.7.1.4. A 2–4 sentence plain-language narrative of the key takeaway, written by the agent based on findings
+  - 8.7.1.5. All run metadata fields defined in 9.3
+  - The hero section sets the tone; it should be immediately informative at a glance
+
+- 8.7.2. **KPI strip** — a row of key metrics at a glance:
+  - 8.7.2.1. Overall behavioral coverage % (covered cells / total non-unspecified cells)
+  - 8.7.2.2. Total gap count
+  - 8.7.2.3. Total symbols analyzed
+  - 8.7.2.4. High-priority symbols with gaps
+  - 8.7.2.5. Brittle test count
+  - 8.7.2.6. Unspecified cell count (behaviors needing human clarification)
+  - 8.7.2.7. Mutation score (killed / total mutants), if mutation testing was run
+
+- 8.7.3. **Gaps by module (Pareto)** — vertical bar chart showing gap count per module/package, sorted descending. Highlights where the most uncovered behavior lives.
+
+- 8.7.4. **Gaps by file (Pareto)** — vertical bar chart showing gap count per file, sorted descending.
+
+- 8.7.5. **Findings — what to fix** — a prioritized list of the most impactful gaps to address. Each entry must include:
+  - 8.7.5.1. Symbol name and priority bucket
+  - 8.7.5.2. Specific gaps to close (from test prescriptions)
+  - 8.7.5.3. Ordered by risk × gap count descending
+
+- 8.7.6. **Agent insights** — one or more open-ended sections where the agent surfaces notable findings not captured elsewhere: unusual patterns, systemic issues, surprising results, alternative views of the data, or anything the agent judges worth highlighting. Multiple insight blocks may be stacked if warranted. Content and structure left to agent judgment.
+
+- 8.7.7. **Symbol coverage matrix** — the complete, authoritative dataset. All other sections are summaries derived from this. Must include:
+  - 8.7.7.1. Grouped by file/module (collapsible), with per-group coverage bar, coverage %, and `N symbols · X/Y cells` summary
+  - 8.7.7.2. Column header key for symbol rows: `Symbol · Priority · Cells ✓/✗ · Coverage`
+  - 8.7.7.3. Per-symbol coverage bar; each symbol expands to show its spec and behavior matrix
+  - 8.7.7.4. Behavior matrix column header key: `Status · Input class · Expected behavior · Covering test(s)`
+  - 8.7.7.5. Each edge case is one row marked ✓ covered / ✗ gap / ? unspecified inline, with covering test name(s) for covered rows and test prescription for gap rows
+  - 8.7.7.6. Controls: search (symbol / file / spec), filter chips (All, Has gaps, Fully covered, High priority, Error paths), Expand all / Collapse all acting on visible rows
+  - 8.7.7.7. One-line legend defining ✓ / ✗ / ? and the coverage-% formula
+  - 8.7.7.8. Modules left unanalyzed due to scope deferral listed at bottom as collapsed "module-level only" entries with a note, so search always resolves any module
+
+- 8.7.8. **Footer** — disclaimers about how the analysis was conducted: that behavioral coverage is agent-assessed and may contain errors, that the symbol matrix is the source of truth, and that unspecified cells require human clarification before they can be tested.
 
 ---
 
@@ -177,4 +289,26 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
 
 9.2. The index must always be complete — every discovered symbol listed — regardless of whether it has been analyzed.
 
-9.3. Metadata (last commit hash, run timestamp, tool versions, target directory path) must be stored in `<output_dir>/meta.json`.
+9.3. Metadata must be stored in `<output_dir>/meta.json`, including:
+- 9.3.1. Last commit hash of the target repository
+- 9.3.2. Run timestamp
+- 9.3.3. Tool versions (tree-sitter, mutation tools used)
+- 9.3.4. Target directory path
+
+9.4. Before starting a new analysis run, the skill must warn the user that existing output in `testmap_output/` will be overwritten and ask for confirmation before proceeding.
+
+---
+
+## 10. Output Folder README
+
+10.1. The skill must generate `<output_dir>/README.md` as part of every run, committed to version control.
+
+10.2. The README must include:
+- 10.2.1. What the folder is and its purpose
+- 10.2.2. Description of each file in the folder (`index.json`, `analysis.json`, `report.md`, `report.html`, `meta.json`)
+- 10.2.3. Skill name (`testmap`), described as an agent skill
+- 10.2.4. Author: Andrew Schneer — GitHub profile `https://github.com/aschneer`, skill source `https://github.com/aschneer/ai/tree/main/skills/testmap`
+- 10.2.5. The repository and target directory path this analysis covers
+- 10.2.6. A note that the folder lives inside the analyzed target directory and the analysis covers all files and subdirectories within it
+- 10.2.7. Timestamp of when the analysis was last run
+- 10.2.8. Git commit hash of the target repository at the time of the last run
