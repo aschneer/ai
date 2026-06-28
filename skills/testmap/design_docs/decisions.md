@@ -4,6 +4,16 @@ Most recent first.
 
 ---
 
+## 2026-06-29 01:10:00 UTC — Composite score normalized to 100; coverage is the sole positive factor
+
+**What:** The composite-score base weight is `coverage_pct × 100` (was `× 70` in the PRD), with the brittle (−20) and unspecified (−10) penalties subtracting from it. Floor 0, ceiling 100. PRD 8.2.1.1 updated.
+
+**Why:** With base `× 70`, the maximum reachable score was 70 ("Fair") even for a flawless suite, because the penalties are subtractive (they fire only when brittle tests or unspecified cells exist) rather than a reserved 30-point bucket. That made the Good (75–89) and Excellent (90–100) grade bands unreachable. The 70 + 20 + 10 = 100 symmetry suggested either an intended +30 positive third factor that was never recorded, or that 70 should have been 100. No record of a third factor exists in git history or decisions (the PRD used `× 70` from its first commit with no rationale), and a separate positive factor would likely double-count signals already captured: weak assertions already exclude a cell from `covered` (PRD 6.6.1), and brittleness is its own penalty. Coverage is therefore the single positive driver; penalties subtract.
+
+**Trade-offs:** A perfect-coverage suite with no brittle tests and no unspecified cells now scores 100, as the grade bands intend. The original reason for 70 is undocumented and was not reconstructed.
+
+---
+
 ## 2026-06-28 23:10:00 UTC — Symbol kind (function vs method) inferred from ancestor context, not node type
 
 **What:** Discovery classifies a symbol as `method` vs `function` by its position in the tree — a function-like node whose ancestor chain includes a class/impl/interface body is a `method`; otherwise a `function`. `languages_lib` stores per-language *function-like* node kinds and *class-like* node kinds only; it does not store a separate "method" node kind.

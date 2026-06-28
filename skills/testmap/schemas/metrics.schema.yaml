@@ -1,0 +1,78 @@
+# yaml-language-server: $schema=https://json-schema.org/draft/2020-12/schema
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: metrics.schema.yaml
+title: Report metrics
+description: >
+  Computed headline score and KPI aggregates for the report (PRD 8.2.1, 8.2.2).
+  Produced by the report stage (code) from analysis.json and triage.json; the
+  rendering layer displays these rather than recomputing the formula.
+type: object
+additionalProperties: false
+required:
+  - composite_score
+  - grade
+  - coverage_pct
+  - total_cells
+  - covered_cells
+  - gap_cells
+  - unspecified_cells
+  - total_covering_tests
+  - brittle_test_count
+  - symbols_analyzed
+  - high_priority_with_gaps
+properties:
+  composite_score:
+    type: number
+    minimum: 0
+    maximum: 100
+    description: Composite score 0-100 (PRD 8.2.1.1).
+  grade:
+    type: string
+    enum: [Excellent, Good, Fair, Poor, Critical]
+    description: Grade label derived from the composite score (PRD 8.2.1.2).
+  coverage_pct:
+    type: number
+    minimum: 0
+    maximum: 1
+    description: >
+      Behavioral coverage: covered_cells / (total_cells - unspecified_cells), or 0
+      when the denominator is 0 (PRD 8.2.1.3, 8.2.2.1).
+  total_cells:
+    type: integer
+    minimum: 0
+    description: Total behavior-matrix cells across analyzed symbols.
+  covered_cells:
+    type: integer
+    minimum: 0
+    description: Cells classified covered.
+  gap_cells:
+    type: integer
+    minimum: 0
+    description: Cells classified gap (PRD 8.2.2.2).
+  unspecified_cells:
+    type: integer
+    minimum: 0
+    description: Cells classified unspecified (PRD 8.2.2.6).
+  total_covering_tests:
+    type: integer
+    minimum: 0
+    description: Total covering-test references across covered cells.
+  brittle_test_count:
+    type: integer
+    minimum: 0
+    description: Covering tests flagged brittle (PRD 8.2.2.5).
+  symbols_analyzed:
+    type: integer
+    minimum: 0
+    description: Number of symbols with an analysis entry (PRD 8.2.2.3).
+  high_priority_with_gaps:
+    type: integer
+    minimum: 0
+    description: High-priority symbols having at least one gap cell (PRD 8.2.2.4).
+  mutation_score:
+    type: ["number", "null"]
+    minimum: 0
+    maximum: 1
+    description: >
+      killed / total mutants across symbols, or null when mutation testing was not
+      run (PRD 8.2.2.7). Does not affect the composite score (PRD 8.2.1.6).

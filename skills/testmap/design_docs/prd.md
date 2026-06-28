@@ -213,7 +213,7 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
 
 - 8.2.1. **Hero summary** — the visual centerpiece of the report. Must include:
   - 8.2.1.1. **Composite score (0–100)** with grade label. Formula (identical regardless of whether mutation testing was run):
-    - Base: `coverage_pct × 70` (max 70 pts; `coverage_pct = covered_cells / (total_cells − unspecified_cells)`)
+    - Base: `coverage_pct × 100` (max 100 pts; `coverage_pct = covered_cells / (total_cells − unspecified_cells)`)
     - Brittle penalty: `(brittle_test_count / total_covering_tests) × 20` (max −20 pts; 0 if `total_covering_tests = 0`)
     - Unspecified penalty: `(unspecified_cells / total_cells) × 10` (max −10 pts)
     - Floor: 0; ceiling: 100

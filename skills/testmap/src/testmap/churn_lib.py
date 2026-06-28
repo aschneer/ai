@@ -16,13 +16,13 @@ _CHURN_WINDOW_DAYS = 90
 
 def is_git_repo(target_dir: Path) -> bool:
     """Whether ``target_dir`` is inside a git working tree."""
-    result = _run_git(target_dir, ["rev-parse", "--is-inside-work-tree"])
+    result = run_git(target_dir, ["rev-parse", "--is-inside-work-tree"])
     return result is not None and result.strip() == "true"
 
 
 def repo_toplevel(target_dir: Path) -> Path | None:
     """Return the git repository root containing ``target_dir``, or None."""
-    result = _run_git(target_dir, ["rev-parse", "--show-toplevel"])
+    result = run_git(target_dir, ["rev-parse", "--show-toplevel"])
     return Path(result.strip()) if result is not None else None
 
 
@@ -34,7 +34,7 @@ def file_churn(target_dir: Path, relative_paths: set[str]) -> dict[str, int]:
     changed-path lists. Paths with no commits are reported as 0.
     """
     counts: dict[str, int] = {path: 0 for path in relative_paths}
-    log = _run_git(
+    log = run_git(
         target_dir,
         ["log", f"--since={_CHURN_WINDOW_DAYS} days ago", "--name-only", "--pretty=format:"],
     )
@@ -47,7 +47,7 @@ def file_churn(target_dir: Path, relative_paths: set[str]) -> dict[str, int]:
     return counts
 
 
-def _run_git(target_dir: Path, args: list[str]) -> str | None:
+def run_git(target_dir: Path, args: list[str]) -> str | None:
     """Run a git command in ``target_dir``; return stdout, or None on any failure."""
     try:
         result = subprocess.run(
