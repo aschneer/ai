@@ -200,6 +200,20 @@ skills/testmap/
 
 There is no `analyze.py` CLI — stage 4 is agent-driven. `analysis_lib.py` exists only to validate and assemble what the agent writes.
 
+### `analysis_cli.py` — agent interface to `analysis.json` (PRD 11)
+
+The entry-at-a-time access required by PRD 11.1 is provided by `analysis_cli.py`. All commands take the path to the `analysis.json` file directly as the first argument:
+
+| Command | Behavior |
+|---------|----------|
+| `read <analysis_json> <symbol_key>` | Print one symbol's analysis entry as JSON to stdout. |
+| `write <analysis_json> <symbol_key> <json>` | Update one symbol's entry; create the file if absent. |
+| `list-keys <analysis_json>` | Print all symbol keys, one per line. |
+| `list-stale <analysis_json>` | Print keys of all symbols whose analysis is stale or missing. |
+| `summary <analysis_json>` | Print a JSON count summary (total, analyzed, stale, by priority bucket) without loading full entries. |
+
+Symbol keys are the symbol IDs minted in stage 1 (see §5). All commands exit 0 on success, non-zero on error with a human-readable message to stderr.
+
 ### `[project.scripts]`
 
 ```

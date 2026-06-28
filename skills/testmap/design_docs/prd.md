@@ -13,9 +13,9 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
 1.2. The output directory is always `<target_dir>/testmap_output/`.
 
 1.3. The output directory structure:
-- 1.3.1. Data files (`index.json`, `triage.json`, `analysis.json`, `mutation.json`, `meta.json`, `report_content.json`, `README.md`) live at the root of the output directory and are committed to version control.
-- 1.3.2. The `report/` subfolder contains static rendering assets (`report.html`, `render.js`, `chart.js`, `marked.js`) copied from the skill source on each run. It can be deleted and regenerated without data loss and is committed to version control.
-- 1.3.3. Ephemeral intermediate files live in a `temp/` subfolder, which is gitignored. `temp/scope.json` (the confirmed analysis scope) is the primary ephemeral file. If no ephemeral files are produced, this subfolder is not created.
+- 1.3.1. Data files (the pipeline JSON outputs and the output-folder `README.md`) live at the root of the output directory and are committed to version control.
+- 1.3.2. A `report/` subfolder contains the static report-rendering assets, copied from the skill source on each run. It can be deleted and regenerated without data loss and is committed to version control.
+- 1.3.3. Ephemeral intermediate files live in a `temp/` subfolder, which is gitignored. The confirmed analysis scope is the primary ephemeral file. If no ephemeral files are produced, this subfolder is not created.
 
 1.4. An optional `testmap_config.json` configuration file may be placed in the target directory. If absent, all defaults apply. Supported fields:
 - 1.4.1. `exclude` — array of glob patterns; matching files and directories are skipped during symbol discovery (e.g. `["vendor/**", "generated/**"]`)
@@ -51,8 +51,8 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
 - 2.3.4. Start and end line numbers
 - 2.3.5. Language
 - 2.3.6. Signature (first line of the symbol node)
-- 2.3.7. Body hash — SHA-256 of the full symbol node bytes (signature + body); used for change detection
-- 2.3.8. Signature hash — SHA-256 of the signature line only; stored separately for reference
+- 2.3.7. Body hash — content hash of the full symbol node (signature + body); used for change detection
+- 2.3.8. Signature hash — content hash of the signature line only; stored separately for reference
 - 2.3.9. Cyclomatic complexity estimate (branch-keyword count)
 - 2.3.10. Whether explicit error paths are present (`raise`/`throw`/`panic!`/`return Err`/`return error`); for C and C++ this is best-effort only (no standard error-path syntax exists)
 - 2.3.11. Decorator/annotation list (e.g. `@property`, `@staticmethod`, `@Override`)
@@ -202,15 +202,12 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
 
 ## 8. Reporting
 
-8.1. The skill must produce a gap report as a browser-based HTML application. Files:
-- 8.1.1. `<output_dir>/report/report.html` — static HTML skeleton; shipped with the skill and copied into `report/` on each run; never regenerated at runtime
-- 8.1.2. `<output_dir>/report/render.js` — static JS rendering logic; shipped with the skill and copied into `report/` on each run; fetches all data files via `fetch()` at page load and populates all report sections; never regenerated at runtime
-- 8.1.3. `<output_dir>/report/chart.js` — Chart.js library bundled locally; no external network dependencies permitted
-- 8.1.4. `<output_dir>/report/marked.js` — Markdown parser bundled locally; used by `render.js` to render narrative summary and agent insights from markdown strings
-- 8.1.5. `<output_dir>/report_content.json` — agent-generated each run; lives at the root of `testmap_output/`; contains all dynamic agent-written content. Structure: `{"narrative_summary": "<markdown>", "insights": [{"title": "<string>", "body": "<markdown>"}, ...]}`
-- 8.1.6. The `report/` folder contains only static rendering assets and can be deleted and regenerated at any time without data loss. All data lives at the root of `testmap_output/`.
-- 8.1.7. The report requires a local web server to view (browsers block `fetch()` on `file://`). After generating the report, the agent must print the command to start one (e.g. `python3 -m http.server 8080`).
-- 8.1.8. `render.js` fetches `../index.json`, `../triage.json`, `../analysis.json`, `../report_content.json`, and (if present) `../mutation.json` at page load. Data files are never embedded in the HTML.
+8.1. The skill must produce a gap report as a browser-based HTML application:
+- 8.1.1. The report must render entirely from the committed pipeline data files; it must not embed analysis data in the HTML itself.
+- 8.1.2. The report must have no external network dependencies — all rendering and charting libraries must be bundled locally.
+- 8.1.3. The rendering layer must be static assets shipped with the skill and copied into the output folder on each run; data and rendering layer must be cleanly separated, so the rendering layer can be deleted and regenerated without data loss.
+- 8.1.4. All dynamic agent-written report content (narrative summary and agent insights, as markdown) must be produced each run as a data file, not embedded in HTML — the agent never authors HTML.
+- 8.1.5. The report may require a local web server to view. After generating the report, the agent must print the command to start one (e.g. `python3 -m http.server 8080`).
 
 8.2. The report must be structured in the following sections, in order:
 
@@ -228,7 +225,7 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
     - 0–24: Critical
   - 8.2.1.3. Raw behavioral coverage % alongside the composite score
   - 8.2.1.4. All run metadata fields defined in 9.3
-  - 8.2.1.5. A plain-language narrative summary of the key findings, written by the agent in markdown and stored in `report_content.json`; rendered here at page load
+  - 8.2.1.5. A plain-language narrative summary of the key findings, written by the agent in markdown
   - 8.2.1.6. Mutation results are displayed separately in the KPI strip and do not affect the composite score
 
 - 8.2.2. **KPI strip** — key metrics at a glance:
@@ -263,7 +260,7 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
   - 8.2.9.2. Input class
   - 8.2.9.3. Unspecified reason
 
-- 8.2.10. **Agent insights** — one or more open-ended sections where the agent surfaces notable findings not captured elsewhere: unusual patterns, systemic issues, surprising results, alternative views of the data, or anything the agent judges worth highlighting. Content written by agent in markdown and stored as the `insights` array in `report_content.json`; rendered as stacked blocks at page load. Number of blocks and content left to agent judgment.
+- 8.2.10. **Agent insights** — one or more open-ended sections where the agent surfaces notable findings not captured elsewhere: unusual patterns, systemic issues, surprising results, alternative views of the data, or anything the agent judges worth highlighting. Content written by the agent in markdown, rendered as stacked blocks. Number of blocks and content left to agent judgment.
 
 - 8.2.11. **Test prescription table** — a flat, scannable table of all gap cells across all analyzed symbols, intended as a work list for writing missing tests. Each row includes:
   - 8.2.11.1. Symbol qualified name
@@ -304,7 +301,7 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
 
 - 8.2.13. **Footer** — disclaimers: behavioral coverage is agent-assessed and may contain errors; the symbol matrix is the source of truth; unspecified cells require human clarification before they can be tested.
 
-8.3. The report must be fully regenerable from the pipeline output files (`index.json`, `triage.json`, `analysis.json`, `mutation.json`, `meta.json`, `report_content.json`) without re-running the analysis.
+8.3. The report must be fully regenerable from the committed pipeline output files without re-running the analysis.
 
 ---
 
@@ -342,21 +339,11 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
 
 ---
 
-## 11. Analysis CLI
+## 11. Analysis Data Access
 
-The skill must provide a Python CLI (`src/testmap/analysis_cli.py`) that the agent uses to interact with `analysis.json` without loading the full file into context. All commands operate on the `analysis.json` in the output directory passed as the first argument.
+11.1. The agent must be able to read, write, list, and summarize individual symbol entries in the analysis output one entry at a time, without loading the entire analysis file into context. (Necessary because the analysis output can be several MB for large codebases.)
 
-11.1. Required commands:
-
-- 11.1.1. `read <output_dir> <symbol_key>` — print one symbol's analysis entry as JSON to stdout
-- 11.1.2. `write <output_dir> <symbol_key> <json>` — update one symbol's entry in `analysis.json`; creates the file if absent
-- 11.1.3. `list-keys <output_dir>` — print all symbol keys, one per line
-- 11.1.4. `list-stale <output_dir>` — print keys of all symbols whose analysis is stale or missing
-- 11.1.5. `summary <output_dir>` — print a JSON summary of counts (total, analyzed, stale, by priority bucket) without loading full entries
-
-11.2. Symbol keys must be stable, unique identifiers composed of `<relative_file_path>::<qualified_name>`.
-
-11.3. All commands must exit with code 0 on success and non-zero on error, with a human-readable error message to stderr.
+11.2. Symbols must be identified by stable, unique keys that do not change when unrelated code shifts line numbers.
 
 ---
 
