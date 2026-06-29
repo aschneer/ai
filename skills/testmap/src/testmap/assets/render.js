@@ -394,10 +394,11 @@ function renderCell(cell) {
   const detail = el("div", { class: "cell-detail" });
   if (cell.status === "covered") {
     for (const t of cell.covering_tests || []) {
-      detail.appendChild(el("div", { class: `cov-test${t.brittle ? " brittle" : ""}` },
-        t.brittle
-          ? md(`${t.test_name} — brittle: ${t.brittle_reason || "implementation-coupled"}`)
-          : md(t.test_name)));
+      // The test name is code (rendered verbatim, never through markdown); the brittle
+      // reason is prose.
+      const parts = [el("code", {}, t.test_name)];
+      if (t.brittle) parts.push(el("span", {}, [" — brittle: ", md(t.brittle_reason || "implementation-coupled")]));
+      detail.appendChild(el("div", { class: `cov-test${t.brittle ? " brittle" : ""}` }, parts));
     }
   } else if (cell.status === "gap") {
     if (cell.gap_note) detail.appendChild(el("div", { class: "cell-note" }, md(cell.gap_note)));
@@ -599,4 +600,16 @@ function renderError(message) {
   document.getElementById("report").innerHTML = `<p class="error">Could not render report: ${message}</p>`;
 }
 
+// Disable autolinking so code-like text (e.g. nlohmann::json) is never turned into a
+// stray link. The url/autolink inline tokenizers are switched off; explicit
+// [text](url) links still work, bare URLs render as plain text.
+function configureMarked() {
+  if (!window.marked) return;
+  window.marked.use({
+    gfm: false,
+    tokenizer: { url: () => undefined, autolink: () => undefined },
+  });
+}
+
+configureMarked();
 loadData().then(render).catch((err) => renderError(err.message));
