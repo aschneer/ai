@@ -61,12 +61,15 @@ h2 {
 /* ---- Hero: the score as a typeset verdict ---- */
 .hero {
   display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 2rem;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 2.5rem;
+  row-gap: 1.25rem;
   align-items: end;
   border-bottom: 2px solid var(--ink);
   padding-bottom: 1.5rem;
 }
+
+.hero .narrative { grid-column: 1 / -1; }
 
 .hero .verdict { line-height: 1; }
 
@@ -89,9 +92,10 @@ h2 {
   margin-top: 0.5rem;
 }
 
-.hero .title { font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
-.hero .coverage { font-size: 1.1rem; margin-top: 0.3rem; }
-.hero .target { color: var(--muted); font-size: 0.85rem; margin-top: 0.6rem; word-break: break-all; }
+.hero .summary { min-width: 0; }
+.hero .title { font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.hero .coverage { font-size: 1.4rem; font-weight: 600; margin-top: 0.2rem; }
+.hero .target { color: var(--muted); font-size: 0.85rem; margin-top: 0.6rem; overflow-wrap: anywhere; }
 
 .grade-excellent { color: var(--covered); }
 .grade-good { color: var(--covered); }
