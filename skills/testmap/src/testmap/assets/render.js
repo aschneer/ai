@@ -56,12 +56,35 @@ function section(title, ...children) {
 }
 
 // Build a table from a header list and rows of cell values (strings or nodes).
+// opts.sortable makes every column click-to-sort (toggling asc/desc).
 function table(headers, rows, opts = {}) {
-  const head = el("thead", {}, el("tr", {}, headers.map((h) => el("th", {}, h))));
   const body = el("tbody", {}, rows.map((cells, i) =>
     el("tr", opts.rowClass ? { class: opts.rowClass(i) } : {}, cells.map((c) => el("td", {}, c)))
   ));
+  const ths = headers.map((label, col) => {
+    const th = el("th", opts.sortable ? { class: "sortable" } : {}, label);
+    if (opts.sortable) th.addEventListener("click", () => sortTable(body, col, th, ths));
+    return th;
+  });
+  const head = el("thead", {}, el("tr", {}, ths));
   return el("table", { class: "data" }, [head, body]);
+}
+
+function sortTable(body, col, th, allThs) {
+  const ascending = th.dataset.dir !== "asc";
+  allThs.forEach((other) => { delete other.dataset.dir; other.classList.remove("sorted-asc", "sorted-desc"); });
+  th.dataset.dir = ascending ? "asc" : "desc";
+  th.classList.add(ascending ? "sorted-asc" : "sorted-desc");
+
+  const cellText = (row) => (row.children[col]?.textContent || "").trim();
+  const asNumber = (v) => (v !== "" && !Number.isNaN(Number(v)) ? Number(v) : null);
+  const rows = [...body.children].sort((a, b) => {
+    const [x, y] = [cellText(a), cellText(b)];
+    const [nx, ny] = [asNumber(x), asNumber(y)];
+    const cmp = nx !== null && ny !== null ? nx - ny : x.localeCompare(y);
+    return ascending ? cmp : -cmp;
+  });
+  rows.forEach((row) => body.appendChild(row));
 }
 
 function badge(text, kind) {
@@ -266,7 +289,7 @@ function renderFilesNeedingAttention(rows) {
   if (!files.length) return section("Files needing attention", emptyNote("No gaps — every analyzed file is fully covered."));
   const body = files.map((f) => [f.file, String(f.gap), pct(f.coverage), f.topSymbol]);
   return section("Files needing attention",
-    table(["File", "Gaps", "Coverage", "Highest-risk symbol"], body));
+    table(["File", "Gaps", "Coverage", "Highest-risk symbol"], body, { sortable: true }));
 }
 
 function renderBrittleDistribution(rows) {
@@ -332,7 +355,7 @@ function renderUnspecified(rows) {
   }
   if (!out.length) return section("Unspecified behaviors — needs human decision", emptyNote("No unspecified behaviors."));
   return section("Unspecified behaviors — needs human decision",
-    table(["Symbol", "Input class", "Why unspecified"], out));
+    table(["Symbol", "Input class", "Why unspecified"], out, { sortable: true }));
 }
 
 function renderPrescriptions(rows) {
@@ -352,7 +375,7 @@ function renderPrescriptions(rows) {
   }
   if (!out.length) return section("Test prescriptions", emptyNote("No gaps — nothing to prescribe."));
   return section("Test prescriptions",
-    table(["Symbol", "Priority", "Input class", "Expected behavior", "Prescription"], out));
+    table(["Symbol", "Priority", "Input class", "Expected behavior", "Prescription"], out, { sortable: true }));
 }
 
 function coverageBar(coverage) {

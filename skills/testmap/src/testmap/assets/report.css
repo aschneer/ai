@@ -184,6 +184,12 @@ table.data td {
 
 table.data tr:hover td { background: rgba(0, 0, 0, 0.02); }
 
+table.data th.sortable { cursor: pointer; user-select: none; }
+table.data th.sortable:hover { color: var(--ink); }
+table.data th.sortable::after { content: " ↕"; opacity: 0.35; }
+table.data th.sorted-asc::after { content: " ↑"; opacity: 1; }
+table.data th.sorted-desc::after { content: " ↓"; opacity: 1; }
+
 /* ---- Badges ---- */
 .badge {
   display: inline-block;
