@@ -55,6 +55,23 @@ function section(title, ...children) {
   return el("section", {}, [el("h2", {}, title), ...children]);
 }
 
+// Build a table from a header list and rows of cell values (strings or nodes).
+function table(headers, rows, opts = {}) {
+  const head = el("thead", {}, el("tr", {}, headers.map((h) => el("th", {}, h))));
+  const body = el("tbody", {}, rows.map((cells, i) =>
+    el("tr", opts.rowClass ? { class: opts.rowClass(i) } : {}, cells.map((c) => el("td", {}, c)))
+  ));
+  return el("table", { class: "data" }, [head, body]);
+}
+
+function badge(text, kind) {
+  return el("span", { class: `badge badge-${kind}` }, text);
+}
+
+function emptyNote(text) {
+  return el("p", { class: "empty prose" }, text);
+}
+
 function pct(value) {
   return `${Math.round(value * 100)}%`;
 }
@@ -234,6 +251,94 @@ function drawScatter(canvas, rows) {
   });
 }
 
+function renderFilesNeedingAttention(rows) {
+  const files = fileRows(rows).filter((f) => f.gap > 0).sort((a, b) => b.gap - a.gap);
+  if (!files.length) return section("Files needing attention", emptyNote("No gaps — every analyzed file is fully covered."));
+  const body = files.map((f) => [f.file, String(f.gap), pct(f.coverage), f.topSymbol]);
+  return section("Files needing attention",
+    table(["File", "Gaps", "Coverage", "Highest-risk symbol"], body));
+}
+
+function renderBrittleDistribution(rows) {
+  const byFile = new Map();
+  for (const row of rows) {
+    let brittle = 0;
+    for (const cell of row.entry.behavior_matrix || []) {
+      for (const t of cell.covering_tests || []) if (t.brittle) brittle += 1;
+    }
+    if (brittle) byFile.set(row.file, (byFile.get(row.file) || 0) + brittle);
+  }
+  const files = [...byFile.entries()].sort((a, b) => b[1] - a[1]);
+  if (!files.length) return section("Brittle test distribution", emptyNote("No brittle tests detected."));
+  return section("Brittle test distribution",
+    table(["File", "Brittle tests"], files.map(([f, n]) => [f, String(n)])));
+}
+
+function renderDifficultyDistribution(rows) {
+  const counts = { high: 0, medium: 0, low: 0 };
+  for (const row of rows) if (row.difficulty in counts) counts[row.difficulty] += 1;
+  const order = [["high", "Hard to test"], ["medium", "Moderate"], ["low", "Easy to test"]];
+  const bars = el("div", { class: "dist" },
+    order.map(([key, label]) => {
+      const n = counts[key];
+      const width = rows.length ? (n / rows.length) * 100 : 0;
+      return el("div", { class: "dist-row" }, [
+        el("div", { class: "dist-label" }, `${label} (${n})`),
+        el("div", { class: "dist-track" }, el("div", { class: `dist-fill diff-${key}`, style: `width:${width}%` })),
+      ]);
+    })
+  );
+  return section("Test difficulty distribution", bars);
+}
+
+function renderFindings(rows) {
+  const ranked = rows
+    .map((r) => ({ ...r, impact: r.risk * r.counts.gap }))
+    .filter((r) => r.counts.gap > 0)
+    .sort((a, b) => b.impact - a.impact);
+  if (!ranked.length) return section("Findings — what to fix", emptyNote("No gaps to fix."));
+  const items = ranked.map((r) => {
+    const prescriptions = (r.entry.behavior_matrix || [])
+      .filter((c) => c.status === "gap" && c.test_prescription)
+      .map((c) => el("li", {}, c.test_prescription));
+    return el("div", { class: "finding" }, [
+      el("div", { class: "finding-head" }, [
+        el("span", { class: "finding-name" }, r.name),
+        badge(r.priority, r.priority),
+        el("span", { class: "finding-meta" }, `${r.counts.gap} gaps`),
+      ]),
+      el("ul", { class: "prose" }, prescriptions),
+    ]);
+  });
+  return section("Findings — what to fix", ...items);
+}
+
+function renderUnspecified(rows) {
+  const out = [];
+  for (const row of rows) {
+    for (const cell of row.entry.behavior_matrix || []) {
+      if (cell.status === "unspecified") out.push([row.name, cell.input_class, cell.unspecified_reason || ""]);
+    }
+  }
+  if (!out.length) return section("Unspecified behaviors — needs human decision", emptyNote("No unspecified behaviors."));
+  return section("Unspecified behaviors — needs human decision",
+    table(["Symbol", "Input class", "Why unspecified"], out));
+}
+
+function renderPrescriptions(rows) {
+  const out = [];
+  for (const row of rows) {
+    for (const cell of row.entry.behavior_matrix || []) {
+      if (cell.status === "gap") {
+        out.push([row.name, badge(row.priority, row.priority), cell.input_class, cell.expected_behavior, cell.test_prescription || ""]);
+      }
+    }
+  }
+  if (!out.length) return section("Test prescriptions", emptyNote("No gaps — nothing to prescribe."));
+  return section("Test prescriptions",
+    table(["Symbol", "Priority", "Input class", "Expected behavior", "Prescription"], out));
+}
+
 function render(data) {
   const root = document.getElementById("report");
   root.innerHTML = "";
@@ -242,6 +347,12 @@ function render(data) {
   root.appendChild(renderKpis(data));
   root.appendChild(renderHeatmap(rows));
   root.appendChild(renderScatter(rows));
+  root.appendChild(renderFilesNeedingAttention(rows));
+  root.appendChild(renderBrittleDistribution(rows));
+  root.appendChild(renderDifficultyDistribution(rows));
+  root.appendChild(renderFindings(rows));
+  root.appendChild(renderUnspecified(rows));
+  root.appendChild(renderPrescriptions(rows));
 }
 
 function renderError(message) {
