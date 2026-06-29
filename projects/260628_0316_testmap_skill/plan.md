@@ -41,5 +41,6 @@ Status: `[ ]` todo · `[~]` in progress · `[x]` done
 - [x] `edge_case_taxonomy.md`, `sensitivity_keywords.md`
 
 ## Phase 5 — Validation
-- [ ] End-to-end run on a real repo; verify all sections populate, incremental re-run skips unchanged symbols
-- [ ] Schema validation enforced at every stage boundary
+- [x] End-to-end run on a real repo (nlohmann/json, 958 symbols); all report sections populate, incremental re-run skips unchanged symbols
+- [x] Schema validation enforced at every stage boundary
+- Validation caught and fixed two real C++ bugs: declarator-chain name extraction and macro-induced parse misnesting.
