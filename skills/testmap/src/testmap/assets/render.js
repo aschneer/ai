@@ -383,44 +383,64 @@ function coverageBar(coverage) {
     el("div", { class: "cov-fill", style: `width:${coverage * 100}%;background:${coverageColor(coverage)}` }));
 }
 
+const _STATUS_ICON = { covered: "✓", gap: "✗", unspecified: "?" };
+
+function statusIcon(status) {
+  return el("span", { class: `status-icon status-${status}`, title: status }, _STATUS_ICON[status] || "?");
+}
+
+// One behavior cell as a table row: status icon, input class, expected behavior, detail.
 function renderCell(cell) {
   const detail = el("div", { class: "cell-detail" });
   if (cell.status === "covered") {
     for (const t of cell.covering_tests || []) {
       detail.appendChild(el("div", { class: `cov-test${t.brittle ? " brittle" : ""}` },
-        t.brittle ? `${t.test_name} — brittle: ${t.brittle_reason || "implementation-coupled"}` : t.test_name));
+        t.brittle
+          ? md(`${t.test_name} — brittle: ${t.brittle_reason || "implementation-coupled"}`)
+          : md(t.test_name)));
     }
   } else if (cell.status === "gap") {
-    if (cell.gap_note) detail.appendChild(el("div", { class: "cell-note" }, cell.gap_note));
-    if (cell.test_prescription) detail.appendChild(el("div", { class: "cell-rx" }, `Rx: ${cell.test_prescription}`));
+    if (cell.gap_note) detail.appendChild(el("div", { class: "cell-note" }, md(cell.gap_note)));
+    if (cell.test_prescription) {
+      detail.appendChild(el("div", { class: "cell-rx" }, [el("span", { class: "rx-label" }, "Rx "), md(cell.test_prescription)]));
+    }
   } else if (cell.unspecified_reason) {
-    detail.appendChild(el("div", { class: "cell-note" }, cell.unspecified_reason));
+    detail.appendChild(el("div", { class: "cell-note" }, md(cell.unspecified_reason)));
   }
-  return el("div", { class: `cell status-${cell.status}`, "data-status": cell.status }, [
-    el("div", { class: "cell-row" }, [
-      el("span", { class: `dot dot-${cell.status}` }, ""),
-      el("span", { class: "cell-input" }, cell.input_class),
-      el("span", { class: "cell-behavior" }, cell.expected_behavior),
-    ]),
-    detail,
+  return el("tr", { class: `cell status-${cell.status}` }, [
+    el("td", { class: "cell-status" }, statusIcon(cell.status)),
+    el("td", { class: "cell-input" }, md(cell.input_class)),
+    el("td", { class: "cell-behavior" }, md(cell.expected_behavior)),
+    el("td", { class: "cell-detail-col" }, detail),
   ]);
+}
+
+function cellTable(cells) {
+  const head = el("thead", {}, el("tr", { class: "cell-head" }, [
+    el("th", { class: "cell-status" }, ""),
+    el("th", {}, "Input class"),
+    el("th", {}, "Expected behavior"),
+    el("th", {}, "Tests / notes"),
+  ]));
+  const body = el("tbody", {}, cells.map(renderCell));
+  return el("table", { class: "cells" }, [head, body]);
 }
 
 function renderSymbol(row) {
   const c = row.counts;
   const head = el("summary", { class: "sym-head" }, [
-    el("span", { class: "sym-name" }, row.name),
+    el("code", { class: "sym-name" }, row.name),
     badge(row.priority, row.priority),
     el("span", { class: "sym-counts" }, `${c.covered}/${c.gap}/${c.unspecified}`),
     coverageBar(row.coverage),
     el("span", { class: "sym-pct" }, pct(row.coverage)),
   ]);
-  const meta = el("div", { class: "sym-meta prose" }, [
-    row.spec ? el("p", { class: "sym-spec" }, row.spec) : null,
+  const meta = el("div", { class: "sym-meta" }, [
+    row.spec ? el("p", { class: "sym-spec" }, md(row.spec)) : null,
     row.difficulty ? el("p", { class: "sym-diff" },
-      `Test difficulty: ${row.difficulty} — ${row.entry.test_difficulty?.signals_note || ""}`) : null,
+      [el("span", { class: "sym-diff-label" }, "Test difficulty: "), `${row.difficulty} — `, md(row.entry.test_difficulty?.signals_note || "")]) : null,
   ]);
-  const cells = el("div", { class: "cells" }, (row.entry.behavior_matrix || []).map(renderCell));
+  const cells = cellTable(row.entry.behavior_matrix || []);
   return el("details", {
     class: "sym",
     "data-priority": row.priority,
@@ -470,9 +490,9 @@ function matrixControls() {
 
 function matrixLegend() {
   return el("div", { class: "legend prose" }, [
-    el("span", {}, [el("span", { class: "dot dot-covered" }, ""), " covered — a test pins this behavior"]),
-    el("span", {}, [el("span", { class: "dot dot-gap" }, ""), " gap — no meaningful test"]),
-    el("span", {}, [el("span", { class: "dot dot-unspecified" }, ""), " unspecified — behavior ambiguous, needs a human decision"]),
+    el("span", {}, [statusIcon("covered"), " covered — a test pins this behavior"]),
+    el("span", {}, [statusIcon("gap"), " gap — no meaningful test"]),
+    el("span", {}, [statusIcon("unspecified"), " unspecified — behavior ambiguous, needs a human decision"]),
     el("span", { class: "legend-formula" }, "coverage % = covered / (total − unspecified)"),
   ]);
 }

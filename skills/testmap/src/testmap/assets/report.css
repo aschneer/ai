@@ -268,23 +268,52 @@ table.data th.sorted-desc::after { content: " ↓"; opacity: 1; }
 .sym-head { padding: 0.5rem 0; cursor: pointer; }
 .sym-name { font-weight: 600; }
 .sym-counts { font-size: 0.75rem; color: var(--muted); }
-.sym-meta { padding: 0 0 0.6rem 1rem; font-size: 0.82rem; }
+.sym-meta { padding: 0.2rem 0 0.6rem 1rem; font-size: 0.82rem; }
 .sym-spec { margin: 0.2rem 0; }
 .sym-diff { margin: 0.2rem 0; color: var(--muted); }
+.sym-diff-label { font-weight: 600; }
 
-.cells { padding: 0 0 0.6rem 1rem; display: flex; flex-direction: column; gap: 0.3rem; }
-.cell { border-left: 3px solid var(--rule); padding: 0.3rem 0 0.3rem 0.6rem; }
-.cell.status-covered { border-color: var(--covered); }
-.cell.status-gap { border-color: var(--gap); }
-.cell.status-unspecified { border-color: var(--unspecified); }
-.cell-row { display: flex; gap: 0.7rem; align-items: baseline; font-size: 0.82rem; }
-.cell-input { font-weight: 600; }
-.cell-behavior { color: var(--muted); }
-.cell-detail { font-size: 0.78rem; margin-left: 1.2rem; }
+/* Behavior cells as a compact table with column headers. */
+table.cells {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 0 0.6rem 1rem;
+  font-size: 0.8rem;
+  table-layout: fixed;
+}
+table.cells th {
+  text-align: left;
+  font-size: 0.65rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-bottom: 1px solid var(--rule);
+}
+table.cells td {
+  padding: 0.3rem 0.5rem;
+  border-bottom: 1px solid var(--rule);
+  vertical-align: top;
+}
+table.cells .cell-status, table.cells th.cell-status { width: 1.6rem; text-align: center; }
+table.cells .cell-input { width: 22%; font-weight: 600; }
+table.cells .cell-behavior { width: 26%; color: var(--ink); }
+
+.status-icon { font-weight: 700; font-size: 0.95rem; line-height: 1; }
+.status-icon.status-covered { color: var(--covered); }
+.status-icon.status-gap { color: var(--gap); }
+.status-icon.status-unspecified { color: var(--unspecified); }
+
+.cell-detail-col { color: var(--muted); }
 .cov-test { color: var(--covered); }
 .cov-test.brittle { color: var(--gap); }
 .cell-note { color: var(--muted); }
-.cell-rx { font-family: var(--mono); color: var(--ink); }
+.cell-rx { color: var(--ink); margin-top: 0.15rem; }
+.rx-label {
+  font-size: 0.6rem; font-weight: 700; letter-spacing: 0.05em;
+  background: var(--ink); color: #fff; padding: 0.05em 0.3em; border-radius: 3px; margin-right: 0.3rem;
+}
 
 .deferred { margin-top: 1rem; font-size: 0.82rem; }
 .deferred summary { cursor: pointer; color: var(--muted); }
