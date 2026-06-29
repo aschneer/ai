@@ -304,6 +304,10 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
 - 9.3.7. Total symbols analyzed this run
 - 9.3.8. Tool versions (tree-sitter, any mutation tools invoked)
 
+9.4. Because analysis can require large amounts of work and run for a long time, results must be recorded incrementally as each symbol is completed, not only at the end of a run. A run interrupted partway must preserve the work already done.
+
+9.5. After an interrupted run, the skill must be able to determine what work remains and resume without repeating work already completed.
+
 ---
 
 ## 10. Output Folder README
@@ -333,6 +337,12 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
 ## 12. Pipeline Structure
 
 12.1. The tool must run as a pipeline of discrete steps. Each step produces its own output and must not modify the output of any earlier step; a step reads only the outputs of earlier steps and writes its own. This keeps every step independently re-runnable and prevents a failed or re-run step from corrupting an upstream output.
+
+12.2. Execution must be able to start from any step. A step runs against the persisted outputs of earlier steps as of when those steps were last run, and does not require re-running them.
+
+12.3. A missing optional input must not fail the run. When an input a signal depends on is unavailable (e.g. the target is not a git repository, so churn cannot be computed), that signal is omitted and the run continues on the remaining inputs.
+
+12.4. A step must reject a malformed input from an earlier step with a clear error rather than producing corrupt output.
 
 ---
 
