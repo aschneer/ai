@@ -1,6 +1,6 @@
 ---
 name: testmap
-description: Only use when explicitly invoked as /testmap. Assesses test quality across a codebase, analyzes whether tests meaningfully verify behavior rather than merely executing code, and audits functions/classes for missing edge-case tests.
+description: Only use when explicitly invoked as /testmap. Audits a test suite for behavioral coverage — whether tests meaningfully verify behavior rather than merely executing code — and produces an HTML gap report. Covers assertion quality, input-class coverage, and behavioral completeness across functions, methods, and classes.
 disable-model-invocation: true
 ---
 
@@ -8,154 +8,207 @@ disable-model-invocation: true
 
 ## Overview
 
-Traditional coverage tools measure whether tests *executed* code. They say nothing about whether tests *meaningfully verify* behavior — you can hit 100% line coverage with `assert True`. This skill measures **behavioral coverage**: for each function and class, did the test suite exercise the meaningful equivalence classes of input → output behavior, including edge cases and error paths?
+Execution-coverage tools (coverage.py, nyc, …) measure whether tests *ran* code. They say nothing about whether tests *verify* behavior — you can hit 100% line coverage with `assert True`. Testmap measures **behavioral coverage**: for each function, method, and class, did the suite exercise the meaningful input equivalence classes and pin every behavior the code can exhibit — including edge cases and error paths — with assertions that actually check the result?
 
-The core move, per symbol: infer the spec, enumerate input equivalence classes (using the edge-case taxonomy), enumerate expected behaviors (returns, raises, side effects), build a behavior matrix, map existing tests onto cells while verifying assertion quality, classify each cell as covered / gap / unspecified, and write the result to a cache.
+The pipeline is deterministic Python for everything mechanical (discovery, hashing, triage scoring, the composite score, rendering) and **the agent for every judgment** (spec inference, enumerating input classes and behaviors, mapping tests to behaviors, judging assertion quality, classifying coverage). The agent's per-symbol output is the heart of the skill.
+
+This is a UV project. **Run every command from the skill's own directory** (the folder containing this `SKILL.md`) using `uv run <command>`. `cd` into the skill directory first; the commands below assume that working directory.
 
 ## When to use
 
-- Reviewing a test suite for quality, not just quantity
-- Before shipping a release where correctness matters (security, money, parsing untrusted input)
-- When traditional coverage is high but bugs keep escaping
-- Auditing a specific function/class flagged as risky
-- Building an incremental, persistent test-coverage index for a codebase
+- Auditing a test suite for quality, not just line/branch percentage
+- Before a release where correctness matters (auth, money, parsing untrusted input)
+- When execution coverage is high but bugs keep escaping
+- Auditing a specific risky function or class
+- Building an incremental, persistent behavioral-coverage index for a codebase
 
 ## When NOT to use
 
-- Project-specific test conventions that already have a custom checklist (use that)
-- Pure exploratory/throwaway code
+- Execution coverage is genuinely what you want — use coverage.py / nyc instead
+- Throwaway or exploratory code
 - Generated code with no human-written tests expected
-- Tasks satisfied by `coverage.py`/`nyc`/etc. — if execution coverage is genuinely what you want, this skill is overkill
 
 ## Inputs
 
-- A **target directory** (the codebase to analyze; cache and analysis live in `<target_dir>/.coverage_cache/`)
-- Optional: a **symbol filter** (single function/class/file) to analyze just one entry
+- A **target directory** — the codebase to analyze. All output lives in `<target_dir>/testmap_output/`.
+- Optional `<target_dir>/testmap_config.json` — `exclude` (glob patterns to skip) and `languages` (restrict to a subset).
 
-## Cache layout
+## Output
 
-All state lives in `<target_dir>/.coverage_cache/`:
+Everything lives under `<target_dir>/testmap_output/` (committed to the target's version control; an auto-written `.gitignore` excludes the ephemeral `temp/`):
 
 ```
-index.json       every function/class/method discovered (full)
-analysis.json    behavior matrices, gaps, test mappings (per-symbol)
-meta.json        last commit hash, last run timestamp, tool versions
+index.json            every discovered symbol (complete, always)
+triage.json           per-symbol risk score + priority bucket
+analysis.json         per-symbol behavior matrices (agent-written)
+metrics.json          composite score, grade, KPI aggregates
+meta.json             run metadata (commit, timestamp, tool versions)
+report_content.json   agent narrative + insights (agent-written)
+report/               static HTML report (open report.html via a local server)
+temp/scope.json       the confirmed analysis scope (ephemeral)
 ```
-
-The **index is always complete** — every discovered symbol is listed. Triage only orders the analysis work; lower-priority entries are filled in over subsequent runs.
 
 ## Process
 
-### 1. Build/update the index
+Work through the pipeline in order. Stages 1–3 and 6 are commands; stage 4 is your own per-symbol analysis; stage 5 (mutation) is deferred and not implemented.
 
-Run `scripts/build_index.py <target_dir>`. It uses tree-sitter to walk every source file in the directory tree, extracting every function, method, and class. Each entry records signature, body hash, location, language, complexity, and whether it has explicit error paths.
+### 1. Discover symbols
 
-If `index.json` already exists, this updates only entries whose body hash changed.
+First infer the repo's **test-file conventions** by inspecting its layout (e.g. `tests/`, `*_test.go`, `*.spec.ts`, `test_*.py`). Then run discovery, passing those conventions as globs so test files are flagged:
 
-### 2. Find stale entries
+```
+uv run discover <target_dir> --test-glob 'tests/**' --test-glob '**/*_test.py'
+```
 
-Run `scripts/find_stale.py <target_dir>`. It compares cached body hashes against current source (and uses git history if available — `git log --name-only $LAST_COMMIT..HEAD`). Output: a list of symbols whose analysis is stale or missing.
+Discovery walks every supported source file with tree-sitter and writes `index.json`. Re-runs update only symbols whose body hash changed; the index is always the complete symbol set.
 
-### 3. Triage
+### 2. Triage
 
-Run `scripts/triage.py <target_dir>`. It scores each stale symbol by risk and emits a priority-ordered work list. Risk signals:
+```
+uv run triage <target_dir>
+```
 
-- Cyclomatic complexity (branch count)
-- Public API surface (call-site count)
-- Security/correctness sensitivity (heuristics: name/path matches `auth|crypto|password|token|payment|parse|sanitize`)
-- Recent change frequency (git log churn)
-- Presence of explicit error paths (`raise`/`throw`/error returns)
+Scores each symbol by risk (complexity, error paths, security/correctness sensitivity, git churn, public-API surface, whether it has no prior analysis) and writes `triage.json` with a priority bucket per symbol. Triage is directional — it orders the work, it does not decide correctness.
 
-High-priority symbols get analyzed first. Low-priority symbols stay in the index and are picked up on subsequent runs.
+### 3. Staleness summary and scope confirmation
 
-### 4. Analyze each prioritized symbol
+```
+uv run staleness summary <target_dir>
+```
 
-For each symbol on the work list, the agent does this per-symbol pass:
+This prints the pre-analysis summary — symbol counts by kind and priority, how many are unanalyzed / stale / up-to-date, and a notice that output will be overwritten. **Present this summary to the user and confirm what to analyze before proceeding.** Offer:
 
-**4a. Infer the specification.** Read signature, types, body, docstring, name. Write one sentence: "this function is supposed to ___."
+1. All symbols (default)
+2. Only `high`-priority symbols now, deferring the rest
+3. A custom subset — propose a specific recommended set (e.g. the top-N by risk) and confirm
 
-**4b. Enumerate input equivalence classes.** Walk the **edge-case taxonomy** (see `edge_case_taxonomy.md`). Do not free-associate — apply the checklist explicitly. For each category, ask: does an instance of this category exist for this function's inputs? Record only the ones that apply.
+Warn explicitly that the user should commit anything they want to keep, since output will be overwritten. Once confirmed, record the scope:
 
-**4c. Enumerate expected behaviors.** Returns, raises, side effects, state changes. Every `raise`/`throw`/error return in the body is a behavior cell. Every distinct return type or shape is a cell.
+```
+uv run staleness write-scope <target_dir> all
+uv run staleness write-scope <target_dir> high_only
+uv run staleness write-scope <target_dir> custom <symbol_id> <symbol_id> …
+```
 
-**4d. For classes, add dimensions.** Methods get analyzed individually with `self` state as an extra input dimension. Additionally, the class as a whole gets:
-- **Invariants** — properties that must hold across method calls (push/pop round-trip, open/close pairing)
-- **State transitions** — if stateful, the state machine (e.g., `Connection`: closed → open → closed); calling each method in each state is a cell
-- **Construction** — invalid args, defaults
-- **Lifecycle** — destructors, context managers, cleanup-on-error
+Get the work list — the symbols in scope that are stale or unanalyzed:
 
-Trivial data classes (records, dataclasses with no logic) need only minimal coverage: equality, hashing, serialization round-trip if applicable.
+```
+uv run query <target_dir>/testmap_output stale
+```
 
-**4e. Build the behavior matrix.** A list of cells: `(input_class, expected_behavior)`.
+### 4. Analyze each in-scope symbol (the core agent work)
 
-**4f. Map existing tests onto cells.** Find tests that call this symbol (grep imports/calls). For each candidate test, read its body and judge:
+For every symbol on the work list, read its source and its covering tests, then build its behavior matrix. Do this one symbol at a time and write each entry as you finish it (a crash then loses at most one symbol's work).
 
-- Does the input it passes belong to a specific cell's input class?
-- Is the assertion meaningful? (Not `assert result is not None`, not bare `result`, not a tautology.) The assertion must actually verify the expected behavior.
-- A weak assertion does **not** cover a cell. Record the cell as a gap and note the weak test.
+**4a. Infer the specification.** From signature, types, body, docstring, and name, write one sentence: "this symbol is supposed to ___." If genuinely ambiguous, say so — do not invent a contract.
+
+**4b. Enumerate input equivalence classes.** Walk the **edge-case taxonomy** (`edge_case_taxonomy.md`) explicitly, category by category. Do not free-associate. For each category ask: does an instance apply to this symbol's inputs? Include only the ones that apply.
+
+**4c. Enumerate expected behaviors.** Return values and output-type contracts, every `raise`/`throw`/error return (each distinct one is a cell), side effects, state changes, negative-space contracts (what must *not* happen — e.g. must not mutate input, must not leak secrets in errors), and for async code: cancellation, timeout, concurrent invocation.
+
+**4d. For classes, add dimensions.** Analyze each method with object state as an extra input dimension; also cover invariants across method calls, state transitions (one cell per method × starting state), construction edge cases, and lifecycle (context managers, cleanup-on-error). Trivial data classes need only equality, hashing, and a serialization round-trip.
+
+**4e. Build the behavior matrix** — the list of `(input_class, expected_behavior)` cells.
+
+**4f. Map existing tests onto cells.** Find tests that exercise the symbol (grep imports and call sites) and read each body. A test covers a cell only if it passes an input in that class **and** asserts on the expected behavior meaningfully. Do not count: weak assertions (`assert result is not None`, bare truthiness), tests asserting on implementation details / private state (flag these as brittle), or tests that depend on execution order or shared state (flag as brittle). Unpack parametrized tests and judge each parameter set independently.
 
 **4g. Classify each cell.**
-- **covered** — at least one test exercises the input class with a meaningful assertion
-- **gap** — no test, or only tests with weak/wrong assertions
-- **unspecified** — the function's behavior on this input is genuinely ambiguous from the code/docs; surface this for human clarification rather than guessing
+- `covered` — a test exercises the input class with a meaningful assertion
+- `gap` — no test, or only weak/wrong/brittle assertions
+- `unspecified` — behavior on this input is genuinely ambiguous from code and docs; surface for a human decision rather than guessing
 
-**4h. Write the analysis entry** to `analysis.json` with spec, behavior matrix, status per cell, covering tests, and timestamp.
+**4h. Rate test difficulty** (`high`/`medium`/`low`, informational only — does not affect priority) from structural signals: size/cohesion, self-constructed dependencies, global/static state, hidden inputs, side-effect-only output, mixed orchestration-and-logic, tight coupling, non-determinism. Note the primary signals.
 
-### 5. Optional — mutation testing as empirical validation
+**4i. Write the entry.** Emit one JSON object and write it with the analysis CLI (this keeps the multi-MB file out of your context):
 
-Run `scripts/run_mutation.py <symbol>` to dispatch the appropriate per-language mutation tool (mutmut/Stryker/PIT/cargo-mutants/etc.). It injects small bugs and re-runs the test suite. Surviving mutants = tests touch code but don't verify it.
+```
+uv run analysis-cli write <target_dir>/testmap_output/analysis.json <symbol_id> -
+```
 
-Attach `mutation_results` to the analysis entry. If you marked cells as covered but mutants survive, your assessment is wrong — investigate.
+Pass the JSON on stdin (the trailing `-`). The object must conform to `schemas/analysis.schema.yaml`:
+
+```json
+{
+  "spec": "one-sentence specification",
+  "behavior_matrix": [
+    {"input_class": "...", "expected_behavior": "...", "status": "covered",
+     "covering_tests": [{"test_name": "...", "brittle": false}]},
+    {"input_class": "...", "expected_behavior": "...", "status": "gap",
+     "gap_note": "why uncovered", "test_prescription": "what input to pass and what to assert"},
+    {"input_class": "...", "expected_behavior": "...", "status": "unspecified",
+     "unspecified_reason": "why ambiguous"}
+  ],
+  "test_difficulty": {"rating": "medium", "signals_note": "constructs its own DB connection"},
+  "body_hash": "<the symbol's body_hash from index.json>",
+  "covering_test_hashes": {"tests/test_x.py": "<sha256 of that test file>"},
+  "timestamp": "2026-06-29T00:00:00Z"
+}
+```
+
+`body_hash` must equal the symbol's `body_hash` in `index.json` (read it with `query <output_dir> index <symbol_id>`). `covering_test_hashes` maps each covering test file to its current SHA-256, so staleness detection knows when a test changed. The timestamp is UTC and must end in `Z`. The CLI validates the entry and reports every problem at once if it fails — fix them all and rewrite.
+
+Use `analysis-cli read` / `list-keys`, and `query … summary` to track progress without reloading the whole file.
+
+### 5. Mutation testing — deferred
+
+Not implemented (see `design_docs/decisions.md`). Skip it.
 
 ### 6. Report
 
-Run `scripts/report.py <target_dir>` to render a human-readable gap report from `analysis.json`. Sample output per symbol:
+Compute the score and metadata and copy the report assets:
 
 ```
-function: parse_date(s: str) -> date
-spec: parses ISO-8601 date strings; raises ValueError on malformed input
-behavior matrix:
-  ✓ valid ISO date → date object         [covered: test_parse_basic]
-  ✓ leap year Feb 29                     [covered: test_leap_year]
-  ✗ empty string → ValueError            [GAP]
-  ✗ malformed input → ValueError         [GAP — only ":::" tested, not other shapes]
-  ✗ timezone-aware string                [GAP]
-  ? whitespace-padded input              [UNSPECIFIED — clarify intent]
-mutation: 2/16 mutants survived (mutmut)
+uv run report <target_dir>
+```
+
+This writes `metrics.json` and `meta.json` and refreshes `report/`. Then write `report_content.json` yourself — the narrative summary and insights, in markdown, conforming to `schemas/report_content.schema.yaml`:
+
+```json
+{
+  "narrative_summary": "Plain-language summary of the key findings, in markdown.",
+  "insights": [
+    {"title": "Short heading", "body": "An open-ended observation, in markdown."}
+  ]
+}
+```
+
+The narrative is the report's headline prose; insights are one or more open-ended blocks for notable patterns, systemic issues, or anything worth surfacing that the sections don't capture. Write what's true for this codebase; the number of insight blocks is your call.
+
+Finally, tell the user how to view the report — it needs a local web server (browsers block `fetch()` on `file://`):
+
+```
+cd <target_dir>/testmap_output && python3 -m http.server 8080
+# then open http://localhost:8080/report/report.html
 ```
 
 ## Test generation is out of scope
 
-This skill produces a gap report. Generating actual test code for identified gaps is a follow-up AI conversation seeded with the report — not part of this skill. Keep the skill focused.
+Testmap produces a gap report. Writing the actual missing tests is a follow-up task seeded with the report's prescriptions — not part of this skill.
 
 ## Common mistakes
 
 | Mistake | Reality |
 |---|---|
-| Trusting test names | `test_empty_string` may not actually pass `""`. Read the body. |
+| Trusting test names | `test_empty_string` may not pass `""`. Read the body. |
 | Accepting weak assertions | `assert result is not None` covers nothing. Require assertions that pin behavior. |
-| Free-associating edge cases | LLMs miss categories inconsistently. Walk the taxonomy explicitly. |
-| Treating all inputs as one class | A function taking `list[int]` has many classes: empty, single, sorted, reverse-sorted, duplicates, negatives. Each is a cell. |
-| Forgetting error paths | Every `raise` is a cell. If no test triggers it, it's a gap. |
-| Skipping classes' state machine | Stateful classes have transitions, not just methods. A method call is a cell *per starting state*. |
-| Confidently filling "unspecified" | If the spec is genuinely ambiguous, mark `?` and surface to the human. Don't invent the contract. |
-| Re-analyzing unchanged code | Trust the body-hash invalidation. Don't re-run unchanged entries. |
+| Counting brittle tests as coverage | Tests on private state or with order dependencies are brittle — flag them, don't count them. |
+| Free-associating edge cases | Walk the taxonomy explicitly; LLMs miss categories inconsistently otherwise. |
+| Treating all inputs as one class | `list[int]` has many classes: empty, single, sorted, reverse-sorted, duplicates, negatives. Each is a cell. |
+| Forgetting error paths | Every `raise`/`throw`/error return is a cell. No test triggering it is a gap. |
+| Skipping a class's state machine | A method call is a cell *per starting state*. |
+| Inventing an "unspecified" contract | If the spec is genuinely ambiguous, mark `unspecified` and surface it. Don't guess. |
+| Re-analyzing unchanged code | Trust body-hash staleness; only analyze the work list. |
+| Loading analysis.json wholesale | Use `analysis-cli` and `query`; never read the full file into context. |
 
-## Triage tips
+## Tips
 
-- First run on a new codebase: triage hard, analyze only `high` priority. Build out the index over subsequent runs.
-- On large codebases (>1000 functions) it is correct to leave most of the index unanalyzed for a long time.
-- Re-triage when many files change (e.g., after a refactor) because complexity scores may have shifted.
+- First run on a large codebase: confirm `high_only` scope and build the index out over later runs. Leaving most of a >1000-symbol index unanalyzed for a while is correct.
+- Re-run discovery + triage after a big refactor — complexity and churn shift.
+- The symbol coverage matrix in the report is the authoritative dataset; every other section summarizes it.
 
 ## File reference
 
-- `edge_case_taxonomy.md` — the categorical checklist applied at step 4b
-- `scripts/build_index.py` — tree-sitter symbol discovery
-- `scripts/find_stale.py` — git-diff + hash-based invalidation
-- `scripts/triage.py` — risk scoring → priority list
-- `scripts/run_mutation.py` — per-language mutation tool dispatcher
-- `scripts/report.py` — render `analysis.json` to readable report
-
-## Related skills
-
-- `specmap` — complementary skill for product-level coverage (requirements doc → integration tests). Testmap catches code bugs; specmap catches "we built the wrong thing." Use both.
+- `edge_case_taxonomy.md` — the input-class checklist for step 4b
+- `sensitivity_keywords.md` — security/correctness keywords used by triage
+- `schemas/*.schema.yaml` — the JSON contracts for every data file
+- `design_docs/` — PRD, architecture, and decisions
