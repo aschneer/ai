@@ -76,7 +76,7 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
 4.1. The skill must score each symbol by risk using the following signals:
 - 4.1.1. Cyclomatic complexity
 - 4.1.2. Presence of error paths
-- 4.1.3. Name/path match against security/correctness sensitivity keywords defined in `skills/testmap/sensitivity_keywords.md`
+- 4.1.3. Name/path match against a maintained list of security/correctness sensitivity keywords
 - 4.1.4. Git churn over the last 90 days
 - 4.1.5. Whether the symbol has no analysis entry yet (no-analysis symbols rank higher than stale ones of equivalent score)
 - 4.1.6. Public API surface — symbols with public visibility rank higher than private/internal ones of equivalent score
@@ -166,7 +166,7 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
   - 6.8.2.1. Input class description
   - 6.8.2.2. Expected behavior description
   - 6.8.2.3. Status (`covered`, `gap`, or `unspecified`)
-  - 6.8.2.4. Covering tests (for `covered` cells) — list of `{test_name, brittle: bool, brittle_reason?}` objects, where `brittle` flags tests that assert on implementation details or have execution-order dependencies
+  - 6.8.2.4. Covering tests (for `covered` cells) — for each covering test: its name, whether it is brittle (asserts on implementation details or has execution-order dependencies), and a reason when brittle
   - 6.8.2.5. Gap note — why the cell is uncovered (weak assertion, no test, wrong input class, etc.) (for `gap` cells)
   - 6.8.2.6. Unspecified reason — the agent's reasoning for why the behavior is ambiguous (for `unspecified` cells)
   - 6.8.2.7. Test prescription — for `gap` cells, a one-sentence description of what a test should do: what input to pass and what to assert; sufficient to write the test without re-reading the analysis
@@ -310,11 +310,11 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
 
 10.1. A `README.md` must be present in every `testmap_output/` folder. It is a static file authored as part of the skill and copied verbatim into the output folder on each run — it contains no run-specific data.
 
-10.2. The README must be stored in the skill source at `skills/testmap/README_template.md` and copied to `<output_dir>/README.md` on every run.
+10.2. The README must be stored as a static file in the skill source and copied to `<output_dir>/README.md` on every run.
 
 10.3. The README must include:
 - 10.3.1. What the `testmap_output/` folder is and its purpose
-- 10.3.2. Description of each file in the folder and how to use it: `index.json`, `triage.json`, `analysis.json`, `mutation.json` (if present), `meta.json`, `report_content.json`, and the `report/` folder
+- 10.3.2. A description of each file in the output folder and how to use it
 - 10.3.3. A note that `report/report.html` is the primary human-readable report (requires a local web server — e.g. `python3 -m http.server 8080` from `testmap_output/`) and `meta.json` contains run-specific details about when and how the analysis was performed
 - 10.3.4. A note that this folder lives inside the analyzed target directory and the analysis covers all source files and subdirectories within it
 - 10.3.5. Skill name (`testmap`), described as an agent skill
@@ -327,6 +327,12 @@ A Claude Code skill that audits test suites for assertion quality, input coverag
 11.1. The agent must be able to read, write, list, and summarize individual symbol entries in the analysis output one entry at a time, without loading the entire analysis file into context. (Necessary because the analysis output can be several MB for large codebases.)
 
 11.2. Symbols must be identified by stable, unique keys that do not change when unrelated code shifts line numbers.
+
+---
+
+## 12. Pipeline Structure
+
+12.1. The tool must run as a pipeline of discrete steps. Each step produces its own output and must not modify the output of any earlier step; a step reads only the outputs of earlier steps and writes its own. This keeps every step independently re-runnable and prevents a failed or re-run step from corrupting an upstream output.
 
 ---
 
