@@ -120,8 +120,26 @@ def _symbol_kind(is_class: bool, enclosing: list[str], receiver_type: str | None
 
 
 def _node_name(node: Any, source_bytes: bytes) -> str | None:
-    """Return a symbol's declared name via the grammar's ``name`` field, if present."""
-    return _field_text(node, "name", source_bytes)
+    """Return a symbol's declared name.
+
+    Most grammars expose a ``name`` field. C/C++ functions instead nest the name in a
+    ``declarator`` chain (``function_definition`` → ``function_declarator`` →
+    identifier), so fall back to descending that chain.
+    """
+    named = _field_text(node, "name", source_bytes)
+    if named is not None:
+        return named
+    return _declarator_name(node, source_bytes)
+
+
+def _declarator_name(node: Any, source_bytes: bytes) -> str | None:
+    """Descend the C/C++ ``declarator`` chain to the function/variable identifier."""
+    current = node.child_by_field_name("declarator")
+    while current is not None:
+        if current.kind() in ("identifier", "field_identifier", "qualified_identifier", "destructor_name", "operator_name"):
+            return source_bytes[current.start_byte() : current.end_byte()].decode("utf-8", "replace")
+        current = current.child_by_field_name("declarator")
+    return None
 
 
 def _type_name(node: Any, source_bytes: bytes) -> str | None:
