@@ -18,10 +18,12 @@ import sys
 from pathlib import Path
 
 from testmap import analysis_lib, report_lib, schema_lib
-from testmap.paths_lib import ASSETS_DIR, data_file, report_dir, temp_dir
+from testmap.paths_lib import ASSETS_DIR, SKILL_ROOT, data_file, output_dir, report_dir, temp_dir
 
 # Static rendering assets copied into report/ on each run (PRD 8.1.3).
 _REPORT_ASSETS = ("report.html", "report.css", "render.js", "chart.js", "marked.js")
+# Static README copied verbatim into the output folder on each run (PRD 10).
+_README_TEMPLATE = SKILL_ROOT / "README_template.md"
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -52,6 +54,7 @@ def main(argv: list[str] | None = None) -> int:
     schema_lib.write_json(data_file(target_dir, "meta.json"), meta, "meta")
 
     _copy_assets(target_dir)
+    shutil.copyfile(_README_TEMPLATE, output_dir(target_dir) / "README.md")
 
     print(
         f"report metrics: score {metrics['composite_score']} ({metrics['grade']}), "

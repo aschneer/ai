@@ -36,9 +36,9 @@ Status: `[ ]` todo · `[~]` in progress · `[x]` done
   - [x] agent insights + footer (§8.2.10, §8.2.13)
 
 ## Phase 4 — Agent + supporting files
-- [ ] `SKILL.md`: drive pipeline, scope confirmation, per-symbol analysis (PRD §5–6), `report_content.json`
-- [ ] `README_template.md` (PRD §10)
-- [ ] `edge_case_taxonomy.md`, `sensitivity_keywords.md`
+- [x] `SKILL.md`: drive pipeline, scope confirmation, per-symbol analysis (PRD §5–6), `report_content.json`
+- [x] `README_template.md` (PRD §10); copied into output by report.py
+- [x] `edge_case_taxonomy.md`, `sensitivity_keywords.md`
 
 ## Phase 5 — Validation
 - [ ] End-to-end run on a real repo; verify all sections populate, incremental re-run skips unchanged symbols
