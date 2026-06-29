@@ -25,11 +25,15 @@ Status: `[ ]` todo · `[~]` in progress · `[x]` done
 - [x] `analysis_lib` + `analysis_cli.py` (write) + `query.py` (read-only) (PRD §11)
 
 ## Phase 3 — Report rendering layer
-- [~] Static assets: `report.html`, `report.css`, `render.js`, bundled `chart.js` + `marked.js` (PRD §8)
+- [x] Static assets: `report.html`, `report.css`, `render.js`, bundled `chart.js` + `marked.js` (PRD §8)
   - [x] vendor chart.js 4.5.1 + marked 18.0.5 (provenance in `vendored.md`)
   - [x] html/css/render.js scaffold; report.py copies assets; verified loading in browser
-  - [ ] full visual design
-- [ ] `render.js` builds all PRD §8.2 sections from the data files
+  - [x] mono-ledger visual design system
+- [x] `render.js` builds all PRD §8.2 sections from the data files
+  - [x] hero + KPI (§8.2.1–2); heatmap + scatter (§8.2.3–4)
+  - [x] tables: files/brittle/difficulty/findings/unspecified/prescriptions (§8.2.5–9, §8.2.11)
+  - [x] symbol coverage matrix w/ search, filters, expand/collapse, legend, deferred stubs (§8.2.12)
+  - [x] agent insights + footer (§8.2.10, §8.2.13)
 
 ## Phase 4 — Agent + supporting files
 - [ ] `SKILL.md`: drive pipeline, scope confirmation, per-symbol analysis (PRD §5–6), `report_content.json`

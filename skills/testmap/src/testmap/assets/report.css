@@ -259,4 +259,19 @@ table.data tr:hover td { background: rgba(0, 0, 0, 0.02); }
 .stub-list { padding: 0.5rem 0 0 1rem; display: flex; flex-direction: column; gap: 0.2rem; }
 .stub { color: var(--muted); }
 
+/* ---- Agent insights ---- */
+.insight { margin-bottom: 1.2rem; }
+.insight h3 { font-size: 0.95rem; margin: 0 0 0.3rem; }
+.insight .prose { font-size: 0.88rem; }
+
+/* ---- Footer ---- */
+footer {
+  margin-top: 3.5rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--rule);
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+footer p { margin: 0.3rem 0; }
+
 .error { color: var(--gap); font-family: var(--sans); }

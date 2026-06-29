@@ -493,6 +493,26 @@ function wireMatrixControls(sec) {
     syms.forEach((s) => (s.open = false)));
 }
 
+function renderInsights(data) {
+  const insights = data.reportContent?.insights || [];
+  if (!insights.length || !window.marked) return null;
+  const blocks = insights.map((insight) =>
+    el("div", { class: "insight" }, [
+      el("h3", {}, insight.title || ""),
+      el("div", { class: "prose", html: window.marked.parse(insight.body || "") }),
+    ])
+  );
+  return section("Agent insights", ...blocks);
+}
+
+function renderFooter() {
+  return el("footer", { class: "prose" }, [
+    el("p", {}, "Behavioral coverage is assessed by an AI agent and may contain errors."),
+    el("p", {}, "The symbol coverage matrix is the source of truth; all other sections summarize it."),
+    el("p", {}, "Unspecified cells require a human decision before they can be tested."),
+  ]);
+}
+
 function render(data) {
   const root = document.getElementById("report");
   root.innerHTML = "";
@@ -506,8 +526,11 @@ function render(data) {
   root.appendChild(renderDifficultyDistribution(rows));
   root.appendChild(renderFindings(rows));
   root.appendChild(renderUnspecified(rows));
+  const insights = renderInsights(data);
+  if (insights) root.appendChild(insights);
   root.appendChild(renderPrescriptions(rows));
   root.appendChild(renderMatrix(data, rows));
+  root.appendChild(renderFooter());
 }
 
 function renderError(message) {
