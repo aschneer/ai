@@ -58,6 +58,21 @@ h2 {
 
 .prose { font-family: var(--sans); }
 
+/* Inline code: highlighted background so symbols/snippets stand out in prose. */
+code,
+.md code,
+.prose code {
+  font-family: var(--mono);
+  font-size: 0.86em;
+  background: #ece9e1;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 0.05em 0.32em;
+}
+
+/* A bare <code> used as a standalone label (symbol names) — slightly tighter. */
+code { white-space: nowrap; }
+
 /* ---- Hero: the score as a typeset verdict ---- */
 .hero {
   display: grid;

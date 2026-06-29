@@ -147,6 +147,8 @@ Pass the JSON on stdin (the trailing `-`). The object must conform to `schemas/a
 
 `body_hash` must equal the symbol's `body_hash` in `index.json` (read it with `query <output_dir> index <symbol_id>`). `covering_test_hashes` maps each covering test file to its current SHA-256, so staleness detection knows when a test changed. The timestamp is UTC and must end in `Z`. The CLI validates the entry and reports every problem at once if it fails — fix them all and rewrite.
 
+**Wrap code in backticks.** In the text fields — `spec`, `gap_note`, `test_prescription`, `unspecified_reason`, brittle reasons — write any code in markdown inline-code backticks: function and variable names, literal values, expressions, and calls (e.g. ``call `parse_date("")` and assert it raises `ValueError` ``). The report renders these as highlighted inline code. Plain prose stays unmarked.
+
 Use `analysis-cli read` / `list-keys`, and `query … summary` to track progress without reloading the whole file.
 
 ### 5. Mutation testing — deferred

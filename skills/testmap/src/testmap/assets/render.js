@@ -68,6 +68,14 @@ function badge(text, kind) {
   return el("span", { class: `badge badge-${kind}` }, text);
 }
 
+// Render agent-authored text as inline markdown so backticked code shows as <code>.
+// Falls back to plain text if marked is unavailable.
+function md(text) {
+  const value = text == null ? "" : String(text);
+  if (!window.marked) return document.createTextNode(value);
+  return el("span", { class: "md", html: window.marked.parseInline(value) });
+}
+
 function emptyNote(text) {
   return el("p", { class: "empty prose" }, text);
 }
@@ -302,10 +310,10 @@ function renderFindings(rows) {
   const items = ranked.map((r) => {
     const prescriptions = (r.entry.behavior_matrix || [])
       .filter((c) => c.status === "gap" && c.test_prescription)
-      .map((c) => el("li", {}, c.test_prescription));
+      .map((c) => el("li", {}, md(c.test_prescription)));
     return el("div", { class: "finding" }, [
       el("div", { class: "finding-head" }, [
-        el("span", { class: "finding-name" }, r.name),
+        el("code", { class: "finding-name" }, r.name),
         badge(r.priority, r.priority),
         el("span", { class: "finding-meta" }, `${r.counts.gap} gaps`),
       ]),
@@ -319,7 +327,7 @@ function renderUnspecified(rows) {
   const out = [];
   for (const row of rows) {
     for (const cell of row.entry.behavior_matrix || []) {
-      if (cell.status === "unspecified") out.push([row.name, cell.input_class, cell.unspecified_reason || ""]);
+      if (cell.status === "unspecified") out.push([el("code", {}, row.name), md(cell.input_class), md(cell.unspecified_reason || "")]);
     }
   }
   if (!out.length) return section("Unspecified behaviors — needs human decision", emptyNote("No unspecified behaviors."));
@@ -332,7 +340,13 @@ function renderPrescriptions(rows) {
   for (const row of rows) {
     for (const cell of row.entry.behavior_matrix || []) {
       if (cell.status === "gap") {
-        out.push([row.name, badge(row.priority, row.priority), cell.input_class, cell.expected_behavior, cell.test_prescription || ""]);
+        out.push([
+          el("code", {}, row.name),
+          badge(row.priority, row.priority),
+          md(cell.input_class),
+          md(cell.expected_behavior),
+          md(cell.test_prescription || ""),
+        ]);
       }
     }
   }
