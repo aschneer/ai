@@ -30,3 +30,6 @@ packages = ["src/testmap"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# Fixture repos under tests/fixtures/ contain sample source/test files that are
+# inputs to the CLIs, not tests to run.
+norecursedirs = ["fixtures"]
