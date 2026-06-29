@@ -10,6 +10,7 @@ per symbol. Pure function of its inputs (architecture §4).
 
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 from collections import Counter
@@ -23,13 +24,11 @@ _SENSITIVITY_FILE = SKILL_ROOT / "sensitivity_keywords.md"
 
 def main(argv: list[str] | None = None) -> int:
     """Entry point: read index.json and write triage.json."""
-    if argv is None:
-        argv = sys.argv[1:]
-    if len(argv) != 1:
-        print("usage: triage <target_dir>", file=sys.stderr)
-        return 1
+    parser = argparse.ArgumentParser(description="Score symbols by risk and write triage.json.")
+    parser.add_argument("target_dir", help="directory analyzed by discover")
+    args = parser.parse_args(argv)
 
-    target_dir = Path(argv[0]).resolve()
+    target_dir = Path(args.target_dir).resolve()
     index_path = data_file(target_dir, "index.json")
     if not index_path.is_file():
         print(f"error: index not found, run discover first: {index_path}", file=sys.stderr)

@@ -14,6 +14,7 @@ resolve every data file from one place. Analysis writes use the ``analysis-cli``
 
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 from pathlib import Path
@@ -28,36 +29,34 @@ _PER_FILE = {
 
 def main(argv: list[str] | None = None) -> int:
     """Dispatch a query subcommand."""
-    if argv is None:
-        argv = sys.argv[1:]
-    if len(argv) < 2:
-        print(__doc__, file=sys.stderr)
-        return 1
+    parser = argparse.ArgumentParser(description="Read-only queries over the output directory.")
+    parser.add_argument("output_dir", help="the testmap_output directory")
+    sub = parser.add_subparsers(dest="command", required=True)
+    for kind in _PER_FILE:
+        p = sub.add_parser(kind, help=f"print one symbol's {kind} record")
+        p.add_argument("symbol_id")
+    sub.add_parser("stale", help="list stale or unanalyzed symbol IDs")
+    sub.add_parser("summary", help="print count summary (total, analyzed, stale, by priority)")
 
-    output_dir, command = Path(argv[0]).resolve(), argv[1]
-    if command in _PER_FILE:
-        return _read_record(output_dir, command, argv[2:])
-    if command == "stale":
+    args = parser.parse_args(argv)
+    output_dir = Path(args.output_dir).resolve()
+    if args.command in _PER_FILE:
+        return _read_record(output_dir, args.command, args.symbol_id)
+    if args.command == "stale":
         return _stale(output_dir)
-    if command == "summary":
-        return _summary(output_dir)
-    print(f"error: unknown command: {command}", file=sys.stderr)
-    return 1
+    return _summary(output_dir)
 
 
-def _read_record(output_dir: Path, file_kind: str, args: list[str]) -> int:
+def _read_record(output_dir: Path, file_kind: str, symbol_id: str) -> int:
     """Print one symbol's record from a per-symbol data file."""
-    if len(args) != 1:
-        print(f"usage: query <output_dir> {file_kind} <symbol_id>", file=sys.stderr)
-        return 1
     filename, schema_name = _PER_FILE[file_kind]
     path = output_dir / filename
     if not path.is_file():
         print(f"error: {filename} not found in {output_dir}", file=sys.stderr)
         return 1
-    record = schema_lib.read_json(path, schema_name).get(args[0])
+    record = schema_lib.read_json(path, schema_name).get(symbol_id)
     if record is None:
-        print(f"error: no {file_kind} entry for symbol: {args[0]}", file=sys.stderr)
+        print(f"error: no {file_kind} entry for symbol: {symbol_id}", file=sys.stderr)
         return 1
     print(json.dumps(record, indent=2, sort_keys=True))
     return 0

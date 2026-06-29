@@ -12,6 +12,7 @@ data files) live in the read-only ``query`` CLI.
 
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 from pathlib import Path
@@ -21,44 +22,43 @@ from testmap import analysis_lib
 
 def main(argv: list[str] | None = None) -> int:
     """Dispatch an analysis-cli subcommand."""
-    if argv is None:
-        argv = sys.argv[1:]
-    if len(argv) < 2:
-        print(__doc__, file=sys.stderr)
-        return 1
+    parser = argparse.ArgumentParser(description="Read and write analysis.json one entry at a time.")
+    sub = parser.add_subparsers(dest="command", required=True)
 
-    command, analysis_path = argv[0], Path(argv[1]).resolve()
-    handlers = {
-        "read": lambda: _read(analysis_path, argv[2:]),
-        "write": lambda: _write(analysis_path, argv[2:]),
-        "list-keys": lambda: _list_keys(analysis_path),
-    }
-    handler = handlers.get(command)
-    if handler is None:
-        print(f"error: unknown command: {command}", file=sys.stderr)
-        return 1
-    return handler()
+    p_read = sub.add_parser("read", help="print one symbol's analysis entry")
+    p_read.add_argument("analysis_json")
+    p_read.add_argument("symbol_id")
+
+    p_write = sub.add_parser("write", help="validate and upsert one symbol's entry")
+    p_write.add_argument("analysis_json")
+    p_write.add_argument("symbol_id")
+    p_write.add_argument("json", help="the entry JSON, or - to read it from stdin")
+
+    p_keys = sub.add_parser("list-keys", help="print all analyzed symbol keys")
+    p_keys.add_argument("analysis_json")
+
+    args = parser.parse_args(argv)
+    analysis_path = Path(args.analysis_json).resolve()
+    if args.command == "read":
+        return _read(analysis_path, args.symbol_id)
+    if args.command == "write":
+        return _write(analysis_path, args.symbol_id, args.json)
+    return _list_keys(analysis_path)
 
 
-def _read(analysis_path: Path, args: list[str]) -> int:
+def _read(analysis_path: Path, symbol_id: str) -> int:
     """Print one symbol's analysis entry as JSON."""
-    if len(args) != 1:
-        print("usage: read <analysis_json> <symbol_id>", file=sys.stderr)
-        return 1
-    entry = analysis_lib.read_entry(analysis_path, args[0])
+    entry = analysis_lib.read_entry(analysis_path, symbol_id)
     if entry is None:
-        print(f"error: no entry for symbol: {args[0]}", file=sys.stderr)
+        print(f"error: no entry for symbol: {symbol_id}", file=sys.stderr)
         return 1
     print(json.dumps(entry, indent=2, sort_keys=True))
     return 0
 
 
-def _write(analysis_path: Path, args: list[str]) -> int:
+def _write(analysis_path: Path, symbol_id: str, json_arg: str) -> int:
     """Validate and upsert one symbol's analysis entry."""
-    if len(args) != 2:
-        print("usage: write <analysis_json> <symbol_id> <json|->", file=sys.stderr)
-        return 1
-    symbol_id, raw = args[0], (sys.stdin.read() if args[1] == "-" else args[1])
+    raw = sys.stdin.read() if json_arg == "-" else json_arg
     try:
         entry = json.loads(raw)
     except json.JSONDecodeError as exc:

@@ -11,6 +11,7 @@ copied separately; this command covers only the deterministic computed outputs.
 
 from __future__ import annotations
 
+import argparse
 import json
 import shutil
 import sys
@@ -25,13 +26,11 @@ _REPORT_ASSETS = ("report.html", "report.css", "render.js", "chart.js", "marked.
 
 def main(argv: list[str] | None = None) -> int:
     """Entry point: write metrics.json and meta.json for a completed analysis."""
-    if argv is None:
-        argv = sys.argv[1:]
-    if len(argv) != 1:
-        print("usage: report <target_dir>", file=sys.stderr)
-        return 1
+    parser = argparse.ArgumentParser(description="Compute metrics.json and meta.json, refresh report/.")
+    parser.add_argument("target_dir", help="directory with a completed analysis")
+    args = parser.parse_args(argv)
 
-    target_dir = Path(argv[0]).resolve()
+    target_dir = Path(args.target_dir).resolve()
     index_path = data_file(target_dir, "index.json")
     if not index_path.is_file():
         print("error: run discover, triage, and analysis first", file=sys.stderr)

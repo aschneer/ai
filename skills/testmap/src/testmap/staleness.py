@@ -13,6 +13,7 @@ confirmation. Mode ``custom`` requires the explicit symbol IDs.
 
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 from collections import Counter
@@ -26,18 +27,22 @@ _LARGE_SCOPE_WARNING = 300
 
 def main(argv: list[str] | None = None) -> int:
     """Dispatch to the summary or write-scope subcommand."""
-    if argv is None:
-        argv = sys.argv[1:]
-    if len(argv) < 2:
-        print(__doc__, file=sys.stderr)
-        return 1
-    command, target_dir = argv[0], Path(argv[1]).resolve()
-    if command == "summary":
+    parser = argparse.ArgumentParser(description="Staleness summary and scope selection.")
+    sub = parser.add_subparsers(dest="command", required=True)
+
+    p_summary = sub.add_parser("summary", help="print the pre-analysis summary and per-symbol status")
+    p_summary.add_argument("target_dir", help="directory analyzed by discover and triage")
+
+    p_scope = sub.add_parser("write-scope", help="record the confirmed analysis scope")
+    p_scope.add_argument("target_dir", help="directory analyzed by discover and triage")
+    p_scope.add_argument("mode", choices=["all", "high_only", "custom"], help="which symbols to analyze")
+    p_scope.add_argument("symbol_ids", nargs="*", help="symbol IDs (required for custom mode)")
+
+    args = parser.parse_args(argv)
+    target_dir = Path(args.target_dir).resolve()
+    if args.command == "summary":
         return _summary(target_dir)
-    if command == "write-scope":
-        return _write_scope(target_dir, argv[2:])
-    print(f"error: unknown command: {command}", file=sys.stderr)
-    return 1
+    return _write_scope(target_dir, args.mode, args.symbol_ids)
 
 
 def _summary(target_dir: Path) -> int:
@@ -59,15 +64,8 @@ def _summary(target_dir: Path) -> int:
     return 0
 
 
-def _write_scope(target_dir: Path, args: list[str]) -> int:
+def _write_scope(target_dir: Path, mode: str, symbol_ids: list[str]) -> int:
     """Write the confirmed scope.json (PRD 4.5-4.6)."""
-    if not args:
-        print("error: write-scope requires a mode (all|high_only|custom)", file=sys.stderr)
-        return 1
-    mode, symbol_ids = args[0], args[1:]
-    if mode not in ("all", "high_only", "custom"):
-        print(f"error: invalid mode: {mode}", file=sys.stderr)
-        return 1
     if mode == "custom" and not symbol_ids:
         print("error: custom mode requires explicit symbol IDs", file=sys.stderr)
         return 1
