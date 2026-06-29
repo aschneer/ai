@@ -25,7 +25,10 @@ Status: `[ ]` todo · `[~]` in progress · `[x]` done
 - [x] `analysis_lib` + `analysis_cli.py` (write) + `query.py` (read-only) (PRD §11)
 
 ## Phase 3 — Report rendering layer
-- [ ] Static assets: `report.html`, `render.js`, bundled `chart.js` + `marked.js` (PRD §8)
+- [~] Static assets: `report.html`, `report.css`, `render.js`, bundled `chart.js` + `marked.js` (PRD §8)
+  - [x] vendor chart.js 4.5.1 + marked 18.0.5 (provenance in `vendored.md`)
+  - [x] html/css/render.js scaffold; report.py copies assets; verified loading in browser
+  - [ ] full visual design
 - [ ] `render.js` builds all PRD §8.2 sections from the data files
 
 ## Phase 4 — Agent + supporting files

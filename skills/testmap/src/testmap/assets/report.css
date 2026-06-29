@@ -1,0 +1,31 @@
+/* Report styling. Full visual design is built alongside the report sections. */
+:root {
+  font-family: system-ui, sans-serif;
+  line-height: 1.5;
+}
+
+body {
+  margin: 0;
+  padding: 2rem;
+  color: #1a1a1a;
+  background: #fafafa;
+}
+
+.hero h1 {
+  margin: 0 0 0.5rem;
+}
+
+.hero .score {
+  font-size: 3rem;
+  font-weight: 700;
+}
+
+.hero .score span {
+  font-size: 1.25rem;
+  font-weight: 400;
+  color: #666;
+}
+
+.error {
+  color: #b00020;
+}

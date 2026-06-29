@@ -12,11 +12,15 @@ copied separately; this command covers only the deterministic computed outputs.
 from __future__ import annotations
 
 import json
+import shutil
 import sys
 from pathlib import Path
 
 from testmap import analysis_lib, report_lib, schema_lib
-from testmap.paths_lib import data_file, temp_dir
+from testmap.paths_lib import ASSETS_DIR, data_file, report_dir, temp_dir
+
+# Static rendering assets copied into report/ on each run (PRD 8.1.3).
+_REPORT_ASSETS = ("report.html", "report.css", "render.js", "chart.js", "marked.js")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -48,12 +52,29 @@ def main(argv: list[str] | None = None) -> int:
     )
     schema_lib.write_json(data_file(target_dir, "meta.json"), meta, "meta")
 
+    _copy_assets(target_dir)
+
     print(
         f"report metrics: score {metrics['composite_score']} ({metrics['grade']}), "
         f"{metrics['gap_cells']} gaps across {metrics['symbols_analyzed']} symbols "
         f"-> {data_file(target_dir, 'metrics.json')}"
     )
     return 0
+
+
+def _copy_assets(target_dir: Path) -> None:
+    """Replace report/ with a fresh copy of the static rendering assets (PRD 8.1.3).
+
+    report/ is cleared first so renamed or removed assets never linger across runs;
+    it holds only regenerable assets, no data. shutil.copyfile follows the canonical-
+    name symlinks and writes the real file contents into report/.
+    """
+    destination = report_dir(target_dir)
+    if destination.exists():
+        shutil.rmtree(destination)
+    destination.mkdir(parents=True)
+    for asset in _REPORT_ASSETS:
+        shutil.copyfile(ASSETS_DIR / asset, destination / asset)
 
 
 def _scope_mode(target_dir: Path) -> str:
