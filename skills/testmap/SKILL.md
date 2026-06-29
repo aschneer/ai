@@ -147,7 +147,14 @@ Pass the JSON on stdin (the trailing `-`). The object must conform to `schemas/a
 
 `body_hash` must equal the symbol's `body_hash` in `index.json` (read it with `query <output_dir> index <symbol_id>`). `covering_test_hashes` maps each covering test file to its current SHA-256, so staleness detection knows when a test changed. The timestamp is UTC and must end in `Z`. The CLI validates the entry and reports every problem at once if it fails — fix them all and rewrite.
 
-**Wrap code in backticks.** In the text fields — `spec`, `gap_note`, `test_prescription`, `unspecified_reason`, brittle reasons — write any code in markdown inline-code backticks: function and variable names, literal values, expressions, and calls (e.g. ``call `parse_date("")` and assert it raises `ValueError` ``). The report renders these as highlighted inline code. Plain prose stays unmarked.
+**Always format code as markdown code.** In every text field you write — here (`spec`, `gap_note`, `test_prescription`, `unspecified_reason`, brittle reasons) and in the report narrative and insights — wrap any code in markdown:
+
+- **Single-line code** → inline backticks: function and variable names, type names, literal values, expressions, and calls (e.g. ``call `parse_date("")` and assert it raises `ValueError` ``). This includes names with `::`, `<>`, or other symbols (`` `hash<nlohmann::json>` ``) — leaving them unbacktick'd can make the renderer mangle them.
+- **Multi-line code** → a fenced code block (triple backticks). Only the narrative and insights render multi-line blocks; the per-cell fields above are single-line, so keep their code inline.
+
+The report renders these as highlighted code. Plain prose stays unmarked.
+
+**Use explicit markdown syntax for everything.** The renderer does not autolink. Write a link as explicit markdown — `[text](https://…)` — never a bare URL (a bare URL renders as plain, unclickable text). The same goes for any other markup: use the real markdown syntax (`**bold**`, `*italic*`, `` `code` ``) rather than relying on the renderer to infer it.
 
 Use `analysis-cli read` / `list-keys`, and `query … summary` to track progress without reloading the whole file.
 
