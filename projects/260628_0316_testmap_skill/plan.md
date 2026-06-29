@@ -7,6 +7,9 @@ out of sync with the design docs.
 
 Status: `[ ]` todo · `[~]` in progress · `[x]` done
 
+**PROJECT COMPLETE.** All phases done; mutation testing intentionally deferred
+(PRD D.2). The skill is built, validated on a real codebase, and tested.
+
 ## Phase 1 — Project skeleton
 - [x] UV project: `pyproject.toml`, `src/testmap/`, `[project.scripts]` (architecture §6)
 - [x] `schemas/*.schema.yaml` for every pipeline file (architecture §5)
@@ -39,8 +42,14 @@ Status: `[ ]` todo · `[~]` in progress · `[x]` done
 - [x] `SKILL.md`: drive pipeline, scope confirmation, per-symbol analysis (PRD §5–6), `report_content.json`
 - [x] `README_template.md` (PRD §10); copied into output by report.py
 - [x] `edge_case_taxonomy.md`, `sensitivity_keywords.md`
+- [x] one-command report serving: `serve.sh` installed in output folder (local + remote URLs)
 
 ## Phase 5 — Validation
 - [x] End-to-end run on a real repo (nlohmann/json, 958 symbols); all report sections populate, incremental re-run skips unchanged symbols
 - [x] Schema validation enforced at every stage boundary
 - Validation caught and fixed two real C++ bugs: declarator-chain name extraction and macro-induced parse misnesting.
+
+## Phase 6 — Tests
+- [x] pytest suite covering every module (libs + CLIs), applying testmap's own
+  edge-case/error-path approach; sample fixture repo; 119 tests passing
+- Caught and fixed one bug: nested-function misclassified as method.

@@ -1,14 +1,16 @@
 # Testmap — Status
 
-**Status:** Design complete; implementation not started.
+**Status:** Complete.
 
 ## Current state
 
-PRD, architecture, and decisions docs are written and reviewed
-(`skills/testmap/design_docs/`). No skill code written yet — `src/testmap/`,
-schemas, and report assets do not exist.
+The skill is fully built, validated, and tested. The pipeline (discover →
+triage → staleness/scope → agent analysis → report) runs end-to-end; the
+browser report renders all sections; `serve.sh` gives one-command viewing.
+Validated on a real codebase (nlohmann/json, 958 symbols) and covered by a
+119-test pytest suite. Mutation testing is intentionally deferred (PRD D.2).
 
-Task order and progress: `plan.md`.
+Phase-by-phase status: `plan.md`.
 
 ## Where things live
 
