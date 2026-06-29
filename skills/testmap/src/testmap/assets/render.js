@@ -103,6 +103,8 @@ function symbolRows(data) {
       coverage: coverageOf(counts),
       counts,
       difficulty: entry.test_difficulty?.rating,
+      hasErrorPaths: !!index.has_error_paths,
+      spec: entry.spec,
       entry,
     };
   });
@@ -339,6 +341,158 @@ function renderPrescriptions(rows) {
     table(["Symbol", "Priority", "Input class", "Expected behavior", "Prescription"], out));
 }
 
+function coverageBar(coverage) {
+  return el("div", { class: "cov-bar" },
+    el("div", { class: "cov-fill", style: `width:${coverage * 100}%;background:${coverageColor(coverage)}` }));
+}
+
+function renderCell(cell) {
+  const detail = el("div", { class: "cell-detail" });
+  if (cell.status === "covered") {
+    for (const t of cell.covering_tests || []) {
+      detail.appendChild(el("div", { class: `cov-test${t.brittle ? " brittle" : ""}` },
+        t.brittle ? `${t.test_name} — brittle: ${t.brittle_reason || "implementation-coupled"}` : t.test_name));
+    }
+  } else if (cell.status === "gap") {
+    if (cell.gap_note) detail.appendChild(el("div", { class: "cell-note" }, cell.gap_note));
+    if (cell.test_prescription) detail.appendChild(el("div", { class: "cell-rx" }, `Rx: ${cell.test_prescription}`));
+  } else if (cell.unspecified_reason) {
+    detail.appendChild(el("div", { class: "cell-note" }, cell.unspecified_reason));
+  }
+  return el("div", { class: `cell status-${cell.status}`, "data-status": cell.status }, [
+    el("div", { class: "cell-row" }, [
+      el("span", { class: `dot dot-${cell.status}` }, ""),
+      el("span", { class: "cell-input" }, cell.input_class),
+      el("span", { class: "cell-behavior" }, cell.expected_behavior),
+    ]),
+    detail,
+  ]);
+}
+
+function renderSymbol(row) {
+  const c = row.counts;
+  const head = el("summary", { class: "sym-head" }, [
+    el("span", { class: "sym-name" }, row.name),
+    badge(row.priority, row.priority),
+    el("span", { class: "sym-counts" }, `${c.covered}/${c.gap}/${c.unspecified}`),
+    coverageBar(row.coverage),
+    el("span", { class: "sym-pct" }, pct(row.coverage)),
+  ]);
+  const meta = el("div", { class: "sym-meta prose" }, [
+    row.spec ? el("p", { class: "sym-spec" }, row.spec) : null,
+    row.difficulty ? el("p", { class: "sym-diff" },
+      `Test difficulty: ${row.difficulty} — ${row.entry.test_difficulty?.signals_note || ""}`) : null,
+  ]);
+  const cells = el("div", { class: "cells" }, (row.entry.behavior_matrix || []).map(renderCell));
+  return el("details", {
+    class: "sym",
+    "data-priority": row.priority,
+    "data-haserror": String(row.hasErrorPaths),
+    "data-hasgaps": String(c.gap > 0),
+    "data-search": `${row.name} ${row.file} ${row.spec || ""}`.toLowerCase(),
+  }, [head, meta, cells]);
+}
+
+function renderModule(file, rows) {
+  const agg = fileRows(rows).find((f) => f.file === file);
+  const head = el("summary", { class: "mod-head" }, [
+    el("span", { class: "mod-name" }, file),
+    coverageBar(agg.coverage),
+    el("span", { class: "mod-pct" }, pct(agg.coverage)),
+    el("span", { class: "mod-summary" },
+      `${rows.length} symbols · ${agg.covered} cov / ${agg.gap} gap / ${agg.unspecified} unspec`),
+  ]);
+  const syms = el("div", { class: "syms" }, rows.map(renderSymbol));
+  return el("details", { class: "mod", open: "", "data-file": file }, [head, syms]);
+}
+
+function renderMatrix(data, rows) {
+  const byFile = new Map();
+  for (const row of rows) {
+    if (!byFile.has(row.file)) byFile.set(row.file, []);
+    byFile.get(row.file).push(row);
+  }
+  const modules = [...byFile.keys()].sort().map((file) => renderModule(file, byFile.get(file)));
+  const sec = section("Symbol coverage matrix",
+    matrixControls(),
+    matrixLegend(),
+    el("div", { class: "matrix" }, modules),
+    deferredStubs(data, rows));
+  wireMatrixControls(sec);
+  return sec;
+}
+
+function matrixControls() {
+  const search = el("input", { class: "matrix-search", type: "search", placeholder: "Search symbol / file / spec…" });
+  const chips = ["all", "has gaps", "fully covered", "high priority", "error paths"].map((label, i) =>
+    el("button", { class: `chip${i === 0 ? " active" : ""}`, "data-filter": label }, label));
+  const expand = el("button", { class: "chip ghost", "data-action": "expand" }, "Expand all");
+  const collapse = el("button", { class: "chip ghost", "data-action": "collapse" }, "Collapse all");
+  return el("div", { class: "matrix-controls" }, [search, el("div", { class: "chips" }, [...chips, expand, collapse])]);
+}
+
+function matrixLegend() {
+  return el("div", { class: "legend prose" }, [
+    el("span", {}, [el("span", { class: "dot dot-covered" }, ""), " covered — a test pins this behavior"]),
+    el("span", {}, [el("span", { class: "dot dot-gap" }, ""), " gap — no meaningful test"]),
+    el("span", {}, [el("span", { class: "dot dot-unspecified" }, ""), " unspecified — behavior ambiguous, needs a human decision"]),
+    el("span", { class: "legend-formula" }, "coverage % = covered / (total − unspecified)"),
+  ]);
+}
+
+function deferredStubs(data, rows) {
+  const analyzedIds = new Set(rows.map((r) => r.id));
+  const stubs = Object.entries(data.index || {})
+    .filter(([id]) => !analyzedIds.has(id))
+    .map(([, s]) => `${s.file_path}::${s.qualified_name}`)
+    .sort();
+  if (!stubs.length) return null;
+  return el("details", { class: "deferred" }, [
+    el("summary", {}, `Not yet analyzed (${stubs.length})`),
+    el("div", { class: "stub-list prose" }, stubs.map((s) => el("div", { class: "stub" }, s))),
+  ]);
+}
+
+function wireMatrixControls(sec) {
+  const search = sec.querySelector(".matrix-search");
+  const chips = [...sec.querySelectorAll(".chip[data-filter]")];
+  const syms = [...sec.querySelectorAll(".sym")];
+  let activeFilter = "all";
+
+  function apply() {
+    const q = search.value.trim().toLowerCase();
+    for (const sym of syms) {
+      const matchesSearch = !q || sym.dataset.search.includes(q);
+      const matchesFilter =
+        activeFilter === "all" ||
+        (activeFilter === "has gaps" && sym.dataset.hasgaps === "true") ||
+        (activeFilter === "fully covered" && sym.dataset.hasgaps === "false") ||
+        (activeFilter === "high priority" && sym.dataset.priority === "high") ||
+        (activeFilter === "error paths" && sym.dataset.haserror === "true");
+      sym.style.display = matchesSearch && matchesFilter ? "" : "none";
+    }
+    // Hide modules with no visible symbols.
+    for (const mod of sec.querySelectorAll(".mod")) {
+      const visible = [...mod.querySelectorAll(".sym")].some((s) => s.style.display !== "none");
+      mod.style.display = visible ? "" : "none";
+    }
+  }
+
+  search.addEventListener("input", apply);
+  for (const chip of chips) {
+    chip.addEventListener("click", () => {
+      chips.forEach((c) => c.classList.remove("active"));
+      chip.classList.add("active");
+      activeFilter = chip.dataset.filter;
+      apply();
+    });
+  }
+  sec.querySelector('[data-action="expand"]').addEventListener("click", () =>
+    syms.filter((s) => s.style.display !== "none").forEach((s) => (s.open = true)));
+  sec.querySelector('[data-action="collapse"]').addEventListener("click", () =>
+    syms.forEach((s) => (s.open = false)));
+}
+
 function render(data) {
   const root = document.getElementById("report");
   root.innerHTML = "";
@@ -353,6 +507,7 @@ function render(data) {
   root.appendChild(renderFindings(rows));
   root.appendChild(renderUnspecified(rows));
   root.appendChild(renderPrescriptions(rows));
+  root.appendChild(renderMatrix(data, rows));
 }
 
 function renderError(message) {
