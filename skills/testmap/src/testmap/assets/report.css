@@ -117,4 +117,27 @@ h2 {
 .kpi .label { font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
 .kpi.flag .value { color: var(--gap); }
 
+/* ---- Coverage heatmap ---- */
+.heatmap {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 4px;
+}
+
+.tile {
+  padding: 0.8rem;
+  border-radius: var(--radius);
+  color: #fff;
+  min-height: 64px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.tile-pct { font-size: 1.3rem; font-weight: 700; }
+.tile-file { font-size: 0.7rem; opacity: 0.9; word-break: break-all; }
+
+/* ---- Charts ---- */
+.chart-wrap { height: 320px; }
+
 .error { color: var(--gap); font-family: var(--sans); }
