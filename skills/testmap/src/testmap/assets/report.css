@@ -249,10 +249,17 @@ table.data th.sorted-desc::after { content: " ↓"; opacity: 1; }
 .cov-bar { background: var(--rule); border-radius: var(--radius); height: 8px; width: 90px; overflow: hidden; }
 .cov-fill { height: 100%; }
 
-.mod { border: 1px solid var(--rule); border-radius: var(--radius); margin-bottom: 0.6rem; }
-.mod > .mod-head { padding: 0.6rem 0.8rem; cursor: pointer; }
+.mod { border: 1px solid var(--rule); border-radius: var(--radius); margin-bottom: 0.6rem; overflow: hidden; }
+.mod > .mod-head {
+  padding: 0.6rem 0.8rem;
+  cursor: pointer;
+  background: #efece4;
+  border-bottom: 1px solid var(--rule);
+}
+.mod[open] > .mod-head { border-bottom: 2px solid var(--ink); }
+.mod-head:hover { background: #e8e4da; }
 .mod-head, .sym-head { display: flex; align-items: center; gap: 0.7rem; }
-.mod-name { font-weight: 600; }
+.mod-name { font-weight: 700; }
 .mod-pct, .sym-pct { font-size: 0.78rem; color: var(--muted); width: 3rem; }
 .mod-summary { font-size: 0.75rem; color: var(--muted); margin-left: auto; }
 
