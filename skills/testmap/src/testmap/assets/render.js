@@ -524,10 +524,15 @@ function wireMatrixControls(sec) {
       apply();
     });
   }
-  sec.querySelector('[data-action="expand"]').addEventListener("click", () =>
-    syms.filter((s) => s.style.display !== "none").forEach((s) => (s.open = true)));
-  sec.querySelector('[data-action="collapse"]').addEventListener("click", () =>
-    syms.forEach((s) => (s.open = false)));
+  const mods = [...sec.querySelectorAll(".mod")];
+  sec.querySelector('[data-action="expand"]').addEventListener("click", () => {
+    mods.forEach((m) => (m.open = true));
+    syms.filter((s) => s.style.display !== "none").forEach((s) => (s.open = true));
+  });
+  sec.querySelector('[data-action="collapse"]').addEventListener("click", () => {
+    mods.forEach((m) => (m.open = false));
+    syms.forEach((s) => (s.open = false));
+  });
 }
 
 function renderInsights(data) {
