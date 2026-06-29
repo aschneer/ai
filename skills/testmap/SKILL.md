@@ -12,7 +12,7 @@ Execution-coverage tools (coverage.py, nyc, …) measure whether tests *ran* cod
 
 The pipeline is deterministic Python for everything mechanical (discovery, hashing, triage scoring, the composite score, rendering) and **the agent for every judgment** (spec inference, enumerating input classes and behaviors, mapping tests to behaviors, judging assertion quality, classifying coverage). The agent's per-symbol output is the heart of the skill.
 
-This is a UV project. **Run every command from the skill's own directory** (the folder containing this `SKILL.md`) using `uv run <command>`. `cd` into the skill directory first; the commands below assume that working directory.
+This is a UV project. **Run every command from the skill's own directory** (the folder containing this `SKILL.md`) using `uv run <command>`. `cd` into the skill directory first; the commands below assume that working directory. Every command supports `--help` (e.g. `uv run staleness --help`) — use it to see a command's subcommands and arguments.
 
 ## When to use
 
@@ -172,7 +172,13 @@ This writes `metrics.json` and `meta.json` and refreshes `report/`. Then write `
 }
 ```
 
-The narrative is the report's headline prose; insights are one or more open-ended blocks for notable patterns, systemic issues, or anything worth surfacing that the sections don't capture. Write what's true for this codebase; the number of insight blocks is your call.
+The narrative is the report's headline prose — a short plain-language summary of where the suite stands.
+
+Insights are open-ended blocks for things the report's fixed sections do **not** already show. Those sections are: hero score, KPI strip, coverage heatmap, risk-vs-coverage scatter, files needing attention, brittle test distribution, test difficulty distribution, findings (gaps ranked by risk), unspecified behaviors, test prescriptions, and the full symbol coverage matrix. Do not write an insight that merely restates one of these (e.g. "file X has the most gaps" — the table already says so).
+
+Use insights for cross-cutting observations that emerge from reading the code: a systemic pattern ("every error path in the auth module is untested"), a root cause ("gaps cluster where functions construct their own dependencies — hard to test by design"), a surprising finding ("the highest-risk symbol is fully covered, but with three brittle tests"), or a recommendation that spans symbols ("introduce a clock abstraction to make the time-dependent functions testable"). Each block is a `{title, body}` pair, body in markdown.
+
+It is perfectly fine to write **no** insight blocks (`"insights": []`) when the fixed sections already tell the whole story — empty is better than padding. The number of blocks is your judgment.
 
 Finally, tell the user how to view the report — it needs a local web server (browsers block `fetch()` on `file://`):
 
