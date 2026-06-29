@@ -27,7 +27,6 @@ python3 -m http.server 8080      # run from this testmap_output/ folder
 | `metrics.json` | The composite score, grade, and headline KPI aggregates shown in the report. |
 | `meta.json` | Run-specific details: when the analysis ran, the target's git commit, the scope analyzed, and tool versions. |
 | `report_content.json` | The narrative summary and insights written for the report. |
-| `mutation.json` | Mutation-testing results per symbol — present only if mutation testing was run. |
 
 For when and how a particular run was performed, see `meta.json`.
 
