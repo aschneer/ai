@@ -35,7 +35,7 @@ def extract_symbols(
     source_bytes = source.encode("utf-8")
     root = get_parser(language.name).parse(source).root_node()
     symbols: list[dict[str, Any]] = []
-    _walk(root, language, relative_path, source_bytes, is_test_file, [], symbols)
+    _walk(root, language, relative_path, source_bytes, is_test_file, [], False, symbols)
     return symbols, root.has_error()
 
 
@@ -46,9 +46,15 @@ def _walk(
     source_bytes: bytes,
     is_test_file: bool,
     enclosing: list[str],
+    parent_is_class: bool,
     out: list[dict[str, Any]],
 ) -> None:
-    """Depth-first walk; collect symbols and carry the enclosing class/function names."""
+    """Depth-first walk; carry the enclosing names and whether the parent is a type.
+
+    ``parent_is_class`` makes a function whose immediate enclosing symbol is a class/impl
+    a method, while a function nested in another function stays a function (decision
+    2026-06-28 23:10).
+    """
     cursor = node.walk()
     if not cursor.goto_first_child():
         return
@@ -63,17 +69,20 @@ def _walk(
         if (is_class or is_function) and name is not None:
             out.append(
                 _build_symbol(
-                    child, language, relative_path, source_bytes, is_test_file, enclosing
+                    child, language, relative_path, source_bytes, is_test_file,
+                    enclosing, parent_is_class,
                 )
             )
             _walk(
                 child, language, relative_path, source_bytes, is_test_file,
-                enclosing + [name], out,
+                enclosing + [name], is_class, out,
             )
         else:
+            # A non-symbol container (namespace, class body, block) keeps the parent type
+            # context so a method inside a class body is still a method.
             _walk(
                 child, language, relative_path, source_bytes, is_test_file,
-                enclosing, out,
+                enclosing, parent_is_class, out,
             )
 
         if not cursor.goto_next_sibling():
@@ -87,6 +96,7 @@ def _build_symbol(
     source_bytes: bytes,
     is_test_file: bool,
     enclosing: list[str],
+    parent_is_class: bool,
 ) -> dict[str, Any]:
     """Build one symbol record (PRD 2.3 fields, minus symbol_id)."""
     is_class = node.kind() in language.class_kinds
@@ -98,7 +108,7 @@ def _build_symbol(
 
     return {
         "qualified_name": ".".join(name_path),
-        "kind": _symbol_kind(is_class, enclosing, receiver_type),
+        "kind": _symbol_kind(is_class, parent_is_class, receiver_type),
         "file_path": relative_path,
         "start_line": node.start_position().row + 1,
         "end_line": node.end_position().row + 1,
@@ -114,15 +124,16 @@ def _build_symbol(
     }
 
 
-def _symbol_kind(is_class: bool, enclosing: list[str], receiver_type: str | None) -> str:
+def _symbol_kind(is_class: bool, within_type: bool, receiver_type: str | None) -> str:
     """Classify as class, method, or function (PRD 2.3.2).
 
-    A function is a method if it is nested inside a type (enclosing) or carries a
-    receiver (Go-style methods declared outside the type body).
+    A function is a method if it is nested inside a type (``within_type``) or carries a
+    receiver (Go-style methods declared outside the type body). A function nested only
+    in another function stays a function (decision 2026-06-28 23:10).
     """
     if is_class:
         return "class"
-    return "method" if enclosing or receiver_type else "function"
+    return "method" if within_type or receiver_type else "function"
 
 
 def _node_name(node: Any, source_bytes: bytes) -> str | None:
