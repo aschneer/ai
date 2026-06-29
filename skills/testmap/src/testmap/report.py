@@ -54,14 +54,24 @@ def main(argv: list[str] | None = None) -> int:
     schema_lib.write_json(data_file(target_dir, "meta.json"), meta, "meta")
 
     _copy_assets(target_dir)
-    shutil.copyfile(_README_TEMPLATE, output_dir(target_dir) / "README.md")
+    out = output_dir(target_dir)
+    shutil.copyfile(_README_TEMPLATE, out / "README.md")
+    _install_serve_script(out)
 
     print(
         f"report metrics: score {metrics['composite_score']} ({metrics['grade']}), "
         f"{metrics['gap_cells']} gaps across {metrics['symbols_analyzed']} symbols "
         f"-> {data_file(target_dir, 'metrics.json')}"
     )
+    print(f"to view the report, run:\n    {out}/serve.sh")
     return 0
+
+
+def _install_serve_script(out: Path) -> None:
+    """Copy the self-contained serve.sh into the output root and make it executable."""
+    destination = out / "serve.sh"
+    shutil.copyfile(ASSETS_DIR / "serve.sh", destination)
+    destination.chmod(0o755)
 
 
 def _copy_assets(target_dir: Path) -> None:

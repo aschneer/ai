@@ -180,12 +180,15 @@ Use insights for cross-cutting observations that emerge from reading the code: a
 
 It is perfectly fine to write **no** insight blocks (`"insights": []`) when the fixed sections already tell the whole story — empty is better than padding. The number of blocks is your judgment.
 
-Finally, tell the user how to view the report — it needs a local web server (browsers block `fetch()` on `file://`):
+The report stage installs a self-contained `serve.sh` in the output folder. To view the report (it needs a web server — browsers block `fetch()` on `file://`), the user just runs that script; it starts the server, rooted correctly, and prints a local and a remote URL to open.
+
+Tell the user to run it, with the absolute path the report command printed:
 
 ```
-cd <target_dir>/testmap_output && python3 -m http.server 8080
-# then open http://localhost:8080/report/report.html
+<target_dir>/testmap_output/serve.sh
 ```
+
+Do not start the server yourself — a server you launch dies when your session ends. The user runs `serve.sh` in their own terminal, clicks the URL matching where they are (the remote URL works from another machine, e.g. over SSH), and stops it with Ctrl-C.
 
 ## Test generation is out of scope
 
