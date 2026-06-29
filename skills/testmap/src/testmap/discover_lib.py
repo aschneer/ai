@@ -24,15 +24,19 @@ def extract_symbols(
     language: Language,
     *,
     is_test_file: bool,
-) -> list[dict[str, Any]]:
-    """Extract all function/method/class symbol records from one source file."""
+) -> tuple[list[dict[str, Any]], bool]:
+    """Extract symbol records from one source file.
+
+    Returns the records and whether the file's parse tree contained errors (which can
+    leave symbols missing or misparsed — common in macro-heavy C/C++).
+    """
     from testmap.languages_lib import get_parser
 
     source_bytes = source.encode("utf-8")
     root = get_parser(language.name).parse(source).root_node()
     symbols: list[dict[str, Any]] = []
     _walk(root, language, relative_path, source_bytes, is_test_file, [], symbols)
-    return symbols
+    return symbols, root.has_error()
 
 
 def _walk(
@@ -53,6 +57,8 @@ def _walk(
         is_class = child.kind() in language.class_kinds
         is_function = child.kind() in language.function_kinds
         name = _type_name(child, source_bytes) if is_class else _node_name(child, source_bytes)
+        if name in language.reserved_names:
+            name = None  # Reserved word as a name = parse error (e.g. unexpanded macro); skip it.
 
         if (is_class or is_function) and name is not None:
             out.append(

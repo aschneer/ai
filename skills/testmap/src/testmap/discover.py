@@ -35,7 +35,7 @@ def main(argv: list[str] | None = None) -> int:
     languages_filter = config.get("languages")
     exclude = config.get("exclude", [])
 
-    records = _discover(target_dir, exclude, languages_filter, args.test_glob)
+    records, parse_error_files = _discover(target_dir, exclude, languages_filter, args.test_glob)
 
     ensure_output_dir(target_dir)
     index_path = data_file(target_dir, "index.json")
@@ -45,6 +45,12 @@ def main(argv: list[str] | None = None) -> int:
     index_lib.save_index(index_path, merged)
 
     _print_summary(merged, index_path)
+    if parse_error_files:
+        print(
+            f"warning: {parse_error_files} file(s) had parse errors; some symbols may be "
+            f"missing or misparsed (common with macro-heavy C/C++).",
+            file=sys.stderr,
+        )
     return 0
 
 
@@ -53,9 +59,10 @@ def _discover(
     exclude: list[str],
     languages_filter: list[str] | None,
     test_globs: list[str],
-) -> list[dict]:
-    """Extract symbol records from every supported, non-excluded source file."""
+) -> tuple[list[dict], int]:
+    """Extract symbol records and count files with parse errors, across the target."""
     records: list[dict] = []
+    parse_error_files = 0
     for path in _source_files(target_dir, exclude, languages_filter):
         language = detect_language(path)
         relative_path = path.relative_to(target_dir).as_posix()
@@ -64,10 +71,13 @@ def _discover(
         except (UnicodeDecodeError, OSError):
             continue
         is_test_file = _matches_any(relative_path, test_globs)
-        records.extend(
-            extract_symbols(relative_path, source, language, is_test_file=is_test_file)
+        symbols, had_error = extract_symbols(
+            relative_path, source, language, is_test_file=is_test_file
         )
-    return records
+        records.extend(symbols)
+        if had_error:
+            parse_error_files += 1
+    return records, parse_error_files
 
 
 def _source_files(

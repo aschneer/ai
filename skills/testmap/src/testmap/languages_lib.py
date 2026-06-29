@@ -25,11 +25,23 @@ class Language:
     branch_keywords: tuple[str, ...]
     error_keywords: tuple[str, ...]
     mutation_tool: str | None = None
+    # Reserved words that can never be a real symbol name. If discovery extracts one
+    # of these as a name it indicates a parse error — typically an unexpanded C/C++
+    # preprocessor macro (e.g. NLOHMANN_JSON_NAMESPACE_BEGIN) misparsed as a function.
+    # Such nodes are skipped so their misparsed children are not nested under a phantom.
+    reserved_names: tuple[str, ...] = ()
 
 
 # Branch keywords used for the cyclomatic-complexity estimate (PRD 2.3.9). C-family
 # control-flow words cover most languages; per-language entries add the rest.
 _C_BRANCH = ("if", "else", "for", "while", "case", "catch", "&&", "||", "?")
+
+# C/C++ keywords that surface as bogus symbol names when a macro confuses the parser.
+_CPP_RESERVED = (
+    "namespace", "template", "class", "struct", "union", "enum", "public", "private",
+    "protected", "typename", "using", "typedef", "inline", "static", "constexpr",
+    "explicit", "virtual", "friend", "operator", "return", "if", "for", "while", "switch",
+)
 
 LANGUAGES: tuple[Language, ...] = (
     Language(
@@ -139,6 +151,7 @@ LANGUAGES: tuple[Language, ...] = (
         branch_keywords=_C_BRANCH,
         error_keywords=(),  # No standard error-path syntax — best-effort only (PRD 2.3.10).
         mutation_tool=None,
+        reserved_names=_CPP_RESERVED,
     ),
     Language(
         name="cpp",
@@ -148,6 +161,7 @@ LANGUAGES: tuple[Language, ...] = (
         branch_keywords=_C_BRANCH,
         error_keywords=("throw",),  # Best-effort only (PRD 2.3.10).
         mutation_tool=None,
+        reserved_names=_CPP_RESERVED,
     ),
     Language(
         name="swift",

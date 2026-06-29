@@ -4,6 +4,16 @@ Most recent first.
 
 ---
 
+## 2026-06-29 03:30:00 UTC — Handle C/C++ macro misparses with a reserved-name denylist, not a preprocessor
+
+**What:** Discovery does not run the C/C++ preprocessor. When an unexpanded function-like macro confuses tree-sitter, the parser emits a bogus `function_definition` whose name is a reserved keyword (e.g. `namespace`), and nests the real following declarations inside it. We guard against this with a per-language `reserved_names` denylist (C/C++ keywords): if discovery extracts a name in that set, the node is treated as a misparse — skipped, not emitted, and not pushed as an enclosing scope, so its children are recovered with correct qualified names. Discovery also counts files whose parse tree has errors and prints a warning.
+
+**Why:** Found on nlohmann/json: `NLOHMANN_JSON_NAMESPACE_BEGIN` (an argument-less macro with no semicolon) was misparsed as a function named `namespace`, so 519 of 993 symbols were mis-nested as `namespace.<name>`. Running the real preprocessor (`cc -E`) would fix the parse but was rejected: it requires the project's full build context (include paths, defines, `compile_commands.json`), inlines all of stdlib into every file (discovering `std::` symbols, not the target's), destroys source line numbers and file mapping, changes body-hash semantics (hashing expanded output breaks incremental staleness), and adds a toolchain-coupled code path for 2 of 15 languages. The denylist fixes the actual symptom — a handful of declaration-wrapping macros — cheaply, with no build dependency, and is safe for all languages (no valid symbol is ever named after a reserved word).
+
+**Trade-offs:** Macro-heavy C/C++ still parses imperfectly; some symbols in error regions may be missed or have approximate boundaries. The parse-error count surfaces this honestly. If the denylist proves insufficient on real codebases, a future option is a `testmap_config.json` field listing macros to strip/substitute before parsing — targeted, still without a full preprocessor.
+
+---
+
 ## 2026-06-29 01:40:00 UTC — Mutation testing deferred
 
 **What:** Stage 5 (mutation testing) is out of scope for the initial implementation. PRD §7 moved to the "Deferred — Implement Later" section (D.2). Removed: `mutate.py`/`mutation_lib.py` (never built), `mutation.schema.yaml` (deleted — recoverable from git), the `mutate` script entry, the `mutation` lookup in `query.py`, the `mutation_score` metric in `report_lib`/`metrics.schema.yaml`, and `_load_mutation` in `report.py`. Kept: the `mutation_tool` field in `languages_lib` (pure data, no dangling dependency) and the conditional mutation-display requirements in PRD §8 (already guarded by "if present", they describe future behavior).
