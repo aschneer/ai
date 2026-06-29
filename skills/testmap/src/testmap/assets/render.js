@@ -184,15 +184,18 @@ function renderHero(data) {
   const m = data.metrics || {};
   const grade = m.grade || "";
   const verdict = el("div", { class: "verdict" }, [
+    el("div", { class: "score-label" }, "Composite score"),
     el("div", { class: "score" }, [
       el("span", {}, String(m.composite_score ?? "—")),
       el("span", { class: "out-of" }, " / 100"),
     ]),
     el("div", { class: `grade grade-${grade.toLowerCase()}` }, grade),
+    el("div", { class: "score-note" }, "coverage, minus penalties for brittle and unspecified tests"),
   ]);
   const summary = el("div", { class: "summary" }, [
     el("div", { class: "title" }, "Behavioral coverage audit"),
-    el("div", { class: "coverage" }, `${pct(m.coverage_pct ?? 0)} behavioral coverage`),
+    el("div", { class: "coverage" }, pct(m.coverage_pct ?? 0)),
+    el("div", { class: "coverage-note" }, "behaviors with a real test, of those that have a defined contract"),
     el("div", { class: "target" }, data.meta?.target_dir ?? ""),
   ]);
   const hero = el("section", { class: "hero" }, [verdict, summary]);

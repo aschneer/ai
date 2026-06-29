@@ -88,10 +88,20 @@ code { white-space: nowrap; }
 
 .hero .verdict { line-height: 1; }
 
+.hero .score-label {
+  font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 0.3rem;
+}
+
 .hero .score {
   font-size: 5.5rem;
   font-weight: 700;
   letter-spacing: -0.03em;
+}
+
+.hero .score-note,
+.hero .coverage-note {
+  font-size: 0.72rem; color: var(--muted); margin-top: 0.4rem; max-width: 22rem;
 }
 
 .hero .score .out-of {
