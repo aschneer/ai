@@ -1,13 +1,19 @@
 # Optional Predecessors — Status
 
-**Status:** Planned. Not started.
+**Status:** In progress — Phases 1–4 done, Phase 5 (example + manual check) next.
 
 ## Current state
 
-Feature scoped and interviewed; plan locked. No code written yet. Ready to
-implement Phase 1. Change is schema-only for enforcement — compute and viewer
-already tolerate empty predecessors, so no runtime code change is expected,
-only verification and tests. Nothing committed; user reviews before any commit.
+Schema, tests, and docs complete and committed:
+
+- Schema makes `predecessors` optional for the three pinned task modes and for
+  groups; `auto` tasks still require one. Enforcement is schema-only — logic and
+  compute already tolerate empty predecessors (verified, no change).
+- 7 tests added (53 pass). One documents the accepted lone-critical floater edge.
+- `data_model.md`, `prd.md` (new DM15 + R9 note), and `SKILL.md` updated.
+
+Remaining: add a no-pred availability group to the `farmers_market_full` example
+and confirm compute is clean with no arrows on the floaters.
 
 Phase-by-phase status: `plan.md`.
 

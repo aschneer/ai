@@ -30,35 +30,36 @@ viewer only draws arrows from `item.predecessors`). No compute or viewer code ch
 - Milestone 0 stays the required project anchor.
 
 ## Phase 1 — Schema + logic
-- [ ] `schemas/schedule.schema.yaml`: add `$defs/predecessors_optional` (`minItems: 0`).
-- [ ] Point `task_start_duration`, `task_start_finish`, `task_finish_duration`, `group`
+- [x] `schemas/schedule.schema.yaml`: add `$defs/predecessors_optional` (`minItems: 0`).
+- [x] Point `task_start_duration`, `task_start_finish`, `task_finish_duration`, `group`
       `predecessors` property → `predecessors_optional`; drop `predecessors` from each
       `required` list.
-- [ ] `task_auto` unchanged (predecessors required, `minItems: 1`).
-- [ ] `logic_validate_lib.py`: verify only — empty preds already skip listing rules
-      (`_check_predecessor_listing` early-returns on `not links`). No change expected.
+- [x] `task_auto` unchanged (predecessors required, `minItems: 1`).
+- [x] `logic_validate_lib.py`: verified — empty preds already skip listing rules
+      (`_check_predecessor_listing` early-returns on `not links`). No change made.
 
 ## Phase 2 — Compute (verify, no change expected)
-- [ ] Confirm pinned schedulers pin from own fields with no preds.
-- [ ] Confirm group with no pred rolls up from children (`_group_anchor_start` → None floor).
-- [ ] Confirm group pred still floors children.
-- [ ] Confirm auto with no pred + no parent floor stays unscheduled (unreachable via schema
-      since auto still requires a pred).
+- [x] Confirmed pinned schedulers pin from own fields with no preds.
+- [x] Confirmed group with no pred rolls up from children (`_group_anchor_start` → None floor).
+- [x] Confirmed group pred still floors children.
+- [x] Confirmed auto with no pred + no parent floor stays unscheduled (unreachable via schema
+      since auto still requires a pred). No compute change made.
 
 ## Phase 3 — Tests
-- [ ] Pinned task, no preds → valid, schedules from pin.
-- [ ] Group, no preds → valid, rolls up from children.
-- [ ] Auto, no preds → schema-rejected.
-- [ ] Group pred still floors children (regression).
-- [ ] Existing 46 tests pass.
+- [x] Pinned task, no preds → valid, schedules from pin.
+- [x] Group, no preds → valid, rolls up from children.
+- [x] Auto, no preds → schema-rejected.
+- [x] Group pred still floors children (regression).
+- [x] Existing tests pass (46 → 53 with new).
+- [x] Lone-critical floater edge asserted explicitly (accepted decision).
 
 ## Phase 4 — Docs
-- [ ] `data_model.md`: field table, listing-rules table (add self-anchored pinned row),
+- [x] `data_model.md`: field table, listing-rules table (self-anchored row),
       timing table (pinned preds required→optional), group section.
-- [ ] `prd.md`: predecessor paragraph (tasks *may* carry preds; required only for auto),
-      new DM13 (self-anchoring items need no dependency), viewer note (no pred = no arrow).
-- [ ] `SKILL.md`: listing-rule bullets — pinned/group preds optional; auto still needs one.
-- [ ] `README.md`: touch only if it restates pred rules.
+- [x] `prd.md`: predecessor paragraph, new DM15 (self-anchoring items need no
+      dependency), R9 viewer note (no pred = no arrow).
+- [x] `SKILL.md`: kinds table + listing-rule bullets — pinned/group preds optional; auto still needs one.
+- [x] `README.md`: no pred rules stated — untouched.
 
 ## Phase 5 — Example + manual check
 - [ ] Add a small no-pred availability group (`start_finish` floaters) to

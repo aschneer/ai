@@ -42,7 +42,7 @@ items:
 | `timing` | forbidden | required | forbidden |
 | `duration` | forbidden | conditional | forbidden |
 | `start` / `finish` | forbidden | conditional | forbidden |
-| `predecessors` | forbidden | required | required |
+| `predecessors` | forbidden | conditional | optional |
 | `children` | forbidden | forbidden | required (min 1) |
 
 ### Field order
@@ -83,6 +83,13 @@ predecessors: ["10SS"]
 
 A predecessor list is **either** `["0FS"]` alone **or** one or more other links with no `0FS` mixed in (see Listing rules below).
 
+**Predecessors are not always required.** An item needs a predecessor only when it cannot place itself:
+
+- **`auto` tasks require** at least one predecessor — duration alone gives no dates, so they need an anchor.
+- **Pinned tasks** (`start_duration`, `start_finish`, `finish_duration`) and **groups** may omit predecessors — a pinned task sets its own dates; a group rolls up from its children.
+
+Omit predecessors entirely for a self-anchoring item that has no real dependency (do **not** write `["0FS"]` or `["{parentId}SS"]` as a placeholder). An item with no predecessors draws **no dependency arrow** in the Gantt viewer. A self-anchoring item **may** still list real predecessors when it has them — those draw arrows and constrain its earliest bounds as usual.
+
 | Component | Format | Default |
 |-----------|--------|---------|
 | Task reference | Integer Unique ID | — |
@@ -91,11 +98,14 @@ A predecessor list is **either** `["0FS"]` alone **or** one or more other links 
 
 ### Listing rules
 
+When an item **has** predecessors, list them by these rules (a self-anchoring item with no dependency omits the field — see above):
+
 | Situation | Required predecessors |
 |-----------|----------------------|
 | Top-level, no other preds | `["0FS"]` |
 | Child, no other preds | `["{parentId}SS"]` |
 | Has specific preds | Those only — never include `0FS` |
+| Self-anchoring (pinned task / group), no dependency | Omit `predecessors` |
 
 Only **immediate** predecessors. No transitive chain.
 
@@ -118,12 +128,14 @@ Only **immediate** predecessors. No transitive chain.
 
 Every **`kind: task`** item requires **`timing`**:
 
-| `timing` | User specifies | Engine computes |
-|----------|----------------|-----------------|
-| `auto` | `duration`, `predecessors` | `start`, `finish` |
-| `start_duration` | `start`, `duration`, `predecessors` | `finish` |
-| `start_finish` | `start`, `finish`, `predecessors` | `duration` |
-| `finish_duration` | `finish`, `duration`, `predecessors` | `start` |
+| `timing` | User specifies | Optional | Engine computes |
+|----------|----------------|----------|-----------------|
+| `auto` | `duration`, `predecessors` | — | `start`, `finish` |
+| `start_duration` | `start`, `duration` | `predecessors` | `finish` |
+| `start_finish` | `start`, `finish` | `predecessors` | `duration` |
+| `finish_duration` | `finish`, `duration` | `predecessors` | `start` |
+
+Only `auto` requires `predecessors`; the pinned modes may omit them (see Predecessors above).
 
 ```yaml
 - kind: task
@@ -147,8 +159,9 @@ The order of items in the file is controlled by the user and agent — the engin
 ## Groups
 
 - Duration = span earliest child start → latest child finish (not sum of child durations)
-- May have predecessors — constrains when children may start (local project start)
-- Child with no preds uses `{parentId}SS`
+- Predecessors are **optional** — with none, the group simply spans its children
+- A predecessor, when present, constrains when children may start (local project start)
+- An `auto` child with no real dependency uses `{parentId}SS`; a pinned child with no dependency omits `predecessors`
 
 ## Calendar file
 

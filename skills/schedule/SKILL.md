@@ -64,8 +64,8 @@ Edit YAML directly. Rules that matter most:
 | Kind | Key fields | Forbidden |
 |------|------------|-----------|
 | `milestone` | `date` (user-set, must be a working day) | `duration`, `timing`, `predecessors`, `children` |
-| `task` | `timing`, `duration`, `predecessors` (plus `start`/`finish` when timing requires) | `date`, `children` |
-| `group` | `predecessors`, `children` (min 1) | `date`, `duration`, `timing` |
+| `task` | `timing`, `duration`, `predecessors` (required for `auto`; optional for pinned modes; plus `start`/`finish` when timing requires) | `date`, `children` |
+| `group` | `children` (min 1); `predecessors` optional | `date`, `duration`, `timing` |
 
 **ID 0** is reserved for the project start milestone. IDs are stable and **must be unique** — never renumber when reordering items.
 
@@ -77,11 +77,14 @@ predecessors: ["5FS", "7SS+2d"]
 predecessors: ["10SS"]
 ```
 
-Listing rules:
+Predecessors are **required only for `auto` tasks** (duration alone gives no dates). Pinned tasks (`start_duration`, `start_finish`, `finish_duration`) and groups may **omit** `predecessors` — a pinned task sets its own dates, a group rolls up from children. An item with no predecessors draws **no dependency arrow**; use this for items that just occupy calendar space (e.g. team availability). A self-anchoring item may still list real predecessors when it has them.
+
+Listing rules (when an item **has** predecessors):
 - Only **immediate** predecessors — not the full transitive chain
 - Top-level item with no other preds → `["0FS"]` only
 - Child with no other preds → `["{parentId}SS"]` only
 - Otherwise list specific preds — **never** mix in `0FS`
+- Self-anchoring item with no dependency → omit `predecessors` (do not write a placeholder `0FS`/`{parentId}SS`)
 - Milestones cannot have predecessors
 - No cyclic predecessor dependencies
 
