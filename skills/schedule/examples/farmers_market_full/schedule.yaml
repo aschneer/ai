@@ -1011,6 +1011,22 @@ items:
     duration: 3d
     predecessors:
     - 194FS
+- kind: group
+  id: 210
+  name: Team availability
+  children:
+  - kind: task
+    id: 211
+    name: Maria out of office
+    timing: start_finish
+    start: 2026-05-11
+    finish: 2026-05-15
+  - kind: task
+    id: 212
+    name: Contractor booked elsewhere
+    timing: start_duration
+    start: 2026-06-01
+    duration: 2w
 - kind: milestone
   id: 105
   name: Season close

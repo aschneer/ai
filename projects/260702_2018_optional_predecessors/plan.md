@@ -6,6 +6,8 @@ part of this work. This doc tracks order and status only.
 
 Status: `[ ]` todo · `[~]` in progress · `[x]` done
 
+**PROJECT COMPLETE.** All phases done. Schema, tests, docs, and example shipped.
+
 ## Goal
 
 Let self-anchoring items omit predecessors:
@@ -62,9 +64,10 @@ viewer only draws arrows from `item.predecessors`). No compute or viewer code ch
 - [x] `README.md`: no pred rules stated — untouched.
 
 ## Phase 5 — Example + manual check
-- [ ] Add a small no-pred availability group (`start_finish` floaters) to
-      `examples/farmers_market_full/schedule.yaml`.
-- [ ] `uv run compute` → clean; confirm floaters have correct dates and draw no arrows.
+- [x] Added no-pred `Team availability` group (ids 210-212; `start_finish` +
+      `start_duration` floaters) to `examples/farmers_market_full/schedule.yaml`.
+- [x] `uv run compute` clean; floaters have correct dates, all `predecessors: []`
+      (no arrows), project finish unchanged (2026-10-30).
 
 ## Phase 6 — Review
-- [ ] Stop before committing. User reviews all changes.
+- [x] Stop before committing each phase. User reviewed and approved 1-5.
