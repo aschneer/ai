@@ -1,6 +1,6 @@
 # Hour Durations — Status
 
-**Status:** Planned. Not started.
+**Status:** Deferred. Planned but not started — paused intentionally, to resume later.
 
 ## Current state
 
