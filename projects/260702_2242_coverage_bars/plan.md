@@ -36,16 +36,16 @@ Concise summary; full reasoning and trade-offs in **`decisions.md`** (this folde
 - [x] `start <= finish` per segment enforced.
 
 ## Phase 2 — Compute pass-through
-- [ ] `compute_lib.py`: carry `coverage` from input to output payload untouched (no dates
-      computed). `project_finish` stays work-only — coverage must not affect it.
-- [ ] Confirm coverage never enters CPM, rollup, or critical-path logic.
+- [x] `compute_lib.py`: `ComputedSchedule.coverage` carries raw coverage from input to the
+      output payload untouched. `project_finish` stays work-only.
+- [x] Confirmed coverage never enters CPM, rollup, or critical-path logic (it is never
+      flattened into `ctx.items`). Regression test added.
 
 ## Phase 3 — Tests
 - [ ] Coverage validates: well-formed entry passes.
 - [ ] Overlapping segments per person → hard error.
 - [ ] `start > finish` segment → error.
-- [ ] Coverage does not change `project_finish` or critical path (regression on an existing
-      fixture with coverage added).
+- [x] Coverage does not change `project_finish`, and round-trips verbatim (regression test).
 - [ ] Schedule with no `coverage` key still valid (optional).
 - [ ] Existing suite passes.
 

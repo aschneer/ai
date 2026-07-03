@@ -50,6 +50,7 @@ class ComputedSchedule:
 
     items: list[ScheduleItem]
     project_finish: date | None
+    coverage: list[dict[str, Any]]
 
 
 @dataclass
@@ -96,6 +97,7 @@ def compute_schedule(
     return ComputedSchedule(
         items=ctx.items,
         project_finish=project_finish,
+        coverage=schedule_data.get("coverage", []),
     )
 
 
@@ -126,6 +128,7 @@ def computed_schedule_to_dict(result: ComputedSchedule) -> dict[str, Any]:
             for item in result.items
         ],
         "project_finish": result.project_finish.isoformat() if result.project_finish else None,
+        "coverage": result.coverage,
     }
 
 

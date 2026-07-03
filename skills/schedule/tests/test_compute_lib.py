@@ -53,7 +53,8 @@ def test_computed_output_dict_contract() -> None:
     }
     payload = computed_schedule_to_dict(compute_schedule(schedule_data, CALENDAR))
 
-    assert set(payload) == {"items", "project_finish"}
+    assert set(payload) == {"items", "project_finish", "coverage"}
+    assert payload["coverage"] == []
     item_keys = {
         "id",
         "kind",
@@ -389,3 +390,34 @@ def test_group_predecessor_still_floors_children() -> None:
 
     assert by_id[10].start == date(2026, 6, 16)
     assert by_id[11].start == date(2026, 6, 16)
+
+
+def test_coverage_passes_through_without_affecting_finish() -> None:
+    work = {
+        "items": [
+            {"kind": "milestone", "id": 0, "name": "Start", "date": "2026-06-09"},
+            {
+                "kind": "task",
+                "id": 1,
+                "name": "Work",
+                "timing": "auto",
+                "duration": "2d",
+                "predecessors": ["0FS"],
+            },
+        ]
+    }
+    coverage = [
+        {
+            "name": "Maria",
+            "segments": [{"start": "2026-12-01", "finish": "2026-12-20", "label": "Vacation"}],
+        }
+    ]
+    without = computed_schedule_to_dict(compute_schedule(work, CALENDAR))
+    with_coverage = computed_schedule_to_dict(
+        compute_schedule({**work, "coverage": coverage}, CALENDAR)
+    )
+
+    # Far-future coverage must not push project finish, and must round-trip verbatim.
+    assert with_coverage["project_finish"] == without["project_finish"]
+    assert with_coverage["coverage"] == coverage
+    assert without["coverage"] == []

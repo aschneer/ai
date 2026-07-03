@@ -1,6 +1,6 @@
 # Coverage Bars — Status
 
-**Status:** In progress — Phase 1 done, Phase 2 (compute pass-through) next.
+**Status:** In progress — Phases 1–2 done, Phase 3 (remaining validation tests) then Phase 4 (viewer) next.
 
 ## Current state
 
@@ -10,8 +10,13 @@ dependencies, no effect on scheduling or the critical path.
 
 Phase 1 (schema + validation) done: optional root `coverage` array in the
 schema; `_check_coverage_segments` validates `start <= finish` and rejects
-overlapping segments per person (inclusive finish, any calendar day). 53 tests
-still pass. Remaining: compute pass-through, tests, viewer band, docs, example.
+overlapping segments per person (inclusive finish, any calendar day).
+
+Phase 2 (compute pass-through) done: `ComputedSchedule.coverage` carries raw
+coverage into the output payload untouched; a regression test confirms
+far-future coverage does not move `project_finish` and coverage round-trips
+verbatim. 54 tests pass. Remaining: the remaining validation tests, the viewer
+band, docs, and example.
 
 Phase-by-phase status: `plan.md`. Full locked design: `decisions.md`.
 
