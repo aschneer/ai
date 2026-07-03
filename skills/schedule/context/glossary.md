@@ -39,7 +39,7 @@ Required on every `kind: task`. Declares which fields the user supplies and whic
 _Avoid_: Mode, schedule type, constraint type
 
 **Group** (`kind: group`):
-A parent item that groups children. Has `predecessors` and `children` (minimum one child, schema-strict). No `date`, no `duration` — dates and duration span are derived from descendants. Microsoft Project equivalent: summary task.
+A parent item that groups children. Requires `children` (minimum one, schema-strict); `predecessors` are optional. No `date`, no `duration` — dates and duration span are derived from descendants. Microsoft Project equivalent: summary task.
 _Avoid_: Summary, category, folder, epic
 
 **Coverage**:

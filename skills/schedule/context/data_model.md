@@ -32,7 +32,7 @@ items:
 | **Purpose** | Pin a fixed date | Work that takes time | Roll-up container |
 | **Duration** | Zero (implicit) | User-entered (`4d`) | Derived from children |
 | **`date`** | User-set | Forbidden | Forbidden |
-| **Predecessors** | Forbidden | Required | Required |
+| **Predecessors** | Forbidden | Required for `auto`; optional for pinned modes | Optional |
 | **Children** | Forbidden | Forbidden | Required (min 1) |
 
 ### Field constraints
