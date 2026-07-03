@@ -299,3 +299,93 @@ def test_start_finish_derives_duration() -> None:
     assert by_id[1].start == date(2026, 6, 9)
     assert by_id[1].finish == date(2026, 6, 11)
     assert by_id[1].duration == "3d"
+
+
+def test_pinned_task_without_predecessors_schedules_from_pin() -> None:
+    schedule_data = {
+        "items": [
+            {"kind": "milestone", "id": 0, "name": "Start", "date": "2026-06-09"},
+            {
+                "kind": "task",
+                "id": 1,
+                "name": "Alex availability",
+                "timing": "start_finish",
+                "start": "2026-06-16",
+                "finish": "2026-06-18",
+            },
+        ]
+    }
+    result = compute_schedule(schedule_data, CALENDAR)
+    by_id = {item.id: item for item in result.items}
+
+    assert by_id[1].start == date(2026, 6, 16)
+    assert by_id[1].finish == date(2026, 6, 18)
+    assert by_id[1].predecessors == []
+    # Accepted edge: a no-pred floater that holds the max finish becomes the
+    # lone critical terminal. See projects/260702_2018_optional_predecessors.
+    assert by_id[1].is_critical
+
+
+def test_group_without_predecessors_rolls_up_from_children() -> None:
+    schedule_data = {
+        "items": [
+            {"kind": "milestone", "id": 0, "name": "Start", "date": "2026-06-09"},
+            {
+                "kind": "group",
+                "id": 10,
+                "name": "Availability",
+                "children": [
+                    {
+                        "kind": "task",
+                        "id": 11,
+                        "name": "Alex",
+                        "timing": "start_finish",
+                        "start": "2026-06-16",
+                        "finish": "2026-06-18",
+                    },
+                    {
+                        "kind": "task",
+                        "id": 12,
+                        "name": "Sam",
+                        "timing": "start_finish",
+                        "start": "2026-06-10",
+                        "finish": "2026-06-12",
+                    },
+                ],
+            },
+        ]
+    }
+    result = compute_schedule(schedule_data, CALENDAR)
+    by_id = {item.id: item for item in result.items}
+
+    assert by_id[10].start == date(2026, 6, 10)
+    assert by_id[10].finish == date(2026, 6, 18)
+
+
+def test_group_predecessor_still_floors_children() -> None:
+    schedule_data = {
+        "items": [
+            {"kind": "milestone", "id": 0, "name": "Start", "date": "2026-06-09"},
+            {
+                "kind": "group",
+                "id": 10,
+                "name": "Phase",
+                "predecessors": ["0FS+5d"],
+                "children": [
+                    {
+                        "kind": "task",
+                        "id": 11,
+                        "name": "Work",
+                        "timing": "auto",
+                        "duration": "2d",
+                        "predecessors": ["10SS"],
+                    },
+                ],
+            },
+        ]
+    }
+    result = compute_schedule(schedule_data, CALENDAR)
+    by_id = {item.id: item for item in result.items}
+
+    assert by_id[10].start == date(2026, 6, 16)
+    assert by_id[11].start == date(2026, 6, 16)
