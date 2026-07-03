@@ -42,12 +42,13 @@ Concise summary; full reasoning and trade-offs in **`decisions.md`** (this folde
       flattened into `ctx.items`). Regression test added.
 
 ## Phase 3 — Tests
-- [ ] Coverage validates: well-formed entry passes.
-- [ ] Overlapping segments per person → hard error.
-- [ ] `start > finish` segment → error.
+- [x] Coverage validates: well-formed entry passes (+ weekend-spanning segments).
+- [x] Overlapping segments per person → hard error.
+- [x] `start > finish` segment → error.
+- [x] Segment missing `label` → schema error.
 - [x] Coverage does not change `project_finish`, and round-trips verbatim (regression test).
-- [ ] Schedule with no `coverage` key still valid (optional).
-- [ ] Existing suite passes.
+- [x] Schedule with no `coverage` key still valid (optional).
+- [x] Existing suite passes (60 total).
 
 ## Phase 4 — Viewer
 - [ ] `gantt.js`: read `coverage` from payload; render a band **above** task rows — one row
