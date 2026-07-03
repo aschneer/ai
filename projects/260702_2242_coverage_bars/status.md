@@ -27,7 +27,13 @@ teal band above the task rows (one row per person, HTML segment boxes via shared
 gained a `coverage:` section (2 people, 5 segments). Deploy + validate clean.
 Awaiting the user's visual confirmation of the rendered band.
 
-Remaining: Phase 5 docs (data_model, prd, SKILL, README).
+Phase 4 also gained: a header z-index fix (row labels tuck behind the sticky
+header on scroll) and a coverage **lock** toggle (🔓/🔒 on the divider row) that
+pins the coverage band below the header while scrolling; state persists across
+re-renders.
+
+Remaining: Phase 5 docs (data_model, prd, SKILL, README) — SKILL coverage section
+is already drafted locally, uncommitted, held for the Phase 5 commit.
 
 Phase-by-phase status: `plan.md`. Full locked design: `decisions.md`.
 

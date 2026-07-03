@@ -275,6 +275,27 @@
     .row.coverage-last {
       border-bottom: 3px solid var(--color-border-strong);
     }
+    .row.coverage-locked {
+      position: sticky;
+      z-index: 12;
+    }
+    .row.coverage-locked .label {
+      z-index: 12;
+    }
+    .label.coverage .item-name {
+      min-width: 0;
+      flex: 1;
+    }
+    .coverage-lock {
+      margin-left: auto;
+      padding: 0 0.15rem 0 0.35rem;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 0.85rem;
+      line-height: 1;
+      flex-shrink: 0;
+    }
     .coverage-segment {
       position: absolute;
       top: 0;

@@ -15,6 +15,7 @@ const LABEL_WIDTH_MAX = 720;
 
 let chartData = null;
 const collapsedIds = new Set();
+let coverageLocked = false;
 
 /** IDs of groups that have at least one child. */
 function collapsibleIds(items) {
@@ -631,15 +632,53 @@ function renderCoverageRow(entry, rangeStart, totalDays) {
   return row;
 }
 
+function coverageLockToggle() {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "coverage-lock";
+  button.textContent = coverageLocked ? "🔒" : "🔓";
+  button.title = coverageLocked
+    ? "Coverage pinned below the header — click to unlock"
+    : "Lock coverage below the header while scrolling";
+  button.setAttribute("aria-pressed", String(coverageLocked));
+  button.setAttribute("aria-label", "Lock coverage band");
+  button.addEventListener("click", (event) => {
+    event.stopPropagation();
+    coverageLocked = !coverageLocked;
+    if (chartData) {
+      renderGantt(chartData);
+    }
+  });
+  return button;
+}
+
 function renderCoverageBand(coverage, root, rangeStart, totalDays) {
   const entries = coverage || [];
-  entries.forEach((entry, index) => {
+  const rows = entries.map((entry, index) => {
     const row = renderCoverageRow(entry, rangeStart, totalDays);
+    if (coverageLocked) {
+      row.classList.add("coverage-locked");
+    }
     if (index === entries.length - 1) {
       row.classList.add("coverage-last");
+      row.querySelector(".label").appendChild(coverageLockToggle());
     }
     root.appendChild(row);
+    return row;
   });
+  if (coverageLocked) {
+    stickCoverageRows(rows);
+  }
+}
+
+/** Pin locked coverage rows in a stack directly below the sticky header. */
+function stickCoverageRows(rows) {
+  const header = document.querySelector(".row.header");
+  let offset = header ? header.getBoundingClientRect().height : 0;
+  for (const row of rows) {
+    row.style.top = `${offset}px`;
+    offset += row.getBoundingClientRect().height;
+  }
 }
 
 function renderGantt(data) {

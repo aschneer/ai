@@ -57,8 +57,11 @@ Concise summary; full reasoning and trade-offs in **`decisions.md`** (this folde
 - [x] Labels truncate (CSS ellipsis); full text in a `title` tooltip.
 - [x] `dateRange(items, coverage)` includes coverage segments.
 - [x] `gantt_theme.css` `--color-coverage` (#2a9d8f, distinct); **legend** entry added.
-- [~] Coexists with collapse/expand + resizer — band is above task rows, shares the label
-      column; visual confirmation pending user render.
+- [x] Coexists with collapse/expand + resizer — band is above task rows, shares the label column.
+- [x] Header z-index fix: row labels tuck behind the sticky header on vertical scroll.
+- [x] Coverage lock toggle (🔓/🔒 on the divider row, right edge of the label column): locked
+      pins the coverage band directly below the header while scrolling; unlocked scrolls away.
+      State persists across re-renders.
 
 ## Phase 5 — Docs
 - [ ] `data_model.md`: `coverage` root key, entry/segment shape, calendar-day rule, no-overlap.
