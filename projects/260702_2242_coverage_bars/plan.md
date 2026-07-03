@@ -28,12 +28,12 @@ Concise summary; full reasoning and trade-offs in **`decisions.md`** (this folde
 - `coverage:` is **optional** — schedules without it are unchanged.
 
 ## Phase 1 — Schema + validation
-- [ ] `schedule.schema.yaml`: add optional root `coverage` array; entry `{name, segments}`;
+- [x] `schedule.schema.yaml`: added optional root `coverage` array; entry `{name, segments}`;
       segment `{start, finish, label}` (all required, ISO dates). No `items` change.
-- [ ] `logic_validate_lib.py`: per-person segment **overlap** check → hard error. Segments
-      are calendar-day (no working-day rule). Coverage is skipped by all existing item checks
-      (it is not in `items`).
-- [ ] Confirm `start <= finish` per segment (validation).
+- [x] `logic_validate_lib.py`: `_check_coverage_segments` — per-person **overlap** → hard
+      error (inclusive finish); calendar-day (no working-day rule). Coverage skipped by all
+      existing item checks (not in `items`).
+- [x] `start <= finish` per segment enforced.
 
 ## Phase 2 — Compute pass-through
 - [ ] `compute_lib.py`: carry `coverage` from input to output payload untouched (no dates

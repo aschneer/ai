@@ -25,6 +25,7 @@ def validate_schedule_logic(
     errors.extend(_check_predecessor_listing(items))
     errors.extend(_check_predecessor_format(items))
     errors.extend(_check_cyclic_dependencies(items, by_id))
+    errors.extend(_check_coverage_segments(schedule_data.get("coverage", [])))
 
     if calendar_data is None:
         if _schedule_has_milestones(items):
@@ -177,6 +178,57 @@ def _check_milestone_working_days(
         if not calendar.is_working_day(milestone_date):
             errors.append(
                 f"schedule: milestone {item_id}: date {milestone_date} falls on a non-working day"
+            )
+    return errors
+
+
+def _check_coverage_segments(coverage: list[Any]) -> list[str]:
+    """Coverage segments must have start <= finish and not overlap within a person."""
+    errors: list[str] = []
+    for entry in coverage:
+        if not isinstance(entry, dict):
+            continue
+        name = entry.get("name", "")
+        spans, range_errors = _parse_coverage_spans(name, entry.get("segments", []))
+        errors.extend(range_errors)
+        errors.extend(_coverage_overlap_errors(name, spans))
+    return errors
+
+
+def _parse_coverage_spans(
+    name: str,
+    segments: list[Any],
+) -> tuple[list[tuple[date, date]], list[str]]:
+    """Return valid (start, finish) spans and one error per start-after-finish segment."""
+    spans: list[tuple[date, date]] = []
+    errors: list[str] = []
+    for segment in segments:
+        if not isinstance(segment, dict):
+            continue
+        start_value = segment.get("start")
+        finish_value = segment.get("finish")
+        if not isinstance(start_value, str) or not isinstance(finish_value, str):
+            continue
+        start = date.fromisoformat(start_value)
+        finish = date.fromisoformat(finish_value)
+        if start > finish:
+            errors.append(
+                f"schedule: coverage {name!r}: segment start {start} is after finish {finish}"
+            )
+            continue
+        spans.append((start, finish))
+    return spans, errors
+
+
+def _coverage_overlap_errors(name: str, spans: list[tuple[date, date]]) -> list[str]:
+    """One error per pair of overlapping spans (finish is inclusive)."""
+    errors: list[str] = []
+    ordered = sorted(spans)
+    for (prev_start, prev_finish), (next_start, next_finish) in zip(ordered, ordered[1:]):
+        if next_start <= prev_finish:
+            errors.append(
+                f"schedule: coverage {name!r}: segments overlap "
+                f"({prev_start}–{prev_finish} and {next_start}–{next_finish})"
             )
     return errors
 

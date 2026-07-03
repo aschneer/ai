@@ -17,6 +17,11 @@ properties:
     minItems: 1
     items:
       $ref: '#/$defs/schedule_item'
+  coverage:
+    type: array
+    description: Optional decorative availability bands, one per person. Never affects scheduling.
+    items:
+      $ref: '#/$defs/coverage_entry'
 
 $defs:
   duration:
@@ -178,3 +183,30 @@ $defs:
       - $ref: '#/$defs/milestone'
       - $ref: '#/$defs/task'
       - $ref: '#/$defs/group'
+
+  coverage_segment:
+    type: object
+    additionalProperties: false
+    required: [start, finish, label]
+    properties:
+      start:
+        $ref: '#/$defs/iso_date'
+      finish:
+        $ref: '#/$defs/iso_date'
+      label:
+        type: string
+        minLength: 1
+
+  coverage_entry:
+    type: object
+    additionalProperties: false
+    required: [name, segments]
+    properties:
+      name:
+        type: string
+        minLength: 1
+      segments:
+        type: array
+        minItems: 1
+        items:
+          $ref: '#/$defs/coverage_segment'

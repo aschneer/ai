@@ -1,22 +1,17 @@
 # Coverage Bars — Status
 
-**Status:** Planned. Not started.
+**Status:** In progress — Phase 1 done, Phase 2 (compute pass-through) next.
 
 ## Current state
 
-Feature scoped and interviewed; model and plan locked (`plan.md`, `decisions.md`).
-No code written yet.
-
 Coverage is a new, decoration-only primitive at the root `coverage:` key — one
 labeled band per person, non-overlapping calendar-day segments, no IDs, no
-dependencies, no effect on scheduling or the critical path. Compute passes it
-through untouched; the work is in the viewer (a band above the Gantt with
-truncate+tooltip labels, a distinct legend color, and a date axis extended to
-include coverage). Independent of the hour-durations and optional-predecessors
-work.
+dependencies, no effect on scheduling or the critical path.
 
-Ready to implement Phase 1 (schema + validation). Nothing committed; user
-reviews before each commit.
+Phase 1 (schema + validation) done: optional root `coverage` array in the
+schema; `_check_coverage_segments` validates `start <= finish` and rejects
+overlapping segments per person (inclusive finish, any calendar day). 53 tests
+still pass. Remaining: compute pass-through, tests, viewer band, docs, example.
 
 Phase-by-phase status: `plan.md`. Full locked design: `decisions.md`.
 
