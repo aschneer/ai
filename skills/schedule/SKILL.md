@@ -59,6 +59,18 @@ Read `context/glossary.md` before editing — it defines domain terms. Read `con
 
 Edit YAML directly. Rules that matter most:
 
+**File section order** — keep top-level keys in this order: `calendar`, then `coverage` (if present), then `items`. Coverage must be authored **above** `items`; it renders as a band at the top of the Gantt.
+
+**Coverage (optional)** — decorative availability bands, one per person, drawn above the schedule. Pure annotation: no IDs, no predecessors, never affects scheduling, the critical path, or project finish. Each entry has a `name` and `segments`; each segment is `{start, finish, label}` (all required). Segments use **any calendar day** (weekends allowed), `finish` is inclusive, and segments for one person **must not overlap** (hard error). Use it for "out of office", "on vacation", "traveling", etc.
+
+```yaml
+coverage:
+- name: Maria
+  segments:
+  - {start: 2026-05-11, finish: 2026-05-15, label: Out of office}
+  - {start: 2026-06-15, finish: 2026-06-26, label: On vacation}
+```
+
 **Three kinds** — `kind` is always the **first field** on every item:
 
 | Kind | Key fields | Forbidden |

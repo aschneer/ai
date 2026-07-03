@@ -6,6 +6,9 @@ part of this work. This doc tracks order and status only.
 
 Status: `[ ]` todo · `[~]` in progress · `[x]` done
 
+**PROJECT COMPLETE.** Schema, validation, compute pass-through, viewer band +
+lock, docs, and example all shipped.
+
 ## Goal
 
 Graph staff availability alongside the Gantt: one horizontal **Coverage** band per
@@ -64,16 +67,18 @@ Concise summary; full reasoning and trade-offs in **`decisions.md`** (this folde
       State persists across re-renders.
 
 ## Phase 5 — Docs
-- [ ] `data_model.md`: `coverage` root key, entry/segment shape, calendar-day rule, no-overlap.
-- [ ] `prd.md`: new requirement — decorative coverage band, pure annotation, never affects CPM.
-- [ ] `SKILL.md`: when/how to author coverage; that it is optional and non-scheduling.
-- [ ] `README.md`: coverage in the file-shape section if it documents schedule structure.
+- [x] `data_model.md`: header order (`coverage` above `items`) + `## Coverage` section
+      (entry/segment shape, calendar-day rule, inclusive finish, no-overlap, lock).
+- [x] `prd.md`: DM16 (decorative availability) + R28 (coverage band render).
+- [x] `SKILL.md`: file section order + coverage authoring subsection.
+- [x] `README.md`: coverage note in the schedule-file section.
+- [x] `glossary.md`: Coverage and Coverage segment terms.
 
 ## Phase 6 — Example + manual check
-- [x] Added a `coverage:` section (2 people, 5 labeled segments) to `farmers_market_full`.
-- [~] `uv run compute` clean; validated + coverage in payload. Visual confirmation (band
-      above chart, truncate+tooltip, axis extends, legend color, finish unchanged) pending
-      user render.
+- [x] Added a `coverage:` section (2 people, 5 labeled segments) to `farmers_market_full`,
+      authored above `items`.
+- [x] `uv run compute` clean; user confirmed the rendered band, lock/scroll behavior,
+      divider, padding, and legend.
 
 ## Phase 7 — Review
-- [ ] Update project folder each phase; stop before each commit for user review.
+- [x] Updated project folder each phase; stopped before each commit for user review.

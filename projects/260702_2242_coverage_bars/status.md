@@ -1,6 +1,6 @@
 # Coverage Bars — Status
 
-**Status:** In progress — Phases 1–4 + 6 code done (pending user visual check); Phase 5 (docs) next.
+**Status:** Complete.
 
 ## Current state
 
@@ -29,11 +29,11 @@ Awaiting the user's visual confirmation of the rendered band.
 
 Phase 4 also gained: a header z-index fix (row labels tuck behind the sticky
 header on scroll) and a coverage **lock** toggle (🔓/🔒 on the divider row) that
-pins the coverage band below the header while scrolling; state persists across
-re-renders.
+pins the coverage band below the header while scrolling.
 
-Remaining: Phase 5 docs (data_model, prd, SKILL, README) — SKILL coverage section
-is already drafted locally, uncommitted, held for the Phase 5 commit.
+Phase 5 (docs) done: `data_model.md` (header order + Coverage section), `prd.md`
+(DM16 + R28), `SKILL.md` (section order + authoring), `README.md`, and
+`glossary.md` (Coverage, Coverage segment). 60 tests pass. Feature complete.
 
 Phase-by-phase status: `plan.md`. Full locked design: `decisions.md`.
 

@@ -4,10 +4,14 @@
 
 ## Schedule file header
 
-Optional calendar reference (path relative to schedule file). Schedule items live under `items`:
+Top-level keys in order: `calendar` (path relative to schedule file), optional `coverage` (see [Coverage](#coverage)), then `items`:
 
 ```yaml
 calendar: calendar.yaml
+coverage:            # optional; must appear above items
+  - name: Maria
+    segments:
+      - {start: 2026-06-15, finish: 2026-06-26, label: On vacation}
 items:
   - kind: milestone
     id: 0
@@ -162,6 +166,27 @@ The order of items in the file is controlled by the user and agent — the engin
 - Predecessors are **optional** — with none, the group simply spans its children
 - A predecessor, when present, constrains when children may start (local project start)
 - An `auto` child with no real dependency uses `{parentId}SS`; a pinned child with no dependency omits `predecessors`
+
+## Coverage
+
+Optional decorative availability bands drawn above the schedule — one horizontal line per person, split into labeled date-range segments. **Pure annotation:** coverage has no IDs and no predecessors, and never affects scheduling, the critical path, or project finish. It lives under the root `coverage` key, which must appear **above** `items`.
+
+```yaml
+coverage:
+  - name: Maria
+    segments:
+      - {start: 2026-05-11, finish: 2026-05-15, label: Out of office}
+      - {start: 2026-06-15, finish: 2026-06-26, label: On vacation}
+  - name: Dev
+    segments:
+      - {start: 2026-05-04, finish: 2026-05-29, label: Traveling}
+```
+
+- Each entry: `name` (person) and `segments` (min 1).
+- Each segment: `start`, `finish`, `label` — **all required**.
+- Segments use **any calendar day** (weekends and holidays allowed, unlike task durations); `finish` is **inclusive**.
+- Segments for one person **must not overlap** — a hard validation error.
+- The viewer extends its date axis to include coverage, and offers a lock toggle to pin the band below the header while scrolling.
 
 ## Calendar file
 

@@ -42,6 +42,14 @@ _Avoid_: Mode, schedule type, constraint type
 A parent item that groups children. Has `predecessors` and `children` (minimum one child, schema-strict). No `date`, no `duration` — dates and duration span are derived from descendants. Microsoft Project equivalent: summary task.
 _Avoid_: Summary, category, folder, epic
 
+**Coverage**:
+Optional decorative availability bands under the root `coverage` key (above `items`), one per person, each a set of labeled date-range **segments**. Pure annotation — no IDs, no predecessors, and no effect on scheduling, the critical path, or project finish. Not a `kind`.
+_Avoid_: Availability item, resource, assignment, allocation
+
+**Coverage segment**:
+One labeled span within a coverage band: `start`, `finish` (inclusive), and `label`. Uses any calendar day (weekends allowed); segments for one person must not overlap.
+_Avoid_: Coverage task, block, event
+
 **Unique ID**:
 A stable, permanent integer identifier for a schedule item. ID 0 is reserved for the project start milestone. IDs 1+ are assigned once at creation and never renumbered when items are reordered.
 _Avoid_: Task ID, row number, line number, index, hash
