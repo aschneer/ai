@@ -10,6 +10,9 @@
     html, body {
       height: 100%;
     }
+    :root {
+      --toggle-w: 1.25rem;
+    }
     body {
       margin: 0;
       font-family: system-ui, sans-serif;
@@ -133,7 +136,10 @@
       position: sticky;
       left: 0;
       z-index: 10;
+      display: flex;
+      align-items: center;
       padding: 0.35rem 0.75rem;
+      padding-left: calc(var(--label-indent, 0.75rem) + var(--toggle-w));
       border-right: 1px solid var(--color-border);
       white-space: nowrap;
       overflow: hidden;
@@ -144,6 +150,42 @@
       display: block;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+    .label-text {
+      min-width: 0;
+      flex: 1;
+    }
+    .row-toggle {
+      position: absolute;
+      left: var(--label-indent, 0.75rem);
+      top: 0;
+      bottom: 0;
+      width: var(--toggle-w);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 0.8rem;
+      color: var(--color-text-muted);
+    }
+    .row-toggle:hover {
+      color: var(--color-text);
+    }
+    .collapse-all {
+      font-size: 0.75rem;
+      padding: 0.2rem 0.6rem;
+      border: 1px solid var(--color-border);
+      border-radius: 4px;
+      background: var(--color-surface);
+      color: var(--color-text-muted);
+      cursor: pointer;
+    }
+    .collapse-all:hover {
+      color: var(--color-text);
+      border-color: var(--color-border-strong);
     }
     .label.group .item-name {
       font-weight: 600;
@@ -244,7 +286,6 @@
     .dates {
       font-size: 0.7rem;
       color: var(--color-text-muted);
-      padding-left: 0.75rem;
     }
     @media print {
       html, body {
@@ -287,6 +328,7 @@
     <div class="page-header-main">
       <h1 id="title">Schedule</h1>
       <p id="project-finish">Project finish: —</p>
+      <button type="button" id="collapse-all" class="collapse-all" hidden>Collapse all</button>
     </div>
     <div class="legend" aria-label="Bar colors">
       <span class="legend-item"><span class="legend-swatch task"></span> Task</span>

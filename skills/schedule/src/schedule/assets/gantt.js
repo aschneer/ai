@@ -14,6 +14,34 @@ const LABEL_WIDTH_MIN = 120;
 const LABEL_WIDTH_MAX = 720;
 
 let chartData = null;
+const collapsedIds = new Set();
+
+/** IDs of groups that have at least one child. */
+function collapsibleIds(items) {
+  const withChildren = new Set();
+  for (const item of items) {
+    if (item.parent_id != null) {
+      withChildren.add(item.parent_id);
+    }
+  }
+  return withChildren;
+}
+
+/** True if any ancestor of item is collapsed. */
+function isHidden(item, byId) {
+  let parentId = item.parent_id;
+  while (parentId != null) {
+    if (collapsedIds.has(parentId)) {
+      return true;
+    }
+    const parent = byId.get(parentId);
+    if (!parent) {
+      break;
+    }
+    parentId = parent.parent_id;
+  }
+  return false;
+}
 
 function parseDate(value) {
   const [year, month, day] = value.split("-").map(Number);
@@ -483,7 +511,7 @@ function renderTimelineSvg(items, rowEntries, container) {
   container.appendChild(svg);
 }
 
-function renderRow(item, byId, rangeStart, totalDays) {
+function renderRow(item, byId, rangeStart, totalDays, collapsible) {
   const depth = itemDepth(item, byId);
   const row = document.createElement("div");
   row.className = `row ${item.kind}`;
@@ -491,8 +519,37 @@ function renderRow(item, byId, rangeStart, totalDays) {
   const label = document.createElement("div");
   label.className = `label ${item.kind}`;
   label.title = `${item.kind}: ${item.name}`;
-  label.style.paddingLeft = `${0.75 + depth * 1.25}rem`;
+  const indentRem = 0.75 + depth * 1.25;
+  label.style.setProperty("--label-indent", `${indentRem}rem`);
 
+  const canCollapse = collapsible.has(item.id);
+  if (canCollapse) {
+    const collapsed = collapsedIds.has(item.id);
+    const toggle = document.createElement("button");
+    toggle.type = "button";
+    toggle.className = "row-toggle";
+    toggle.textContent = collapsed ? "▶" : "▼";
+    toggle.setAttribute("aria-expanded", String(!collapsed));
+    toggle.setAttribute(
+      "aria-label",
+      `${collapsed ? "Expand" : "Collapse"} ${item.name}`,
+    );
+    toggle.addEventListener("click", (event) => {
+      event.stopPropagation();
+      if (collapsedIds.has(item.id)) {
+        collapsedIds.delete(item.id);
+      } else {
+        collapsedIds.add(item.id);
+      }
+      if (chartData) {
+        renderGantt(chartData);
+      }
+    });
+    label.appendChild(toggle);
+  }
+
+  const text = document.createElement("div");
+  text.className = "label-text";
   const name = document.createElement("span");
   name.className = "item-name";
   name.textContent = item.name;
@@ -500,7 +557,8 @@ function renderRow(item, byId, rangeStart, totalDays) {
   dates.className = "dates";
   dates.textContent = dateLabel(item);
 
-  label.append(name, dates);
+  text.append(name, dates);
+  label.appendChild(text);
 
   const timeline = document.createElement("div");
   timeline.className = "timeline";
@@ -536,6 +594,8 @@ function renderGantt(data) {
     Math.round((range.end - range.start) / (1000 * 60 * 60 * 24)) + 1;
   document.documentElement.style.setProperty("--timeline-min-width", `${totalDays * 1.15}rem`);
   const byId = new Map(items.map((item) => [item.id, item]));
+  const collapsible = collapsibleIds(items);
+  const visibleItems = items.filter((item) => !isHidden(item, byId));
 
   const header = document.createElement("div");
   header.className = "row header";
@@ -549,13 +609,14 @@ function renderGantt(data) {
   root.appendChild(header);
 
   const rowEntries = [];
-  items.forEach((item) => {
-    const entry = renderRow(item, byId, range.start, totalDays);
+  visibleItems.forEach((item) => {
+    const entry = renderRow(item, byId, range.start, totalDays, collapsible);
     root.appendChild(entry.row);
     rowEntries.push(entry);
   });
 
-  renderTimelineSvg(items, rowEntries, root);
+  updateCollapseAllButton(collapsible);
+  renderTimelineSvg(visibleItems, rowEntries, root);
   appendLabelColumnResizer(root);
 
   if (ganttScroller) {
@@ -643,6 +704,41 @@ function appendLabelColumnResizer(root) {
   }
 }
 
+/** Reflect state on the Collapse/Expand-all button, or hide it if nothing collapses. */
+function updateCollapseAllButton(collapsible) {
+  const button = document.getElementById("collapse-all");
+  if (!button) {
+    return;
+  }
+  if (!collapsible.size) {
+    button.hidden = true;
+    return;
+  }
+  button.hidden = false;
+  const allCollapsed = [...collapsible].every((id) => collapsedIds.has(id));
+  button.textContent = allCollapsed ? "Expand all" : "Collapse all";
+  button.dataset.action = allCollapsed ? "expand" : "collapse";
+}
+
+function bindCollapseAllButton() {
+  const button = document.getElementById("collapse-all");
+  if (!button) {
+    return;
+  }
+  button.addEventListener("click", () => {
+    if (!chartData) {
+      return;
+    }
+    const collapsible = collapsibleIds(chartData.items || []);
+    if (button.dataset.action === "expand") {
+      collapsedIds.clear();
+    } else {
+      collapsible.forEach((id) => collapsedIds.add(id));
+    }
+    renderGantt(chartData);
+  });
+}
+
 function showError(message) {
   const error = document.getElementById("error");
   error.hidden = false;
@@ -656,6 +752,7 @@ async function init() {
       throw new Error(`Could not load ${DATA_URL} (${response.status})`);
     }
     chartData = await response.json();
+    bindCollapseAllButton();
     renderGantt(chartData);
     window.addEventListener("resize", () => {
       if (chartData) {

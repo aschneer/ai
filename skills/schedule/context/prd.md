@@ -286,6 +286,15 @@ After compute, the user can **open the Gantt in a browser**:
 
 CLI flags and server implementation: `architecture.md`, `decisions.md`.
 
+### R27 — Collapse and expand groups
+
+In the Gantt viewer, the user can **collapse and expand nested groups** to control how much of the hierarchy is shown:
+
+- Collapsing a group **hides its descendant rows** while keeping the group's own summary bar and any dependency links to or from the group
+- Collapsing and expanding works at **arbitrary nesting depth** (R2, DM3), independently per group
+- A single control **collapses or expands all groups** at once
+- This is a **view-only** control — it never changes the schedule file, computed dates, or row order (R13)
+
 ### R26 — Printable Gantt
 
 The user must be able to **print** the schedule for viewing and sharing — to a printer, PDF, or other static document. The implementation (browser print, server-generated PDF, etc.) is not prescribed, but the output must be **clean and faithful** to the on-screen Gantt: task and group names, bars, milestones, dependency links, critical-path highlighting, and timeline alignment.
