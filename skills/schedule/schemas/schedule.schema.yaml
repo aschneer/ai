@@ -37,6 +37,12 @@ $defs:
     items:
       $ref: '#/$defs/predecessor'
 
+  predecessors_optional:
+    type: array
+    minItems: 0
+    items:
+      $ref: '#/$defs/predecessor'
+
   milestone:
     type: object
     additionalProperties: false
@@ -76,7 +82,7 @@ $defs:
   task_start_duration:
     type: object
     additionalProperties: false
-    required: [kind, id, name, timing, start, duration, predecessors]
+    required: [kind, id, name, timing, start, duration]
     properties:
       kind:
         const: task
@@ -93,12 +99,12 @@ $defs:
       duration:
         $ref: '#/$defs/duration'
       predecessors:
-        $ref: '#/$defs/predecessors'
+        $ref: '#/$defs/predecessors_optional'
 
   task_start_finish:
     type: object
     additionalProperties: false
-    required: [kind, id, name, timing, start, finish, predecessors]
+    required: [kind, id, name, timing, start, finish]
     properties:
       kind:
         const: task
@@ -115,12 +121,12 @@ $defs:
       finish:
         $ref: '#/$defs/iso_date'
       predecessors:
-        $ref: '#/$defs/predecessors'
+        $ref: '#/$defs/predecessors_optional'
 
   task_finish_duration:
     type: object
     additionalProperties: false
-    required: [kind, id, name, timing, finish, duration, predecessors]
+    required: [kind, id, name, timing, finish, duration]
     properties:
       kind:
         const: task
@@ -137,7 +143,7 @@ $defs:
       duration:
         $ref: '#/$defs/duration'
       predecessors:
-        $ref: '#/$defs/predecessors'
+        $ref: '#/$defs/predecessors_optional'
 
   task:
     oneOf:
@@ -149,7 +155,7 @@ $defs:
   group:
     type: object
     additionalProperties: false
-    required: [kind, id, name, predecessors, children]
+    required: [kind, id, name, children]
     properties:
       kind:
         const: group
@@ -160,7 +166,7 @@ $defs:
         type: string
         minLength: 1
       predecessors:
-        $ref: '#/$defs/predecessors'
+        $ref: '#/$defs/predecessors_optional'
       children:
         type: array
         minItems: 1
