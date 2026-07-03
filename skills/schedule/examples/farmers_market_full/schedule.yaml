@@ -1,5 +1,15 @@
 # yaml-language-server: $schema=../../schemas/schedule.schema.yaml
 calendar: calendar.yaml
+coverage:
+- name: Maria (Ops Lead)
+  segments:
+  - {start: 2026-05-11, finish: 2026-05-15, label: Out of office}
+  - {start: 2026-06-15, finish: 2026-06-26, label: On vacation}
+  - {start: 2026-08-03, finish: 2026-08-07, label: In Santa Clara}
+- name: Dev (Vendor Coordinator)
+  segments:
+  - {start: 2026-05-04, finish: 2026-05-29, label: Traveling — vendor outreach}
+  - {start: 2026-07-06, finish: 2026-07-10, label: Conference}
 items:
 - kind: milestone
   id: 0

@@ -1,6 +1,6 @@
 # Coverage Bars — Status
 
-**Status:** In progress — Phases 1–3 done, Phase 4 (viewer) next.
+**Status:** In progress — Phases 1–4 + 6 code done (pending user visual check); Phase 5 (docs) next.
 
 ## Current state
 
@@ -17,9 +17,17 @@ coverage into the output payload untouched; a regression test confirms
 far-future coverage does not move `project_finish` and coverage round-trips
 verbatim.
 
-Phase 3 (tests) done: 6 coverage validation tests (well-formed, weekend spans,
-overlap, start>finish, missing label, no-coverage-key) plus the compute
-regression. 60 tests pass. Remaining: the viewer band, docs, and example.
+Phase 3 (tests) done: 6 coverage validation tests plus the compute regression;
+60 tests pass.
+
+Phase 4 (viewer) + Phase 6 (example) code done: `renderCoverageBand` draws a
+teal band above the task rows (one row per person, HTML segment boxes via shared
+`spanMetrics`, truncate + `title` tooltip); `dateRange` extends to coverage;
+`--color-coverage` token + legend entry added; the `farmers_market_full` example
+gained a `coverage:` section (2 people, 5 segments). Deploy + validate clean.
+Awaiting the user's visual confirmation of the rendered band.
+
+Remaining: Phase 5 docs (data_model, prd, SKILL, README).
 
 Phase-by-phase status: `plan.md`. Full locked design: `decisions.md`.
 

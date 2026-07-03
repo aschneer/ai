@@ -75,9 +75,20 @@ function dateLabel(item) {
   return `${item.start} → ${item.finish}`;
 }
 
-function dateRange(items) {
-  const starts = items.filter((item) => item.start).map((item) => parseDate(item.start));
-  const finishes = items.filter((item) => item.finish).map((item) => parseDate(item.finish));
+function coverageSegments(coverage) {
+  return (coverage || []).flatMap((entry) => entry.segments || []);
+}
+
+function dateRange(items, coverage) {
+  const segments = coverageSegments(coverage);
+  const starts = [
+    ...items.filter((item) => item.start).map((item) => parseDate(item.start)),
+    ...segments.map((segment) => parseDate(segment.start)),
+  ];
+  const finishes = [
+    ...items.filter((item) => item.finish).map((item) => parseDate(item.finish)),
+    ...segments.map((segment) => parseDate(segment.finish)),
+  ];
   if (!starts.length || !finishes.length) {
     return null;
   }
@@ -256,12 +267,12 @@ function chartColors() {
   };
 }
 
-function itemMetrics(item, rangeStart, totalDays) {
-  if (!item.start || !item.finish || totalDays <= 0) {
+function spanMetrics(startValue, finishValue, rangeStart, totalDays) {
+  if (!startValue || !finishValue || totalDays <= 0) {
     return null;
   }
-  const start = parseDate(item.start);
-  const finish = parseDate(item.finish);
+  const start = parseDate(startValue);
+  const finish = parseDate(finishValue);
   const offsetDays = Math.round((start - rangeStart) / (1000 * 60 * 60 * 24));
   const spanDays = Math.max(
     Math.round((finish - start) / (1000 * 60 * 60 * 24)) + 1,
@@ -270,8 +281,15 @@ function itemMetrics(item, rangeStart, totalDays) {
   return {
     leftPct: (offsetDays / totalDays) * 100,
     widthPct: (spanDays / totalDays) * 100,
-    kind: item.kind,
   };
+}
+
+function itemMetrics(item, rangeStart, totalDays) {
+  const metrics = spanMetrics(item.start, item.finish, rangeStart, totalDays);
+  if (!metrics) {
+    return null;
+  }
+  return { ...metrics, kind: item.kind };
 }
 
 function timelineBox(rowEl, containerTop) {
@@ -571,6 +589,59 @@ function renderRow(item, byId, rangeStart, totalDays, collapsible) {
   return { row, metrics, item };
 }
 
+function renderCoverageSegment(segment, rangeStart, totalDays) {
+  const metrics = spanMetrics(segment.start, segment.finish, rangeStart, totalDays);
+  if (!metrics) {
+    return null;
+  }
+  const box = document.createElement("div");
+  box.className = "coverage-segment";
+  box.style.left = `${metrics.leftPct}%`;
+  box.style.width = `${metrics.widthPct}%`;
+  box.textContent = segment.label;
+  box.title = segment.label;
+  return box;
+}
+
+function renderCoverageRow(entry, rangeStart, totalDays) {
+  const row = document.createElement("div");
+  row.className = "row coverage";
+
+  const label = document.createElement("div");
+  label.className = "label coverage";
+  label.title = `coverage: ${entry.name}`;
+  label.style.setProperty("--label-indent", "0.75rem");
+  const name = document.createElement("span");
+  name.className = "item-name";
+  name.textContent = entry.name;
+  label.appendChild(name);
+
+  const timeline = document.createElement("div");
+  timeline.className = "timeline";
+  const track = document.createElement("div");
+  track.className = "coverage-track";
+  for (const segment of entry.segments || []) {
+    const box = renderCoverageSegment(segment, rangeStart, totalDays);
+    if (box) {
+      track.appendChild(box);
+    }
+  }
+  timeline.appendChild(track);
+  row.append(label, timeline);
+  return row;
+}
+
+function renderCoverageBand(coverage, root, rangeStart, totalDays) {
+  const entries = coverage || [];
+  entries.forEach((entry, index) => {
+    const row = renderCoverageRow(entry, rangeStart, totalDays);
+    if (index === entries.length - 1) {
+      row.classList.add("coverage-last");
+    }
+    root.appendChild(row);
+  });
+}
+
 function renderGantt(data) {
   const ganttScroller = document.querySelector(".gantt");
   const scrollLeft = ganttScroller?.scrollLeft ?? 0;
@@ -584,7 +655,8 @@ function renderGantt(data) {
   root.replaceChildren();
 
   const items = data.items || [];
-  const range = dateRange(items);
+  const coverage = data.coverage || [];
+  const range = dateRange(items, coverage);
   if (!range) {
     root.textContent = "No scheduled items to display.";
     return;
@@ -607,6 +679,8 @@ function renderGantt(data) {
   headerTimeline.appendChild(buildTimelineHeader(range.start, range.end));
   header.append(headerLabel, headerTimeline);
   root.appendChild(header);
+
+  renderCoverageBand(coverage, root, range.start, totalDays);
 
   const rowEntries = [];
   visibleItems.forEach((item) => {

@@ -51,13 +51,14 @@ Concise summary; full reasoning and trade-offs in **`decisions.md`** (this folde
 - [x] Existing suite passes (60 total).
 
 ## Phase 4 — Viewer
-- [ ] `gantt.js`: read `coverage` from payload; render a band **above** task rows — one row
-      per person, segment boxes positioned via the existing day→x mapping, label inside.
-- [ ] Truncate labels; full text in a `title` tooltip.
-- [ ] Extend the viewer date-range scan (`dateRange`) to include coverage segments.
-- [ ] `gantt_theme.css` / html: new neutral coverage color token; add a **legend** entry.
-- [ ] Confirm coverage band coexists with collapse/expand and the label-column resizer
-      (band is above the task rows, shares the label column width).
+- [x] `gantt.js`: reads `coverage`; `renderCoverageBand` renders a band **above** task rows —
+      one row per person, HTML segment boxes positioned via shared `spanMetrics` (extracted
+      from `itemMetrics`), label inside.
+- [x] Labels truncate (CSS ellipsis); full text in a `title` tooltip.
+- [x] `dateRange(items, coverage)` includes coverage segments.
+- [x] `gantt_theme.css` `--color-coverage` (#2a9d8f, distinct); **legend** entry added.
+- [~] Coexists with collapse/expand + resizer — band is above task rows, shares the label
+      column; visual confirmation pending user render.
 
 ## Phase 5 — Docs
 - [ ] `data_model.md`: `coverage` root key, entry/segment shape, calendar-day rule, no-overlap.
@@ -66,9 +67,10 @@ Concise summary; full reasoning and trade-offs in **`decisions.md`** (this folde
 - [ ] `README.md`: coverage in the file-shape section if it documents schedule structure.
 
 ## Phase 6 — Example + manual check
-- [ ] Add a `coverage:` section (2-3 people, labeled segments) to `farmers_market_full`.
-- [ ] `uv run compute` clean; confirm the band renders above the chart, labels truncate with
-      tooltip, axis extends, legend shows the coverage color, and `project_finish` is unchanged.
+- [x] Added a `coverage:` section (2 people, 5 labeled segments) to `farmers_market_full`.
+- [~] `uv run compute` clean; validated + coverage in payload. Visual confirmation (band
+      above chart, truncate+tooltip, axis extends, legend color, finish unchanged) pending
+      user render.
 
 ## Phase 7 — Review
 - [ ] Update project folder each phase; stop before each commit for user review.

@@ -92,6 +92,7 @@
       border-radius: 50%;
       background: var(--color-milestone);
     }
+    .legend-swatch.coverage { background: var(--color-coverage); }
     .error {
       flex-shrink: 0;
       margin: 0.5rem 1.25rem;
@@ -264,6 +265,31 @@
       position: absolute;
       inset: 0.3rem 0;
     }
+    .coverage-track {
+      position: absolute;
+      top: 0.3rem;
+      bottom: 0.3rem;
+      left: var(--timeline-gutter);
+      right: 0;
+    }
+    .row.coverage-last {
+      border-bottom: 3px solid var(--color-border-strong);
+    }
+    .coverage-segment {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      display: flex;
+      align-items: center;
+      padding: 0 0.4rem;
+      border-radius: 3px;
+      background: var(--color-coverage);
+      color: #ffffff;
+      font-size: 0.7rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
     .timeline-svg {
       position: absolute;
       top: 0;
@@ -335,6 +361,7 @@
       <span class="legend-item"><span class="legend-swatch critical-outline"></span> Critical path</span>
       <span class="legend-item"><span class="legend-swatch group"></span> Group</span>
       <span class="legend-item"><span class="legend-swatch milestone"></span> Milestone</span>
+      <span class="legend-item"><span class="legend-swatch coverage"></span> Coverage</span>
     </div>
   </header>
   <p id="error" class="error" hidden></p>
