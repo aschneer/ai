@@ -948,11 +948,15 @@ function updateCollapseAllButton(collapsible) {
   if (!button) {
     return;
   }
+  button.hidden = false;
   if (!collapsible.size) {
-    button.hidden = true;
+    // Nothing to collapse (no groups) — keep the button visible but inert.
+    button.disabled = true;
+    button.textContent = "Collapse all";
+    button.dataset.action = "collapse";
     return;
   }
-  button.hidden = false;
+  button.disabled = false;
   const allCollapsed = [...collapsible].every((id) => collapsedIds.has(id));
   button.textContent = allCollapsed ? "Expand all" : "Collapse all";
   button.dataset.action = allCollapsed ? "expand" : "collapse";
