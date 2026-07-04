@@ -657,7 +657,7 @@ function renderRow(item, byId, rangeStart, totalDays, collapsible) {
   return { row, metrics, item };
 }
 
-function renderCoverageSegment(segment, rangeStart, totalDays, edges) {
+function renderCoverageSegment(segment, coverageName, rangeStart, totalDays, edges) {
   const metrics = spanMetrics(segment.start, segment.finish, rangeStart, totalDays);
   if (!metrics) {
     return null;
@@ -671,7 +671,11 @@ function renderCoverageSegment(segment, rangeStart, totalDays, edges) {
   box.style.left = `${edges[startIdx] - gutter}px`;
   box.style.width = `${edges[endIdx] - edges[startIdx]}px`;
   box.textContent = segment.label;
-  box.dataset.tip = `${segment.label}\n${dateRangeLabel(segment.start, segment.finish)}`;
+  box.dataset.tip = [
+    coverageName,
+    segment.label,
+    dateRangeLabel(segment.start, segment.finish),
+  ].join("\n");
   return box;
 }
 
@@ -693,7 +697,7 @@ function renderCoverageRow(entry, rangeStart, totalDays, edges) {
   const track = document.createElement("div");
   track.className = "coverage-track";
   for (const segment of entry.segments || []) {
-    const box = renderCoverageSegment(segment, rangeStart, totalDays, edges);
+    const box = renderCoverageSegment(segment, entry.name, rangeStart, totalDays, edges);
     if (box) {
       track.appendChild(box);
     }

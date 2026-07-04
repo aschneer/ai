@@ -293,7 +293,7 @@ Hovering any bar, milestone, or coverage segment in the Gantt shows a tooltip. C
 |-----------------|--------|--------|--------|
 | **Task** or **group** bar | item name | working-day count (e.g. `5 working days`) | calendar-day count (e.g. `7 calendar days`) |
 | **Milestone** | milestone name | date | — |
-| **Coverage** segment | segment label | date range | — |
+| **Coverage** segment | person/row name (left-pane label) | segment label (text on the bar) | date range |
 
 - Dates use **`mm/dd/yyyy`**; a date range is **`mm/dd/yyyy-mm/dd/yyyy`**.
 - Task and group tooltips show **both** the working-day and calendar-day count (they differ when a bar spans weekends or holidays); working days exclude non-working days per the calendar.

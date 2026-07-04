@@ -87,7 +87,7 @@ Every horizontal position in the timeline — task bar, group bracket, milestone
 
 ### Hover tooltips
 
-Every bar, milestone, and coverage segment shows a hover tooltip. Content by kind: task/group → name, working-day count, calendar-day count (three lines); milestone → name and date (two lines); coverage segment → segment label and date range (two lines). Dates format as `mm/dd/yyyy`. Required content is specified in PRD **R29**.
+Every bar, milestone, and coverage segment shows a hover tooltip. Content by kind: task/group → name, working-day count, calendar-day count (three lines); milestone → name and date (two lines); coverage segment → row/person name, segment label, and date range (three lines). Dates format as `mm/dd/yyyy`. Required content is specified in PRD **R29**.
 
 **Business logic in Python; JS only renders.** The day counts are *not* computed in the browser — the viewer has no holiday calendar, so a JS working-day count would miscount tasks spanning a holiday. Instead `computed_schedule_to_dict()` writes **`working_days`** (via `calendar.count_working_days`, excluding weekends and holidays) and **`calendar_days`** (`finish - start + 1`) onto every item. `gantt.js` reads those fields verbatim. This is the general rule for the viewer: any derived value lives in the computed JSON, never in render code.
 
