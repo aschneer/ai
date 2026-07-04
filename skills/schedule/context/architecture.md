@@ -85,6 +85,14 @@ Every horizontal position in the timeline — task bar, group bracket, milestone
 
 **Why this shape.** The prior viewer positioned bars as a percentage of a *measured* timeline width while the header used a CSS grid with a `minmax()` floor. When the floor clamped, the two widths diverged and bars drifted from their dates — the error accumulating rightward. Collapsing everything onto the header grid removes the second scale entirely. Full history and rejected alternatives: **`decisions.md` ADR-004**.
 
+### Hover tooltips
+
+Every bar, milestone, and coverage segment shows a hover tooltip. Content by kind: task/group → name, working-day count, calendar-day count (three lines); milestone → name and date (two lines); coverage segment → segment label and date range (two lines). Dates format as `mm/dd/yyyy`. Required content is specified in PRD **R29**.
+
+**Business logic in Python; JS only renders.** The day counts are *not* computed in the browser — the viewer has no holiday calendar, so a JS working-day count would miscount tasks spanning a holiday. Instead `computed_schedule_to_dict()` writes **`working_days`** (via `calendar.count_working_days`, excluding weekends and holidays) and **`calendar_days`** (`finish - start + 1`) onto every item. `gantt.js` reads those fields verbatim. This is the general rule for the viewer: any derived value lives in the computed JSON, never in render code.
+
+**Mechanism.** One floating `.gantt-tooltip` element, bound once on the document; any element carrying a `data-tip` attribute (newline-separated lines) triggers it. Bars are inside the SVG, which is `pointer-events: none` for scroll passthrough, so `.bar` elements re-enable `pointer-events: auto`. A group's bracket outline is too thin to hover reliably, so a transparent full-span hit rect behind it carries the tooltip.
+
 ---
 
 ## Module layout

@@ -51,6 +51,7 @@ class ComputedSchedule:
     items: list[ScheduleItem]
     project_finish: date | None
     coverage: list[dict[str, Any]]
+    calendar: WorkingCalendar
 
 
 @dataclass
@@ -98,35 +99,48 @@ def compute_schedule(
         items=ctx.items,
         project_finish=project_finish,
         coverage=schedule_data.get("coverage", []),
+        calendar=ctx.calendar,
     )
 
 
 def computed_schedule_to_dict(result: ComputedSchedule) -> dict[str, Any]:
     """Serialize a computed schedule to JSON-friendly dicts."""
+
+    def span_days(item: ScheduleItem) -> tuple[int | None, int | None]:
+        """Working and calendar day counts for a placed item; None if unplaced."""
+        if not item.start or not item.finish:
+            return None, None
+        working = result.calendar.count_working_days(item.start, item.finish)
+        calendar_days = (item.finish - item.start).days + 1
+        return working, calendar_days
+
+    def item_dict(item: ScheduleItem) -> dict[str, Any]:
+        working, calendar_days = span_days(item)
+        return {
+            "id": item.id,
+            "kind": item.kind.value,
+            "name": item.name,
+            "parent_id": item.parent_id,
+            "start": item.start.isoformat() if item.start else None,
+            "finish": item.finish.isoformat() if item.finish else None,
+            "working_days": working,
+            "calendar_days": calendar_days,
+            "timing": item.timing if item.kind == ItemKind.TASK else None,
+            "duration": item.duration,
+            "milestone_date": item.milestone_date.isoformat() if item.milestone_date else None,
+            "is_critical": item.is_critical,
+            "predecessors": [
+                {
+                    "task_id": link.task_id,
+                    "link_type": link.link_type.value,
+                    "lag": link.lag,
+                }
+                for link in item.predecessors
+            ],
+        }
+
     return {
-        "items": [
-            {
-                "id": item.id,
-                "kind": item.kind.value,
-                "name": item.name,
-                "parent_id": item.parent_id,
-                "start": item.start.isoformat() if item.start else None,
-                "finish": item.finish.isoformat() if item.finish else None,
-                "timing": item.timing if item.kind == ItemKind.TASK else None,
-                "duration": item.duration,
-                "milestone_date": item.milestone_date.isoformat() if item.milestone_date else None,
-                "is_critical": item.is_critical,
-                "predecessors": [
-                    {
-                        "task_id": link.task_id,
-                        "link_type": link.link_type.value,
-                        "lag": link.lag,
-                    }
-                    for link in item.predecessors
-                ],
-            }
-            for item in result.items
-        ],
+        "items": [item_dict(item) for item in result.items],
         "project_finish": result.project_finish.isoformat() if result.project_finish else None,
         "coverage": result.coverage,
     }

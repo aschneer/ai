@@ -62,6 +62,8 @@ def test_computed_output_dict_contract() -> None:
         "parent_id",
         "start",
         "finish",
+        "working_days",
+        "calendar_days",
         "timing",
         "duration",
         "milestone_date",
@@ -73,6 +75,12 @@ def test_computed_output_dict_contract() -> None:
 
     task = next(item for item in payload["items"] if item["id"] == 1)
     assert task["predecessors"] == [{"task_id": 0, "link_type": "FS", "lag": "+1d"}]
+    assert task["working_days"] == 2
+    assert task["calendar_days"] == 2
+
+    milestone = next(item for item in payload["items"] if item["id"] == 0)
+    assert milestone["working_days"] == 1
+    assert milestone["calendar_days"] == 1
 
 
 def test_nested_groups_schedule() -> None:

@@ -315,6 +315,21 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
+    .gantt-tooltip {
+      position: fixed;
+      z-index: 100;
+      max-width: 20rem;
+      padding: 0.3rem 0.5rem;
+      border-radius: 4px;
+      background: var(--color-surface);
+      color: var(--color-text);
+      border: 1px solid var(--color-border);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+      font-size: 0.72rem;
+      line-height: 1.35;
+      white-space: pre-line;
+      pointer-events: none;
+    }
     .timeline-svg {
       position: absolute;
       top: 0;
@@ -324,6 +339,10 @@
       pointer-events: none;
       z-index: 0;
       overflow: visible;
+    }
+    .timeline-svg .bar {
+      pointer-events: auto;
+      cursor: default;
     }
     .timeline-svg .links path {
       fill: none;

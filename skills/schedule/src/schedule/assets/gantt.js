@@ -76,6 +76,30 @@ function dateLabel(item) {
   return `${item.start} → ${item.finish}`;
 }
 
+function formatDate(iso) {
+  const [year, month, day] = iso.split("-");
+  return `${month}/${day}/${year}`;
+}
+
+function dateRangeLabel(start, finish) {
+  return `${formatDate(start)}-${formatDate(finish)}`;
+}
+
+/** Multi-line hover-tooltip text for a schedule item; null if unplaced. */
+function itemTooltip(item) {
+  if (!item.start || !item.finish) {
+    return null;
+  }
+  if (item.kind === "milestone") {
+    return `${item.name}\n${formatDate(item.start)}`;
+  }
+  return [
+    item.name,
+    `${item.working_days} working days`,
+    `${item.calendar_days} calendar days`,
+  ].join("\n");
+}
+
 function coverageSegments(coverage) {
   return (coverage || []).flatMap((entry) => entry.segments || []);
 }
@@ -447,22 +471,33 @@ function appendBarShape(layer, geom, colors) {
       circle.setAttribute("stroke-width", "3");
     }
     layer.appendChild(circle);
-    return;
+    return circle;
   }
 
   if (geom.kind === "group") {
-    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
     const { x, y, width, legH } = geom;
+    // Transparent hit target: the bracket outline is too thin to hover
+    // reliably, so a full-span rect behind it carries the tooltip.
+    const hit = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    hit.setAttribute("class", "bar group-hit");
+    hit.setAttribute("x", String(x));
+    hit.setAttribute("y", String(y));
+    hit.setAttribute("width", String(width));
+    hit.setAttribute("height", String(legH));
+    hit.setAttribute("fill", "transparent");
+    layer.appendChild(hit);
+
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
     path.setAttribute(
       "d",
       `M ${x} ${y + legH} L ${x} ${y} L ${x + width} ${y} L ${x + width} ${y + legH}`,
     );
-    path.setAttribute("class", `bar group${critical ? " critical" : ""}`);
+    path.setAttribute("class", `group${critical ? " critical" : ""}`);
     path.setAttribute("fill", "none");
     path.setAttribute("stroke", critical ? colors.critical : colors.group);
     path.setAttribute("stroke-width", "3");
     layer.appendChild(path);
-    return;
+    return hit;
   }
 
   const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
@@ -478,6 +513,7 @@ function appendBarShape(layer, geom, colors) {
     rect.setAttribute("stroke-width", "3");
   }
   layer.appendChild(rect);
+  return rect;
 }
 
 function renderTimelineSvg(items, rowEntries, container, edges) {
@@ -518,7 +554,11 @@ function renderTimelineSvg(items, rowEntries, container, edges) {
       continue;
     }
     geometryById.set(entry.item.id, geom);
-    appendBarShape(barLayer, geom, colors);
+    const shape = appendBarShape(barLayer, geom, colors);
+    const tip = itemTooltip(entry.item);
+    if (tip) {
+      shape.dataset.tip = tip;
+    }
   }
 
   const byId = new Map(drawable.map((entry) => [entry.item.id, entry]));
@@ -631,7 +671,7 @@ function renderCoverageSegment(segment, rangeStart, totalDays, edges) {
   box.style.left = `${edges[startIdx] - gutter}px`;
   box.style.width = `${edges[endIdx] - edges[startIdx]}px`;
   box.textContent = segment.label;
-  box.title = segment.label;
+  box.dataset.tip = `${segment.label}\n${dateRangeLabel(segment.start, segment.finish)}`;
   return box;
 }
 
@@ -891,6 +931,56 @@ function showError(message) {
   error.textContent = message;
 }
 
+/**
+ * One floating tooltip, shown for any element carrying a `data-tip` attribute
+ * (multi-line via newlines). Bound once on the document so it survives the
+ * full re-render on resize/collapse; positioned near the cursor and kept on
+ * screen.
+ */
+function setupTooltip() {
+  const tip = document.createElement("div");
+  tip.className = "gantt-tooltip";
+  tip.hidden = true;
+  document.body.appendChild(tip);
+
+  const position = (event) => {
+    const pad = 12;
+    const rect = tip.getBoundingClientRect();
+    let x = event.clientX + pad;
+    let y = event.clientY + pad;
+    if (x + rect.width > window.innerWidth) {
+      x = event.clientX - pad - rect.width;
+    }
+    if (y + rect.height > window.innerHeight) {
+      y = event.clientY - pad - rect.height;
+    }
+    tip.style.left = `${Math.max(x, 0)}px`;
+    tip.style.top = `${Math.max(y, 0)}px`;
+  };
+
+  document.addEventListener("mouseover", (event) => {
+    const target = event.target.closest("[data-tip]");
+    if (!target) {
+      return;
+    }
+    tip.textContent = target.dataset.tip;
+    tip.hidden = false;
+    position(event);
+  });
+
+  document.addEventListener("mousemove", (event) => {
+    if (!tip.hidden && event.target.closest("[data-tip]")) {
+      position(event);
+    }
+  });
+
+  document.addEventListener("mouseout", (event) => {
+    if (event.target.closest("[data-tip]")) {
+      tip.hidden = true;
+    }
+  });
+}
+
 async function init() {
   try {
     const response = await fetch(DATA_URL);
@@ -898,6 +988,7 @@ async function init() {
       throw new Error(`Could not load ${DATA_URL} (${response.status})`);
     }
     chartData = await response.json();
+    setupTooltip();
     bindCollapseAllButton();
     renderGantt(chartData);
     window.addEventListener("resize", () => {
