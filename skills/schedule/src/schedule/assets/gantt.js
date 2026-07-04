@@ -468,6 +468,54 @@ function addDependencyArrowMarkers(defs, colors) {
   }
 }
 
+function appendFinishFlag(layer, x, cy) {
+  // Small checkered flag marking the project-finish milestone. Self-contained
+  // SVG (no external asset) so it survives the viewer CSP and prints faithfully.
+  const cell = 3;
+  const cols = 3;
+  const rows = 2;
+  const flagW = cols * cell;
+  const flagH = rows * cell;
+  const poleTop = cy - 9;
+  const poleBottom = cy + 8;
+
+  const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  g.setAttribute("class", "finish-flag");
+
+  const pole = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  pole.setAttribute("x1", String(x));
+  pole.setAttribute("x2", String(x));
+  pole.setAttribute("y1", String(poleTop));
+  pole.setAttribute("y2", String(poleBottom));
+  pole.setAttribute("class", "finish-flag-pole");
+  g.appendChild(pole);
+
+  const bg = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+  bg.setAttribute("x", String(x));
+  bg.setAttribute("y", String(poleTop));
+  bg.setAttribute("width", String(flagW));
+  bg.setAttribute("height", String(flagH));
+  bg.setAttribute("class", "finish-flag-bg");
+  g.appendChild(bg);
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      if ((r + c) % 2 !== 0) {
+        continue;
+      }
+      const sq = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      sq.setAttribute("x", String(x + c * cell));
+      sq.setAttribute("y", String(poleTop + r * cell));
+      sq.setAttribute("width", String(cell));
+      sq.setAttribute("height", String(cell));
+      sq.setAttribute("class", "finish-flag-square");
+      g.appendChild(sq);
+    }
+  }
+
+  layer.appendChild(g);
+}
+
 function appendBarShape(layer, geom, colors) {
   const { item } = geom;
   const critical = item.is_critical;
@@ -482,6 +530,9 @@ function appendBarShape(layer, geom, colors) {
     if (critical) {
       circle.setAttribute("stroke", colors.critical);
       circle.setAttribute("stroke-width", "3");
+    }
+    if (item.type === "project_finish") {
+      appendFinishFlag(layer, geom.cx + geom.r + 3, geom.cy);
     }
     layer.appendChild(circle);
     return circle;
