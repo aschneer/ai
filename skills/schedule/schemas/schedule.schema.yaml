@@ -63,6 +63,8 @@ $defs:
         minLength: 1
       date:
         $ref: '#/$defs/iso_date'
+      predecessors:
+        $ref: '#/$defs/predecessors_optional'
 
   task_auto:
     type: object

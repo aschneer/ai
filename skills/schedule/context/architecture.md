@@ -27,7 +27,7 @@ The agent/library responsibility split is defined in **`prd.md`** § Agent vs de
 | Layer | Module | Purpose | On failure |
 |-------|--------|---------|------------|
 | **Structural** | `validate_lib.py` | JSON Schema — shape, required/forbidden fields, kinds | List every schema error; stop |
-| **Logical** | `logic_validate_lib.py` | IDs, predecessor refs, cycles, listing rules, milestone working days, pinned bounds, milestone reachability | List every logic error; stop |
+| **Logical** | `logic_validate_lib.py` | IDs, predecessor refs, cycles, listing rules, milestone working days, milestone deadline predecessors (FS-only) + deadline reachability, pinned bounds, milestone reachability | List every logic error; stop |
 | **Compute** | `compute_lib.py` | CPM forward pass | Assumes valid input; no warnings channel |
 
 Compute does not paper over bad data. Collect **all** validation errors before returning.
@@ -39,6 +39,7 @@ schedule: items: duplicate id 1: 'First' and 'Duplicate'
 schedule: item 5: predecessor 99: unknown task id
 schedule: milestone 13: date 2026-06-20 falls on a non-working day
 schedule: milestone 13: date 2026-06-20 cannot be reached — predecessor chain for item 14 finishes 2026-06-23
+schedule: milestone 50: deadline 2026-06-19 missed — predecessor 42 finishes 2026-06-24
 schedule: cyclic predecessor dependency: 1 → 2 → 1
 ```
 

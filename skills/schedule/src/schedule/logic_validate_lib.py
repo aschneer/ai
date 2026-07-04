@@ -23,6 +23,7 @@ def validate_schedule_logic(
     errors.extend(_check_duplicate_ids(items, by_id))
     errors.extend(_check_predecessor_references(items, by_id))
     errors.extend(_check_predecessor_listing(items))
+    errors.extend(_check_milestone_predecessors(items))
     errors.extend(_check_predecessor_format(items))
     errors.extend(_check_cyclic_dependencies(items, by_id))
     errors.extend(_check_coverage_segments(schedule_data.get("coverage", [])))
@@ -89,8 +90,6 @@ def _check_predecessor_references(
     """Every predecessor must reference an existing item ID."""
     errors: list[str] = []
     for raw, _parent_id in items:
-        if raw.get("kind") == "milestone":
-            continue
         item_id = raw.get("id")
         for pred_string in raw.get("predecessors", []):
             link = _parse_predecessor_or_none(pred_string)
@@ -107,8 +106,6 @@ def _check_predecessor_format(items: list[tuple[dict[str, Any], int | None]]) ->
     """Predecessor strings must parse."""
     errors: list[str] = []
     for raw, _parent_id in items:
-        if raw.get("kind") == "milestone":
-            continue
         item_id = raw.get("id")
         for pred_string in raw.get("predecessors", []):
             try:
@@ -158,6 +155,38 @@ def _check_predecessor_listing(items: list[tuple[dict[str, Any], int | None]]) -
                     f"exactly [\"{parent_id}SS\"]"
                 )
 
+    return errors
+
+
+def _check_milestone_predecessors(
+    items: list[tuple[dict[str, Any], int | None]],
+) -> list[str]:
+    """A milestone predecessor annotates a deadline: finish-to-start only, no lag.
+
+    The milestone's date stays authoritative — these links never move it — so a
+    lag or a non-FS link type would have no schedulable meaning. Self-references
+    and the project-start anchor (0) are also rejected.
+    """
+    errors: list[str] = []
+    for raw, _parent_id in items:
+        if raw.get("kind") != "milestone":
+            continue
+        item_id = raw.get("id")
+        for link in _parse_predecessors(raw.get("predecessors", [])):
+            if link.link_type != LinkType.FS or link.lag is not None:
+                errors.append(
+                    f"schedule: milestone {item_id}: predecessor must be a bare "
+                    f'"{link.task_id}FS" (finish-to-start, no lag)'
+                )
+            if link.task_id == item_id:
+                errors.append(
+                    f"schedule: milestone {item_id}: predecessor cannot reference itself"
+                )
+            if link.task_id == 0:
+                errors.append(
+                    f"schedule: milestone {item_id}: predecessor cannot reference "
+                    f"project start (id 0)"
+                )
     return errors
 
 
@@ -237,11 +266,11 @@ def _check_cyclic_dependencies(
     items: list[tuple[dict[str, Any], int | None]],
     by_id: dict[int, dict[str, Any]],
 ) -> list[str]:
-    """Predecessor graph must be acyclic among tasks and groups."""
+    """Predecessor graph must be acyclic among tasks, groups, and milestones."""
     graph: dict[int, list[int]] = {}
     for raw, _parent_id in items:
         kind = raw.get("kind")
-        if kind not in {"task", "group"}:
+        if kind not in {"task", "group", "milestone"}:
             continue
         item_id = raw.get("id")
         if not isinstance(item_id, int):

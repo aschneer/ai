@@ -177,6 +177,8 @@ def validate_milestone_reachability(
         if milestone.id == 0 or milestone.milestone_date is None:
             continue
 
+        errors.extend(_milestone_deadline_errors(milestone, ctx))
+
         violation = _worst_upstream_finish_for_milestone(milestone, ctx)
         if violation is None:
             continue
@@ -191,6 +193,28 @@ def validate_milestone_reachability(
             f"finishes {worst_finish}"
         )
 
+    return errors
+
+
+def _milestone_deadline_errors(
+    milestone: ScheduleItem,
+    ctx: SchedulingContext,
+) -> list[str]:
+    """A milestone's own predecessors must finish on or before its deadline date.
+
+    Milestone predecessors are annotation only (the date is fixed), so if the
+    feeding chain finishes after the date, the deadline is missed — a hard error.
+    """
+    errors: list[str] = []
+    for link in milestone.predecessors:
+        pred = ctx.by_id.get(link.task_id)
+        if pred is None or pred.finish is None:
+            continue
+        if pred.finish > milestone.milestone_date:
+            errors.append(
+                f"schedule: milestone {milestone.id}: deadline {milestone.milestone_date} "
+                f"missed — predecessor {link.task_id} finishes {pred.finish}"
+            )
     return errors
 
 
@@ -263,7 +287,7 @@ def _collect_upstream_predecessor_ids(
 def _schedule_item_from_raw(raw: dict[str, Any], parent_id: int | None) -> ScheduleItem:
     """Build one ScheduleItem from a YAML item dict."""
     kind = ItemKind(raw["kind"])
-    predecessors = parse_predecessors(raw.get("predecessors", [])) if kind != ItemKind.MILESTONE else []
+    predecessors = parse_predecessors(raw.get("predecessors", []))
     milestone_date = date.fromisoformat(raw["date"]) if kind == ItemKind.MILESTONE else None
     timing = raw.get("timing", "auto") if kind == ItemKind.TASK else "auto"
     pinned_start = date.fromisoformat(raw["start"]) if kind == ItemKind.TASK and "start" in raw else None
@@ -712,14 +736,39 @@ def _compute_critical_item_ids(
     critical_ids: set[int] = set()
     for terminal in _critical_terminal_items(ctx, project_finish):
         _collect_critical_chain(terminal, ctx, set(), critical_ids)
+    for milestone in _deadline_milestone_terminals(ctx):
+        _collect_critical_chain(milestone, ctx, set(), critical_ids)
     return frozenset(critical_ids)
+
+
+def _deadline_milestone_terminals(ctx: SchedulingContext) -> list[ScheduleItem]:
+    """Deadline milestones whose feeding chain lands exactly on the date (zero slack).
+
+    Such a milestone and its driving chain are critical for that deadline, even
+    when the chain does not set overall project finish.
+    """
+    return [
+        milestone
+        for milestone in ctx.milestones
+        if milestone.milestone_date is not None
+        and any(
+            (pred := ctx.by_id.get(link.task_id)) is not None
+            and pred.finish == milestone.milestone_date
+            for link in milestone.predecessors
+        )
+    ]
 
 
 def _critical_terminal_items(
     ctx: SchedulingContext,
     project_finish: date,
 ) -> list[ScheduleItem]:
-    """Tasks (preferably) whose finish equals project finish."""
+    """Tasks (preferably) whose finish equals project finish.
+
+    Deadline milestones (those with predecessors) are excluded from the fallback:
+    their criticality is decided by zero-slack seeding, not by having the latest
+    fixed date, so a slack deadline far in the future never counts as critical.
+    """
     terminals = [
         item
         for item in ctx.items
@@ -727,7 +776,13 @@ def _critical_terminal_items(
     ]
     if terminals:
         return terminals
-    return [item for item in ctx.items if item.is_scheduled and item.finish == project_finish]
+    return [
+        item
+        for item in ctx.items
+        if item.is_scheduled
+        and item.finish == project_finish
+        and not (item.kind == ItemKind.MILESTONE and item.predecessors)
+    ]
 
 
 def _collect_critical_chain(
@@ -781,6 +836,14 @@ def _driving_predecessor_ids(item: ScheduleItem, ctx: SchedulingContext) -> list
             latest_finish = max(child.finish for child in children)
             if latest_finish == item.finish:
                 ids.extend(child.id for child in children if child.finish == latest_finish)
+
+    if item.kind == ItemKind.MILESTONE and item.milestone_date is not None:
+        # A deadline milestone's feeder is driving only with zero slack: its
+        # finish lands exactly on the milestone date.
+        for link in item.predecessors:
+            pred = by_id.get(link.task_id)
+            if pred is not None and pred.finish == item.milestone_date:
+                ids.append(pred.id)
 
     seen: set[int] = set()
     unique: list[int] = []

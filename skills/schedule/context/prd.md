@@ -46,7 +46,8 @@ These are the product-level capabilities the data model must support, phrased as
 
 ### Dependencies
 
-- **DM7 — Dependencies on work and containers only.** Tasks and groups can depend on other items; milestones cannot depend on anything (they are fixed points others depend on). This reflects that a milestone is a target, not work to be scheduled.
+- **DM7 — Dependencies drive work and containers; on milestones they only annotate a deadline.** Tasks and groups depend on other items and the dependency **moves** them. A milestone's date is always authoritative, so a predecessor never moves it; a milestone predecessor is **annotation only** — it declares that a chain of work culminates in that fixed deadline (see DM17). This keeps a milestone a target, not work to be scheduled.
+- **DM17 — Milestones may mark a culminating deadline.** A milestone can list a **finish-to-start predecessor** (the last task of a chain) to show that the chain leads up to that fixed date. The link is drawn in the Gantt and, when the chain finishes exactly on the date (zero slack), the milestone and its driving chain are shown on the critical path. Because the date is fixed, the predecessor never reschedules the milestone; if the chain finishes **after** the date, the deadline is unreachable and validation fails (R18). Only finish-to-start, no lag — any other link type or a lag would have no schedulable meaning against a fixed point.
 - **DM8 — Microsoft Project link semantics.** Users express dependencies with the four standard MS Project link types (finish-to-start, start-to-start, finish-to-finish, start-to-finish) and optional lead/lag time, so the behavior matches what MS Project users expect.
 - **DM9 — Group acts as a local start.** When a group has dependencies, none of its children can start before the group does — a group behaves as a "local project start" for its subtree.
 - **DM15 — Self-anchoring items need no dependency.** A task that pins its own dates (a start, a finish, or a start-and-finish window) and a group (which derives its dates from its children) may omit predecessors; only a duration-only (`auto`) task requires a predecessor to place it. An item with no predecessors shows no dependency arrow in the Gantt, so the schedule can hold items that simply occupy space on the calendar (e.g. team availability) without visual clutter.
@@ -150,7 +151,7 @@ Groups and milestones have no user-entered duration — computed (group) or zero
 
 ### R5 — Predecessor relationships
 
-The user defines predecessor relationships using **Microsoft Project link semantics**: the four link types (FS, SS, FF, SF) with optional lead/lag, listing only **immediate** predecessors. Tasks and groups may carry predecessors; milestones do not (R11). Predecessors are required only for `auto` tasks, which need a dependency to anchor their dates — self-anchoring items (pinned tasks and groups) may omit them (DM15). The concrete string format, listing rules, and link-type meanings are defined in `data_model.md`.
+The user defines predecessor relationships using **Microsoft Project link semantics**: the four link types (FS, SS, FF, SF) with optional lead/lag, listing only **immediate** predecessors. Tasks and groups may carry predecessors; a milestone may carry a **finish-to-start, no-lag** predecessor as a deadline annotation only (DM17). Predecessors are required only for `auto` tasks, which need a dependency to anchor their dates — self-anchoring items (pinned tasks and groups) may omit them (DM15). The concrete string format, listing rules, and link-type meanings are defined in `data_model.md`.
 
 **Milestone predecessor equivalence (R11):** When a predecessor link targets a milestone, all link types resolve to that milestone's single `date`.
 

@@ -429,3 +429,59 @@ def test_coverage_passes_through_without_affecting_finish() -> None:
     assert with_coverage["project_finish"] == without["project_finish"]
     assert with_coverage["coverage"] == coverage
     assert without["coverage"] == []
+
+
+def _deadline_schedule(deadline: str) -> dict:
+    """A two-day task feeding a deadline milestone on the given date."""
+    return {
+        "items": [
+            {"kind": "milestone", "id": 0, "name": "Start", "date": "2026-06-09"},
+            {
+                "kind": "task",
+                "id": 1,
+                "name": "Work",
+                "timing": "auto",
+                "duration": "2d",
+                "predecessors": ["0FS"],
+            },
+            {
+                "kind": "milestone",
+                "id": 9,
+                "name": "Deadline",
+                "date": deadline,
+                "predecessors": ["1FS"],
+            },
+        ]
+    }
+
+
+def test_milestone_predecessor_does_not_move_milestone() -> None:
+    # Task finishes 2026-06-10; the deadline stays on its authored date.
+    result = compute_schedule(_deadline_schedule("2026-06-19"), CALENDAR)
+    by_id = {item.id: item for item in result.items}
+
+    assert by_id[1].finish == date(2026, 6, 10)
+    assert by_id[9].start == date(2026, 6, 19)
+    assert by_id[9].finish == date(2026, 6, 19)
+
+
+def test_zero_slack_deadline_marks_milestone_and_chain_critical() -> None:
+    # Task finishes exactly on the deadline date -> both critical.
+    result = compute_schedule(_deadline_schedule("2026-06-10"), CALENDAR)
+    assert critical_ids(result) == {0, 1, 9}
+
+
+def test_deadline_with_slack_is_not_critical() -> None:
+    # Chain finishes 2026-06-10, deadline nine days later -> nothing critical.
+    result = compute_schedule(_deadline_schedule("2026-06-19"), CALENDAR)
+    assert critical_ids(result) == set()
+
+
+def test_milestone_predecessor_serialized() -> None:
+    payload = computed_schedule_to_dict(
+        compute_schedule(_deadline_schedule("2026-06-10"), CALENDAR)
+    )
+    milestone = next(item for item in payload["items"] if item["id"] == 9)
+    assert milestone["predecessors"] == [
+        {"task_id": 1, "link_type": "FS", "lag": None}
+    ]

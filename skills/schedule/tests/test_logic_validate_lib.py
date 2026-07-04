@@ -392,3 +392,56 @@ def test_milestone_reachable_when_chain_finishes_before_milestone_date() -> None
     errors = validate_schedule_logic(schedule_data, CALENDAR)
 
     assert not any("cannot be reached" in error for error in errors)
+
+
+def _deadline_items(deadline_pred: str, deadline: str = "2026-06-19") -> list:
+    return [
+        {"kind": "milestone", "id": 0, "name": "Start", "date": "2026-06-09"},
+        {
+            "kind": "task",
+            "id": 1,
+            "name": "Work",
+            "timing": "auto",
+            "duration": "2d",
+            "predecessors": ["0FS"],
+        },
+        {
+            "kind": "milestone",
+            "id": 9,
+            "name": "Deadline",
+            "date": deadline,
+            "predecessors": [deadline_pred],
+        },
+    ]
+
+
+def test_milestone_deadline_missed_error() -> None:
+    # Task finishes 2026-06-16; deadline on 2026-06-10 is unreachable.
+    schedule_data = {"items": _deadline_items("1FS", deadline="2026-06-10")}
+    schedule_data["items"][1]["duration"] = "5d"
+
+    errors = validate_schedule_logic(schedule_data, CALENDAR)
+
+    assert any(
+        "milestone 9" in error and "missed" in error and "predecessor 1" in error
+        for error in errors
+    )
+
+
+def test_milestone_predecessor_must_be_fs() -> None:
+    errors = validate_schedule_logic({"items": _deadline_items("1SS")}, CALENDAR)
+    assert any(
+        "milestone 9" in error and "finish-to-start" in error for error in errors
+    )
+
+
+def test_milestone_predecessor_rejects_lag() -> None:
+    errors = validate_schedule_logic({"items": _deadline_items("1FS+2d")}, CALENDAR)
+    assert any(
+        "milestone 9" in error and "finish-to-start" in error for error in errors
+    )
+
+
+def test_milestone_valid_fs_predecessor_passes() -> None:
+    errors = validate_schedule_logic({"items": _deadline_items("1FS")}, CALENDAR)
+    assert errors == []

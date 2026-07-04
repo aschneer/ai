@@ -32,7 +32,7 @@ items:
 | **Purpose** | Pin a fixed date | Work that takes time | Roll-up container |
 | **Duration** | Zero (implicit) | User-entered (`4d`) | Derived from children |
 | **`date`** | User-set | Forbidden | Forbidden |
-| **Predecessors** | Forbidden | Required for `auto`; optional for pinned modes | Optional |
+| **Predecessors** | Optional; deadline annotation only (FS, no lag) | Required for `auto`; optional for pinned modes | Optional |
 | **Children** | Forbidden | Forbidden | Required (min 1) |
 
 ### Field constraints
@@ -46,7 +46,7 @@ items:
 | `timing` | forbidden | required | forbidden |
 | `duration` | forbidden | conditional | forbidden |
 | `start` / `finish` | forbidden | conditional | forbidden |
-| `predecessors` | forbidden | conditional | optional |
+| `predecessors` | optional (FS only, no lag) | conditional | optional |
 | `children` | forbidden | forbidden | required (min 1) |
 
 ### Field order
@@ -110,8 +110,18 @@ When an item **has** predecessors, list them by these rules (a self-anchoring it
 | Child, no other preds | `["{parentId}SS"]` |
 | Has specific preds | Those only — never include `0FS` |
 | Self-anchoring (pinned task / group), no dependency | Omit `predecessors` |
+| Milestone deadline (culminating chain) | The last task, FS only, no lag: `["{taskId}FS"]` |
 
 Only **immediate** predecessors. No transitive chain.
+
+### Milestone deadline predecessors
+
+A milestone may list a predecessor to mark that a chain of work **culminates in that fixed date** (a deadline). The rules are narrower than for tasks and groups:
+
+- **Finish-to-start only, no lag** — e.g. `["42FS"]`. Any other link type, or a lag, is a validation error: the milestone's `date` is authoritative, so the link has no schedulable meaning and would only mislead.
+- **Never `0FS`, never self-referential.**
+- **Annotation only** — the predecessor never moves the milestone. It draws the dependency link in the Gantt and, when the chain finishes exactly on the date (zero slack), puts the milestone and its driving chain on the critical path.
+- **Deadline enforcement** — if the predecessor chain finishes **after** the milestone date, the deadline is unreachable and validation fails (a hard error; see `prd.md` R18 / DM17).
 
 ### Link types
 
@@ -239,17 +249,24 @@ items:
     timing: auto
     duration: 2d
     predecessors: ["22FS+3d"]
+
+  # Deadline milestone: the press release culminates in a launch date.
+  - kind: milestone
+    id: 50
+    name: Launch deadline
+    date: 2026-06-19
+    predecessors: ["42FS"]
 ```
 
 ## Invalid examples
 
 ```yaml
 items:
-  # milestone: no predecessors, duration, or children
+  # milestone: no name; predecessor must be FS with no lag (SS is invalid)
   - kind: milestone
     id: 99
     date: 2026-06-15
-    predecessors: ["12FS"]
+    predecessors: ["12SS"]
 
   # task: no date
   - kind: task
