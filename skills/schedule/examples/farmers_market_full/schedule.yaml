@@ -1028,6 +1028,40 @@ items:
     predecessors:
     - 194FS
 - kind: group
+  id: 220
+  name: Next-season planning
+  predecessors:
+  - 195FS
+  children:
+  - kind: task
+    id: 221
+    name: Secure next-season site lease renewal
+    timing: auto
+    duration: 3w
+    predecessors:
+    - 220SS
+  - kind: task
+    id: 222
+    name: Refresh vendor prospectus and pricing
+    timing: auto
+    duration: 2w
+    predecessors:
+    - 221FS
+  - kind: task
+    id: 223
+    name: Open early-bird vendor applications
+    timing: auto
+    duration: 4w
+    predecessors:
+    - 222FS
+  - kind: task
+    id: 224
+    name: Draft next-season marketing calendar
+    timing: auto
+    duration: 3w
+    predecessors:
+    - 223FS
+- kind: group
   id: 210
   name: Team availability
   children:
@@ -1045,8 +1079,8 @@ items:
     duration: 2w
 - kind: milestone
   id: 105
-  name: Season close
-  date: 2026-10-30
+  name: Next season ready
+  date: 2027-01-22
   type: project_finish
   predecessors:
-  - 195FS
+  - 224FS
