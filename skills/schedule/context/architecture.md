@@ -98,6 +98,10 @@ Every bar, milestone, and coverage segment shows a hover tooltip. Content by kin
 
 A subtle vertical line (`.gantt-crosshair`, PRD **R30**) follows the cursor across the plot so a bar can be lined up with the date header. It is one `position: fixed` element bound once on `.gantt` and driven by `clientX` — being fixed and cursor-relative, it needs no scroll math (the line sits under the cursor regardless of scroll offset). It hides over the sticky label column (`clientX` within `--label-width` of the container's left edge) and whenever the cursor leaves the plot.
 
+### Current-date indicator
+
+An amber vertical line labeled "Today" (`.today-line` / `.today-tag`, PRD **R31**) marks the current date. It is drawn **inside the timeline SVG** (its own `<g class="today">` layer, under the bars) at `edges[todayOffset]` — the same master-grid lookup as every bar, so it aligns with the date header and scrolls with the content. `todayColumnOffset()` computes today from `new Date()` **at render time** (today is a property of *when the chart is viewed*, not a compute-time value, so it is never baked into `gantt_data.json`) and returns `null` when today falls outside `[range.start, range.end]`. Because `dateRange()` derives the axis only from item and coverage dates, today never extends the range — an out-of-range today simply draws nothing, and a schedule opened long after it ended keeps its own width.
+
 ---
 
 ## Module layout

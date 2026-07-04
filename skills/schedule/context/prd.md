@@ -305,6 +305,10 @@ Hovering any bar, milestone, or coverage segment in the Gantt shows a tooltip. C
 
 While the cursor is over the plot area (the bars, not the left-hand label column), the Gantt shows a **subtle vertical line** that follows the cursor, so the user can line a bar up with the date header — as on a stock-price chart. The line spans the visible plot height and disappears when the cursor is over the label column or leaves the plot.
 
+### R31 — Current-date indicator
+
+When **today** falls within the schedule's date range, the Gantt marks it with a distinct vertical line (labeled "Today") spanning the plot height, so the user can see where the project stands against the calendar. The current date is determined **at view time**, not at compute — the line reflects the real date whenever the chart is opened. When today falls **outside** the range (the schedule is entirely past or entirely future), no indicator is shown and **the date axis is not extended** to reach today — a schedule opened long after it ended stays at its own width, not stretched across the intervening months.
+
 ### R25 — Critical path
 
 The engine identifies items on the critical path. With a designated project-finish milestone (DM18) the critical path is the zero-slack chain feeding it (empty when the work has buffer); otherwise it is the longest path driving the computed **project finish**. The user sees critical items in the **Gantt** and in **computed output** (for reports and agent summaries).

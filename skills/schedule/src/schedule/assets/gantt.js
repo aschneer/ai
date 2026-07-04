@@ -318,7 +318,20 @@ function chartColors() {
     milestone: token("milestone"),
     critical: token("critical"),
     link: token("link"),
+    today: token("today"),
   };
+}
+
+function todayColumnOffset(rangeStart, rangeEnd) {
+  // Today is a property of *when the chart is viewed*, computed here rather than
+  // baked into the data at compute time. Returns null when today falls outside
+  // the schedule range — the range is never stretched to include it.
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  if (today < rangeStart || today > rangeEnd) {
+    return null;
+  }
+  return Math.round((today - rangeStart) / (1000 * 60 * 60 * 24));
 }
 
 function spanMetrics(startValue, finishValue, rangeStart, totalDays) {
@@ -516,7 +529,7 @@ function appendBarShape(layer, geom, colors) {
   return rect;
 }
 
-function renderTimelineSvg(items, rowEntries, container, edges) {
+function renderTimelineSvg(items, rowEntries, container, edges, range) {
   const drawable = rowEntries.filter((entry) => entry.metrics);
   if (!drawable.length) {
     return;
@@ -593,8 +606,43 @@ function renderTimelineSvg(items, rowEntries, container, edges) {
     }
   }
 
-  svg.append(barLayer, linkLayer);
+  const headerRow = container.querySelector(".row.header");
+  const plotTop = headerRow
+    ? headerRow.getBoundingClientRect().bottom - containerRect.top
+    : 0;
+
+  const todayLayer = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  todayLayer.setAttribute("class", "today");
+  appendTodayLine(todayLayer, range, edges, plotTop, containerHeight, colors);
+
+  svg.append(todayLayer, barLayer, linkLayer);
   container.appendChild(svg);
+}
+
+function appendTodayLine(layer, range, edges, plotTop, height, colors) {
+  const offsetDays = todayColumnOffset(range.start, range.end);
+  if (offsetDays == null || !edges.length) {
+    return;
+  }
+  const x = edges[Math.min(offsetDays, edges.length - 1)];
+
+  // Draw only below the header row; the header is opaque and would hide the tag.
+  const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  line.setAttribute("class", "today-line");
+  line.setAttribute("x1", String(x));
+  line.setAttribute("x2", String(x));
+  line.setAttribute("y1", String(plotTop));
+  line.setAttribute("y2", String(height));
+  line.setAttribute("stroke", colors.today);
+  layer.appendChild(line);
+
+  const tag = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  tag.setAttribute("class", "today-tag");
+  tag.setAttribute("x", String(x + 4));
+  tag.setAttribute("y", String(plotTop + 12));
+  tag.setAttribute("fill", colors.today);
+  tag.textContent = "Today";
+  layer.appendChild(tag);
 }
 
 function renderRow(item, byId, rangeStart, totalDays, collapsible) {
@@ -806,7 +854,7 @@ function renderGantt(data) {
   });
 
   updateCollapseAllButton(collapsible);
-  renderTimelineSvg(visibleItems, rowEntries, root, edges);
+  renderTimelineSvg(visibleItems, rowEntries, root, edges, range);
   appendLabelColumnResizer(root);
 
   if (ganttScroller) {
