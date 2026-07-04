@@ -117,7 +117,7 @@
       display: grid;
       grid-template-columns: var(--label-width) 1fr;
       border-bottom: 1px solid var(--color-border);
-      min-height: 2rem;
+      min-height: 1.5rem;
       background: var(--color-surface);
     }
     .row.header {
@@ -204,7 +204,7 @@
       z-index: 10;
       display: flex;
       align-items: center;
-      padding: 0.35rem 0.75rem;
+      padding: 0.1rem 0.75rem;
       padding-left: calc(var(--label-indent, 0.75rem) + var(--toggle-w));
       border-right: 1px solid var(--color-border);
       white-space: nowrap;
@@ -213,13 +213,23 @@
       background: var(--color-surface);
     }
     .label .item-name {
-      display: block;
+      min-width: 0;
+      flex: 1;
       overflow: hidden;
       text-overflow: ellipsis;
     }
+    /* Name and dates share one line: name flexes and truncates first, dates sit
+       to the right, dimmed and un-shrinking, so each row is one line tall. */
     .label-text {
       min-width: 0;
       flex: 1;
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      overflow: hidden;
+    }
+    .label-text .dates {
+      flex-shrink: 0;
     }
     .row-toggle {
       position: absolute;
@@ -446,8 +456,9 @@
     .timeline-svg .finish-flag-square {
       fill: var(--color-text);
     }
-    /* Today line overlay: its own SVG above every row (incl. a locked context
-       band) so the line is never painted over. Below the crosshair/tooltip. */
+    /* Today line overlay: its own SVG above every row, including a locked
+       context band (z-index above it). It is clip-pathed in JS so it never
+       paints over the sticky label pane. Below the crosshair/tooltip. */
     .today-overlay {
       position: absolute;
       top: 0;
@@ -455,7 +466,7 @@
       right: 0;
       height: 100%;
       pointer-events: none;
-      z-index: 13;
+      z-index: 17;
       overflow: visible;
     }
     .today-overlay .today-line {

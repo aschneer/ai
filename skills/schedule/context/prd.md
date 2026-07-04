@@ -309,6 +309,26 @@ While the cursor is over the plot area (the bars, not the left-hand label column
 
 When **today** falls within the schedule's date range, the Gantt marks it with a distinct vertical line (labeled "Today") spanning the plot height, so the user can see where the project stands against the calendar. The current date is determined **at view time**, not at compute — the line reflects the real date whenever the chart is opened. When today falls **outside** the range (the schedule is entirely past or entirely future), no indicator is shown and **the date axis is not extended** to reach today — a schedule opened long after it ended stays at its own width, not stretched across the intervening months.
 
+**Layering and scroll behavior:**
+
+- The today line draws **on top of every row**, including a locked people/events band (R32) — it is never occluded by content.
+- The line is confined to the **timeline area**: it must never draw over the left-hand label column. When today's column scrolls horizontally behind the label column, the line is clipped away there and disappears entirely once fully behind it.
+- The line stays below the sticky date-scale header/annotation lane — it does not cross the date scale.
+- The "Today" label sits in the annotation lane (R32), pinned under the date header, so it stays visible on vertical scroll.
+
+### R32 — People/events section: collapse and lock
+
+The people/events context band (R28) has two viewer controls, both hosted in a thin **annotation lane** pinned directly under the date-scale header (so they remain visible while scrolling, and the band can be toggled without scrolling back to the top):
+
+- **Collapse** — a toggle that hides all people and events rows, leaving only the lane; expanding restores them. Default expanded.
+- **Lock** — a toggle that pins the whole band (people rows, then events rows) directly below the header while the schedule scrolls vertically; one lock covers both bands. When the band is collapsed, the lock control is not shown.
+
+The lane also displays a distinct **"Context"** section label so the band reads as chrome, not a schedule item.
+
+### R33 — Compact rows
+
+Each schedule row is **one line tall**: the item name and its date range share a single line (name truncates first when space is tight; the full name is available on hover), and dates use a compact **`mm/dd/yy`** form in the label. Full `mm/dd/yyyy` dates remain in the hover tooltip (R29). This keeps the maximum number of rows visible without hiding any information.
+
 ### R25 — Critical path
 
 The engine identifies items on the critical path. With a designated project-finish milestone (DM18) the critical path is the zero-slack chain feeding it (empty when the work has buffer); otherwise it is the longest path driving the computed **project finish**. The user sees critical items in the **Gantt** and in **computed output** (for reports and agent summaries).

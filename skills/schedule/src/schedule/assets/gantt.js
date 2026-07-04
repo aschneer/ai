@@ -64,17 +64,19 @@ function itemDepth(item, byId) {
   return level;
 }
 
+function shortDate(iso) {
+  const [year, month, day] = iso.split("-");
+  return `${month}/${day}/${year.slice(2)}`;
+}
+
 function dateLabel(item) {
   if (!item.start || !item.finish) {
     return "—";
   }
-  if (item.kind === "milestone") {
-    return item.start;
+  if (item.kind === "milestone" || item.start === item.finish) {
+    return shortDate(item.start);
   }
-  if (item.start === item.finish) {
-    return item.start;
-  }
-  return `${item.start} → ${item.finish}`;
+  return `${shortDate(item.start)} → ${shortDate(item.finish)}`;
 }
 
 function formatDate(iso) {
@@ -699,6 +701,21 @@ function renderTodayOverlay(container, range, edges, colors) {
   line.setAttribute("stroke", colors.today);
   svg.appendChild(line);
   container.appendChild(svg);
+
+  // The overlay is drawn above every row (including a locked context band) via a
+  // high z-index, but that means it would also paint over the sticky label pane
+  // when today's column scrolls behind it. Clip away the leftmost `scrollLeft`
+  // of the overlay — exactly the region the pane covers — so the line never
+  // shows in the pane and disappears once fully behind it.
+  const scroller = document.querySelector(".gantt");
+  const clip = () => {
+    const scrollLeft = scroller ? scroller.scrollLeft : 0;
+    svg.style.clipPath = `inset(0 0 0 ${scrollLeft}px)`;
+  };
+  clip();
+  if (scroller) {
+    scroller.addEventListener("scroll", clip);
+  }
 }
 
 function renderTodayTag(gutterTimeline, range, edges) {
