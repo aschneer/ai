@@ -116,17 +116,17 @@ def test_farmers_market_full_demo_passes_validation() -> None:
     assert validate_calendar_file(calendar_path, calendar_data) == []
 
 
-def _validate_coverage(coverage: list) -> list[str]:
-    """Run schema and logic validation on a minimal schedule with the given coverage."""
+def _validate_context(section: str, bands: list) -> list[str]:
+    """Run schema and logic validation on a minimal schedule with the given band."""
     schedule = _schedule()
-    schedule["coverage"] = coverage
+    schedule[section] = bands
     errors = validate_schedule_file(Path("schedule.yaml"), schedule)
     errors.extend(validate_schedule_logic(schedule, CALENDAR))
     return errors
 
 
-def test_wellformed_coverage_validates() -> None:
-    coverage = [
+def test_wellformed_people_validates() -> None:
+    people = [
         {
             "name": "Maria",
             "segments": [
@@ -135,18 +135,28 @@ def test_wellformed_coverage_validates() -> None:
             ],
         }
     ]
-    assert _validate_coverage(coverage) == []
+    assert _validate_context("people", people) == []
 
 
-def test_coverage_segments_may_span_weekends() -> None:
-    coverage = [
+def test_wellformed_events_validates() -> None:
+    events = [
+        {
+            "name": "Company",
+            "segments": [{"start": "2026-05-25", "finish": "2026-05-25", "label": "Holiday"}],
+        }
+    ]
+    assert _validate_context("events", events) == []
+
+
+def test_context_segments_may_span_weekends() -> None:
+    people = [
         {"name": "Sam", "segments": [{"start": "2026-05-16", "finish": "2026-05-17", "label": "Vacation"}]}
     ]
-    assert _validate_coverage(coverage) == []
+    assert _validate_context("people", people) == []
 
 
-def test_overlapping_coverage_segments_rejected() -> None:
-    coverage = [
+def test_overlapping_people_segments_rejected() -> None:
+    people = [
         {
             "name": "Maria",
             "segments": [
@@ -155,27 +165,41 @@ def test_overlapping_coverage_segments_rejected() -> None:
             ],
         }
     ]
-    errors = _validate_coverage(coverage)
-    assert any("overlap" in error for error in errors)
+    errors = _validate_context("people", people)
+    assert any("overlap" in error and "people" in error for error in errors)
 
 
-def test_coverage_segment_start_after_finish_rejected() -> None:
-    coverage = [
+def test_overlapping_events_segments_rejected() -> None:
+    events = [
+        {
+            "name": "Company",
+            "segments": [
+                {"start": "2026-05-11", "finish": "2026-05-15", "label": "A"},
+                {"start": "2026-05-15", "finish": "2026-05-18", "label": "B"},
+            ],
+        }
+    ]
+    errors = _validate_context("events", events)
+    assert any("overlap" in error and "events" in error for error in errors)
+
+
+def test_context_segment_start_after_finish_rejected() -> None:
+    people = [
         {"name": "Sam", "segments": [{"start": "2026-05-20", "finish": "2026-05-15", "label": "X"}]}
     ]
-    errors = _validate_coverage(coverage)
+    errors = _validate_context("people", people)
     assert any("after finish" in error for error in errors)
 
 
-def test_coverage_segment_requires_label() -> None:
-    coverage = [
+def test_context_segment_requires_label() -> None:
+    people = [
         {"name": "Sam", "segments": [{"start": "2026-05-11", "finish": "2026-05-15"}]}
     ]
-    errors = _validate_coverage(coverage)
+    errors = _validate_context("people", people)
     assert errors, "segment without a label must be rejected by the schema"
 
 
-def test_schedule_without_coverage_is_valid() -> None:
+def test_schedule_without_context_is_valid() -> None:
     schedule = _schedule(
         {
             "kind": "task",
@@ -186,5 +210,6 @@ def test_schedule_without_coverage_is_valid() -> None:
             "predecessors": ["0FS"],
         }
     )
-    assert "coverage" not in schedule
+    assert "people" not in schedule
+    assert "events" not in schedule
     assert validate_schedule_file(Path("schedule.yaml"), schedule) == []

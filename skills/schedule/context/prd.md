@@ -63,7 +63,7 @@ These are the product-level capabilities the data model must support, phrased as
 - **DM12 — Stable identifiers.** Each item has a permanent identifier that does not change when items are reordered, so dependencies stay valid as the schedule evolves.
 - **DM13 — User-controlled ordering.** The order of items in the schedule is controlled by the user and agent (and drives the order rows appear in the Gantt); the tool never reorders the user's file.
 - **DM14 — The file is the source of truth.** The tool reads the schedule and writes only generated output; it never edits the user's schedule or calendar files.
-- **DM16 — Coverage is decorative availability, not schedule data.** A user can record personnel availability (out of office, traveling, on vacation) as labeled date-range segments, one band per person, shown alongside the Gantt. Coverage is pure annotation: it carries no identifiers or dependencies and never affects task scheduling, the critical path, or project finish. Segments for a person do not overlap and may fall on any calendar day.
+- **DM16 — People and events are decorative context, not schedule data.** A user can record two kinds of context alongside the Gantt: **people** (personnel availability — out of office, traveling, on vacation, work location, one band per person) and **events** (calendar context not tied to a person — company events, holidays of note, external dates). Both use labeled date-range segments and are pure annotation: they carry no identifiers or dependencies and never affect task scheduling, the critical path, or project finish. Segments within a band do not overlap and may fall on any calendar day.
 
 Concrete realization of all of the above — field names, allowed/forbidden fields per kind, predecessor string format, listing rules, and worked examples — is in **`data_model.md`**.
 
@@ -277,25 +277,25 @@ The schedule must be viewable as a **Gantt chart**:
 
 Generated viewer artifacts are written into **`site/`** under the project directory (not beside the YAML source files). Implementation details: `architecture.md`.
 
-### R28 — Coverage band
+### R28 — People and events bands
 
-When a schedule declares **coverage** (DM16), the Gantt shows it as a band above the schedule rows:
+When a schedule declares **people** and/or **events** context (DM16), the Gantt shows them as bands above the schedule rows:
 
-- One row per person, with labeled segments positioned on the same timeline
-- A distinct color (in the legend) and truncated labels; segments show a **hover tooltip** (content per **R29**)
-- The date axis extends to include coverage segments that fall outside the task range
-- A control to **lock** the band below the header so it stays visible while scrolling
-- Coverage is decorative — it never changes computed dates, the critical path, or project finish
+- People rows on top, events rows below; each a row with labeled segments on the same timeline
+- Two distinct colors (in the legend) and truncated labels; segments show a **hover tooltip** (content per **R29**)
+- The date axis extends to include context segments that fall outside the task range
+- A single control to **lock** both bands below the header so they stay visible while scrolling
+- Both are decorative — they never change computed dates, the critical path, or project finish
 
 ### R29 — Bar hover tooltips
 
-Hovering any bar, milestone, or coverage segment in the Gantt shows a tooltip. Content by type:
+Hovering any bar, milestone, or context segment in the Gantt shows a tooltip. Content by type:
 
 | Hovered element | Line 1 | Line 2 | Line 3 |
 |-----------------|--------|--------|--------|
 | **Task** or **group** bar | item name | working-day count (e.g. `5 working days`) | calendar-day count (e.g. `7 calendar days`) |
 | **Milestone** | milestone name | date | — |
-| **Coverage** segment | person/row name (left-pane label) | segment label (text on the bar) | date range |
+| **People/events** segment | band name (left-pane label) | segment label (text on the bar) | date range |
 
 - Dates use **`mm/dd/yyyy`**; a date range is **`mm/dd/yyyy-mm/dd/yyyy`**.
 - Task and group tooltips show **both** the working-day and calendar-day count (they differ when a bar spans weekends or holidays); working days exclude non-working days per the calendar.

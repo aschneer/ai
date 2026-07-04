@@ -175,7 +175,7 @@ Position **everything from one source of truth: the rendered header day columns.
 - **One knob — `--day-w`.** A single CSS variable defines a day column's width. Header grid is `repeat(--day-count, var(--day-w))` — **no `minmax` floor**. Timeline and `.gantt-inner` width derive from it.
 - **Day-index metrics.** `spanMetrics()` returns integer `{offsetDays, spanDays}`; no percentages, no per-item pixels.
 - **Measured edges.** `dayColumnEdges()` reads each painted column's actual left edge (plus final right) into `edges[0..N]` once per render, after the header is in the DOM.
-- **One placement formula.** Bars, group brackets, milestones (`barGeometry()`), and coverage segments (`renderCoverageSegment()`) all map `offsetDays…offsetDays+spanDays` through `edges`. The SVG width is `edges[last]`. No graphic computes its own scale.
+- **One placement formula.** Bars, group brackets, milestones (`barGeometry()`), and context segments (`renderContextSegment()`) all map `offsetDays…offsetDays+spanDays` through `edges`. The SVG width is `edges[last]`. No graphic computes its own scale.
 
 ### Rationale
 
@@ -243,3 +243,35 @@ Choosing feeder-actual-finish over the milestone date as the reported finish is 
 ### Revisit if
 
 Multiple project-finish milestones are ever wanted (currently capped at one), or if users need the reported finish to equal the committed deadline rather than the actual work end — that would be a different product stance (deadline-as-finish) and should be a deliberate reversal, not a drift.
+
+---
+
+## ADR-006 — Split "coverage" into "people" and "events"
+
+**Date:** 2026-07-04  
+**Status:** Accepted
+
+### Context
+
+The original `coverage` band held only personnel availability (vacations, out-of-office, work location). Users also want non-project calendar context that isn't tied to a person — company events, holidays of note, external dates — so a viewer understands what else is happening around the schedule. The name "coverage" was narrow and did not capture that second category.
+
+### Decision
+
+Replace the single `coverage` key with **two top-level keys, `people` and `events`**, of identical shape (`{name, segments: [{start, finish, label}]}`).
+
+- **No container key, no per-band `kind`** — the top-level key *is* the type, so the shared shape needs no discriminator and the YAML stays flat.
+- **One shared lock**: the lock toggle pins both bands (people rows, then events rows) below the header. Independent per-band locks were considered and rejected as not worth the sticky-stack and z-order complexity (YAGNI — the sub-typed data already partitions cleanly, so splitting the lock later is a viewer-only change).
+- **Render order**: people on top, events below; two legend colors (people teal `--color-people`, events slate `--color-events`).
+- Internally the shared render/validation mechanics use a neutral **`context`** term (`renderContextRow`, `_check_context_segments`, `.context-*` CSS); this is code-only and not user-facing.
+
+### Rationale
+
+Two flat keys beat a container + `kind` because the bands share one shape — a discriminator field would be pure ceremony. The name problem ("what umbrella term covers people *and* events?") disappears entirely: there is no umbrella, just two well-named keys. "Events" is the catch-all for any non-person context, so the two keys are exhaustive by construction.
+
+### Trade-offs
+
+**Pros:** Clearer intent (people vs events), two colors, exhaustive partition, no jargon umbrella term, minimal schema (two arrays sharing one entry def). **Cons:** Breaking rename — existing `coverage:` files must become `people:`. Acceptable: this is a skill, so all in-repo examples/fixtures/tests were migrated in the same change; no external data to migrate.
+
+### Revisit if
+
+Users need independent lock/scroll behavior per band (then split the one lock — data already supports it), or a third context category emerges that fits neither people nor events (add a third top-level key of the same shape).

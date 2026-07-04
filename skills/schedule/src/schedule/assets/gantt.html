@@ -92,7 +92,8 @@
       border-radius: 50%;
       background: var(--color-milestone);
     }
-    .legend-swatch.coverage { background: var(--color-coverage); }
+    .legend-swatch.people { background: var(--color-people); }
+    .legend-swatch.events { background: var(--color-events); }
     .error {
       flex-shrink: 0;
       margin: 0.5rem 1.25rem;
@@ -308,28 +309,28 @@
       position: absolute;
       inset: 0.3rem 0;
     }
-    .coverage-track {
+    .context-track {
       position: absolute;
       top: 0.3rem;
       bottom: 0.3rem;
       left: var(--timeline-gutter);
       right: 0;
     }
-    .row.coverage-last {
+    .row.context-last {
       border-bottom: 3px solid var(--color-border-strong);
     }
-    .row.coverage-locked {
+    .row.context-locked {
       position: sticky;
       z-index: 12;
     }
-    .row.coverage-locked .label {
+    .row.context-locked .label {
       z-index: 12;
     }
-    .label.coverage .item-name {
+    .label.context .item-name {
       min-width: 0;
       flex: 1;
     }
-    .coverage-lock {
+    .context-lock {
       margin-left: auto;
       padding: 0 0.15rem 0 0.35rem;
       border: none;
@@ -339,7 +340,7 @@
       line-height: 1;
       flex-shrink: 0;
     }
-    .coverage-segment {
+    .context-segment {
       position: absolute;
       top: 0;
       bottom: 0;
@@ -347,12 +348,17 @@
       align-items: center;
       padding: 0 0.4rem;
       border-radius: 3px;
-      background: var(--color-coverage);
       color: #ffffff;
       font-size: 0.7rem;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+    .context-segment.people {
+      background: var(--color-people);
+    }
+    .context-segment.events {
+      background: var(--color-events);
     }
     .gantt-tooltip {
       position: fixed;
@@ -415,7 +421,7 @@
     .timeline-svg .finish-flag-square {
       fill: var(--color-text);
     }
-    /* Today line overlay: its own SVG above every row (incl. a locked coverage
+    /* Today line overlay: its own SVG above every row (incl. a locked context
        band) so the line is never painted over. Below the crosshair/tooltip. */
     .today-overlay {
       position: absolute;
@@ -482,7 +488,8 @@
       <span class="legend-item"><span class="legend-swatch critical-outline"></span> Critical path</span>
       <span class="legend-item"><span class="legend-swatch group"></span> Group</span>
       <span class="legend-item"><span class="legend-swatch milestone"></span> Milestone</span>
-      <span class="legend-item"><span class="legend-swatch coverage"></span> Coverage</span>
+      <span class="legend-item"><span class="legend-swatch people"></span> People</span>
+      <span class="legend-item"><span class="legend-swatch events"></span> Events</span>
     </div>
   </header>
   <p id="error" class="error" hidden></p>

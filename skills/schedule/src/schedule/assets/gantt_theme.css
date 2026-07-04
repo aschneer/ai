@@ -33,7 +33,8 @@
   --color-group: #1a2332;
   --color-milestone: #9333ea;
   --color-critical: #d84315;
-  --color-coverage: #2a9d8f;
+  --color-people: #2a9d8f;
+  --color-events: #64748b;
   --color-today: #d97706;
 
   /* Dependencies & chrome */
@@ -46,7 +47,7 @@
   /* Layout (non-color) */
   --label-width: 16rem;
   /* Width of a single day column. Master grid: header day columns, task bars,
-     coverage bars, and milestones are all positioned against this one value,
+     context bars, and milestones are all positioned against this one value,
      so they always align. Future horizontal zoom / fit-to-viewport works by
      changing this variable alone. */
   --day-w: 1.15rem;

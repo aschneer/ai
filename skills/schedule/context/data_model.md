@@ -4,14 +4,18 @@
 
 ## Schedule file header
 
-Top-level keys in order: `calendar` (path relative to schedule file), optional `coverage` (see [Coverage](#coverage)), then `items`:
+Top-level keys in order: `calendar` (path relative to schedule file), optional `people` and `events` (see [People and events](#people-and-events)), then `items`:
 
 ```yaml
 calendar: calendar.yaml
-coverage:            # optional; must appear above items
+people:              # optional; must appear above items
   - name: Maria
     segments:
       - {start: 2026-06-15, finish: 2026-06-26, label: On vacation}
+events:              # optional; must appear above items
+  - name: Company
+    segments:
+      - {start: 2026-07-04, finish: 2026-07-04, label: Independence Day}
 items:
   - kind: milestone
     id: 0
@@ -198,12 +202,15 @@ The order of items in the file is controlled by the user and agent — the engin
 - A predecessor, when present, constrains when children may start (local project start)
 - An `auto` child with no real dependency uses `{parentId}SS`; a pinned child with no dependency omits `predecessors`
 
-## Coverage
+## People and events
 
-Optional decorative availability bands drawn above the schedule — one horizontal line per person, split into labeled date-range segments. **Pure annotation:** coverage has no IDs and no predecessors, and never affects scheduling, the critical path, or project finish. It lives under the root `coverage` key, which must appear **above** `items`.
+Two optional decorative bands drawn above the schedule — labeled date-range segments that give a viewer context without affecting the schedule. **Pure annotation:** neither has IDs or predecessors, and neither affects scheduling, the critical path, or project finish. Both use the **identical shape** (`name` + `segments`) and both must appear **above** `items`.
+
+- **`people`** — one row per person: availability, vacation, out-of-office, work location by date.
+- **`events`** — calendar context not tied to a person: company events, holidays of note, external dates.
 
 ```yaml
-coverage:
+people:
   - name: Maria
     segments:
       - {start: 2026-05-11, finish: 2026-05-15, label: Out of office}
@@ -211,13 +218,18 @@ coverage:
   - name: Dev
     segments:
       - {start: 2026-05-04, finish: 2026-05-29, label: Traveling}
+events:
+  - name: Company
+    segments:
+      - {start: 2026-07-04, finish: 2026-07-04, label: Independence Day}
+      - {start: 2026-09-19, finish: 2026-09-20, label: County fair}
 ```
 
-- Each entry: `name` (person) and `segments` (min 1).
+- Each entry: `name` and `segments` (min 1).
 - Each segment: `start`, `finish`, `label` — **all required**.
 - Segments use **any calendar day** (weekends and holidays allowed, unlike task durations); `finish` is **inclusive**.
-- Segments for one person **must not overlap** — a hard validation error.
-- The viewer extends its date axis to include coverage, and offers a lock toggle to pin the band below the header while scrolling.
+- Segments within one band **must not overlap** — a hard validation error.
+- The viewer renders **people rows on top, events below**, in two distinct colors (see the legend), extends its date axis to include both, and offers a single lock toggle that pins both bands below the header while scrolling.
 
 ## Calendar file
 

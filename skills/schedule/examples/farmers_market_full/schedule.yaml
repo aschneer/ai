@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=../../schemas/schedule.schema.yaml
 calendar: calendar.yaml
-coverage:
+people:
 - name: Maria (Ops Lead)
   segments:
   - {start: 2026-05-11, finish: 2026-05-15, label: Out of office}
@@ -10,6 +10,12 @@ coverage:
   segments:
   - {start: 2026-05-04, finish: 2026-05-29, label: Traveling — vendor outreach}
   - {start: 2026-07-06, finish: 2026-07-10, label: Conference}
+events:
+- name: Company
+  segments:
+  - {start: 2026-05-25, finish: 2026-05-25, label: Memorial Day (holiday)}
+  - {start: 2026-07-04, finish: 2026-07-04, label: Independence Day (holiday)}
+  - {start: 2026-09-19, finish: 2026-09-20, label: County fair}
 items:
 - kind: milestone
   id: 0

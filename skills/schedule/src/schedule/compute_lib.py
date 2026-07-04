@@ -51,7 +51,8 @@ class ComputedSchedule:
 
     items: list[ScheduleItem]
     project_finish: date | None
-    coverage: list[dict[str, Any]]
+    people: list[dict[str, Any]]
+    events: list[dict[str, Any]]
     calendar: WorkingCalendar
 
 
@@ -100,7 +101,8 @@ def compute_schedule(
     return ComputedSchedule(
         items=ctx.items,
         project_finish=project_finish,
-        coverage=schedule_data.get("coverage", []),
+        people=schedule_data.get("people", []),
+        events=schedule_data.get("events", []),
         calendar=ctx.calendar,
     )
 
@@ -145,7 +147,8 @@ def computed_schedule_to_dict(result: ComputedSchedule) -> dict[str, Any]:
     return {
         "items": [item_dict(item) for item in result.items],
         "project_finish": result.project_finish.isoformat() if result.project_finish else None,
-        "coverage": result.coverage,
+        "people": result.people,
+        "events": result.events,
     }
 
 

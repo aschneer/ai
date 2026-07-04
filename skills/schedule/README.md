@@ -67,19 +67,23 @@ items:
 
 The order of items in the file is the **top-to-bottom row order in the Gantt chart**, so arrange them to read as a timeline.
 
-**Coverage (optional)** — to graph staff availability alongside the schedule, add a `coverage` key **above** `items`. Each person is one labeled band; it's pure decoration and never affects scheduling:
+**People and events (optional)** — to graph context alongside the schedule, add `people` and/or `events` keys **above** `items`. **People** is staff availability (one band per person); **events** is calendar context not tied to a person (company events, holidays). Same shape; both are pure decoration and never affect scheduling:
 
 ```yaml
 calendar: calendar.yaml
-coverage:
+people:
   - name: Maria
     segments:
       - {start: 2026-06-15, finish: 2026-06-26, label: On vacation}
+events:
+  - name: Company
+    segments:
+      - {start: 2026-07-04, finish: 2026-07-04, label: Independence Day}
 items:
   - ...
 ```
 
-Segments can fall on any calendar day and must not overlap for one person. In the chart, coverage renders as a band at the top with a lock button to keep it pinned while scrolling.
+Segments can fall on any calendar day and must not overlap within a band. In the chart, people render on top and events below (two colors), with a single lock button to keep both pinned while scrolling.
 
 Full field rules and examples: `context/data_model.md`.
 

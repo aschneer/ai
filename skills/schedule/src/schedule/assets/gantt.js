@@ -15,7 +15,7 @@ const LABEL_WIDTH_MAX = 720;
 
 let chartData = null;
 const collapsedIds = new Set();
-let coverageLocked = false;
+let contextLocked = false;
 
 /** IDs of groups that have at least one child. */
 function collapsibleIds(items) {
@@ -100,12 +100,12 @@ function itemTooltip(item) {
   ].join("\n");
 }
 
-function coverageSegments(coverage) {
-  return (coverage || []).flatMap((entry) => entry.segments || []);
+function bandSegments(...bands) {
+  return bands.flat().flatMap((entry) => entry.segments || []);
 }
 
-function dateRange(items, coverage) {
-  const segments = coverageSegments(coverage);
+function dateRange(items, ...bands) {
+  const segments = bandSegments(...bands);
   const starts = [
     ...items.filter((item) => item.start).map((item) => parseDate(item.start)),
     ...segments.map((segment) => parseDate(segment.start)),
@@ -663,7 +663,7 @@ function renderTimelineSvg(items, rowEntries, container, edges, range) {
 
 function renderTodayOverlay(container, range, edges, colors) {
   // The today line lives in its own overlay SVG (not the timeline SVG) so it
-  // can sit above every row — including a locked coverage band — rather than
+  // can sit above every row — including a locked context band — rather than
   // being painted over. It spans from the gutter bottom down through the plot.
   const offsetDays = todayColumnOffset(range.start, range.end);
   if (offsetDays == null || !edges.length) {
@@ -776,7 +776,7 @@ function renderRow(item, byId, rangeStart, totalDays, collapsible) {
   return { row, metrics, item };
 }
 
-function renderCoverageSegment(segment, coverageName, rangeStart, totalDays, edges) {
+function renderContextSegment(segment, entryName, type, rangeStart, totalDays, edges) {
   const metrics = spanMetrics(segment.start, segment.finish, rangeStart, totalDays);
   if (!metrics) {
     return null;
@@ -786,25 +786,25 @@ function renderCoverageSegment(segment, coverageName, rangeStart, totalDays, edg
   const startIdx = Math.min(metrics.offsetDays, lastEdge);
   const endIdx = Math.min(metrics.offsetDays + metrics.spanDays, lastEdge);
   const box = document.createElement("div");
-  box.className = "coverage-segment";
+  box.className = `context-segment ${type}`;
   box.style.left = `${edges[startIdx] - gutter}px`;
   box.style.width = `${edges[endIdx] - edges[startIdx]}px`;
   box.textContent = segment.label;
   box.dataset.tip = [
-    coverageName,
+    entryName,
     segment.label,
     dateRangeLabel(segment.start, segment.finish),
   ].join("\n");
   return box;
 }
 
-function renderCoverageRow(entry, rangeStart, totalDays, edges) {
+function renderContextRow(entry, type, rangeStart, totalDays, edges) {
   const row = document.createElement("div");
-  row.className = "row coverage";
+  row.className = `row context ${type}`;
 
   const label = document.createElement("div");
-  label.className = "label coverage";
-  label.title = `coverage: ${entry.name}`;
+  label.className = `label context ${type}`;
+  label.title = `${type}: ${entry.name}`;
   label.style.setProperty("--label-indent", "0.75rem");
   const name = document.createElement("span");
   name.className = "item-name";
@@ -814,9 +814,9 @@ function renderCoverageRow(entry, rangeStart, totalDays, edges) {
   const timeline = document.createElement("div");
   timeline.className = "timeline";
   const track = document.createElement("div");
-  track.className = "coverage-track";
+  track.className = "context-track";
   for (const segment of entry.segments || []) {
-    const box = renderCoverageSegment(segment, entry.name, rangeStart, totalDays, edges);
+    const box = renderContextSegment(segment, entry.name, type, rangeStart, totalDays, edges);
     if (box) {
       track.appendChild(box);
     }
@@ -826,19 +826,19 @@ function renderCoverageRow(entry, rangeStart, totalDays, edges) {
   return row;
 }
 
-function coverageLockToggle() {
+function contextLockToggle() {
   const button = document.createElement("button");
   button.type = "button";
-  button.className = "coverage-lock";
-  button.textContent = coverageLocked ? "🔒" : "🔓";
-  button.title = coverageLocked
-    ? "Coverage pinned below the header — click to unlock"
-    : "Lock coverage below the header while scrolling";
-  button.setAttribute("aria-pressed", String(coverageLocked));
-  button.setAttribute("aria-label", "Lock coverage band");
+  button.className = "context-lock";
+  button.textContent = contextLocked ? "🔒" : "🔓";
+  button.title = contextLocked
+    ? "People and events pinned below the header — click to unlock"
+    : "Lock people and events below the header while scrolling";
+  button.setAttribute("aria-pressed", String(contextLocked));
+  button.setAttribute("aria-label", "Lock people and events bands");
   button.addEventListener("click", (event) => {
     event.stopPropagation();
-    coverageLocked = !coverageLocked;
+    contextLocked = !contextLocked;
     if (chartData) {
       renderGantt(chartData);
     }
@@ -846,27 +846,36 @@ function coverageLockToggle() {
   return button;
 }
 
-function renderCoverageBand(coverage, root, rangeStart, totalDays, edges) {
-  const entries = coverage || [];
-  const rows = entries.map((entry, index) => {
-    const row = renderCoverageRow(entry, rangeStart, totalDays, edges);
-    if (coverageLocked) {
-      row.classList.add("coverage-locked");
+/** Render the people band then the events band as one stack of context rows. */
+function renderContextBand(people, events, root, rangeStart, totalDays, edges) {
+  const bands = [
+    ["people", people || []],
+    ["events", events || []],
+  ];
+  const rows = [];
+  for (const [type, entries] of bands) {
+    for (const entry of entries) {
+      const row = renderContextRow(entry, type, rangeStart, totalDays, edges);
+      if (contextLocked) {
+        row.classList.add("context-locked");
+      }
+      root.appendChild(row);
+      rows.push(row);
     }
-    if (index === entries.length - 1) {
-      row.classList.add("coverage-last");
-      row.querySelector(".label").appendChild(coverageLockToggle());
-    }
-    root.appendChild(row);
-    return row;
-  });
-  if (coverageLocked) {
-    stickCoverageRows(rows);
+  }
+  if (!rows.length) {
+    return;
+  }
+  const last = rows[rows.length - 1];
+  last.classList.add("context-last");
+  last.querySelector(".label").appendChild(contextLockToggle());
+  if (contextLocked) {
+    stickContextRows(rows);
   }
 }
 
-/** Pin locked coverage rows in a stack below the sticky header and gutter lane. */
-function stickCoverageRows(rows) {
+/** Pin locked context rows in a stack below the sticky header and gutter lane. */
+function stickContextRows(rows) {
   const header = document.querySelector(".row.header");
   const gutter = document.querySelector(".row.gutter");
   let offset = header ? header.getBoundingClientRect().height : 0;
@@ -890,8 +899,9 @@ function renderGantt(data) {
   root.replaceChildren();
 
   const items = data.items || [];
-  const coverage = data.coverage || [];
-  const range = dateRange(items, coverage);
+  const people = data.people || [];
+  const events = data.events || [];
+  const range = dateRange(items, people, events);
   if (!range) {
     root.textContent = "No scheduled items to display.";
     return;
@@ -934,7 +944,7 @@ function renderGantt(data) {
 
   renderTodayTag(gutterTimeline, range, edges);
 
-  renderCoverageBand(coverage, root, range.start, totalDays, edges);
+  renderContextBand(people, events, root, range.start, totalDays, edges);
 
   const rowEntries = [];
   visibleItems.forEach((item) => {

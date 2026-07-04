@@ -42,13 +42,13 @@ _Avoid_: Mode, schedule type, constraint type
 A parent item that groups children. Requires `children` (minimum one, schema-strict); `predecessors` are optional. No `date`, no `duration` — dates and duration span are derived from descendants. Microsoft Project equivalent: summary task.
 _Avoid_: Summary, category, folder, epic
 
-**Coverage**:
-Optional decorative availability bands under the root `coverage` key (above `items`), one per person, each a set of labeled date-range **segments**. Pure annotation — no IDs, no predecessors, and no effect on scheduling, the critical path, or project finish. Not a `kind`.
-_Avoid_: Availability item, resource, assignment, allocation
+**People** / **Events**:
+Two optional decorative context bands (above `items`), same shape, each a list of named entries with labeled date-range **segments**. **People** (root `people` key) is personnel availability, one band per person; **events** (root `events` key) is calendar context not tied to a person (company events, holidays of note). Pure annotation — no IDs, no predecessors, and no effect on scheduling, the critical path, or project finish. Neither is a `kind`. The viewer draws people on top, events below.
+_Avoid_: Coverage (former name), availability item, resource, assignment, allocation
 
-**Coverage segment**:
-One labeled span within a coverage band: `start`, `finish` (inclusive), and `label`. Uses any calendar day (weekends allowed); segments for one person must not overlap.
-_Avoid_: Coverage task, block, event
+**Context segment**:
+One labeled span within a people or events band: `start`, `finish` (inclusive), and `label`. Uses any calendar day (weekends allowed); segments within one band must not overlap.
+_Avoid_: Coverage task, block; segment as a `kind`
 
 **Unique ID**:
 A stable, permanent integer identifier for a schedule item. ID 0 is reserved for the project start milestone. IDs 1+ are assigned once at creation and never renumbered when items are reordered.

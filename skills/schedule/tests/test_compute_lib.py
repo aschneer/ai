@@ -53,8 +53,9 @@ def test_computed_output_dict_contract() -> None:
     }
     payload = computed_schedule_to_dict(compute_schedule(schedule_data, CALENDAR))
 
-    assert set(payload) == {"items", "project_finish", "coverage"}
-    assert payload["coverage"] == []
+    assert set(payload) == {"items", "project_finish", "people", "events"}
+    assert payload["people"] == []
+    assert payload["events"] == []
     item_keys = {
         "id",
         "kind",
@@ -401,7 +402,7 @@ def test_group_predecessor_still_floors_children() -> None:
     assert by_id[11].start == date(2026, 6, 16)
 
 
-def test_coverage_passes_through_without_affecting_finish() -> None:
+def test_people_and_events_pass_through_without_affecting_finish() -> None:
     work = {
         "items": [
             {"kind": "milestone", "id": 0, "name": "Start", "date": "2026-06-09"},
@@ -415,21 +416,29 @@ def test_coverage_passes_through_without_affecting_finish() -> None:
             },
         ]
     }
-    coverage = [
+    people = [
         {
             "name": "Maria",
             "segments": [{"start": "2026-12-01", "finish": "2026-12-20", "label": "Vacation"}],
         }
     ]
+    events = [
+        {
+            "name": "Company",
+            "segments": [{"start": "2026-12-24", "finish": "2026-12-25", "label": "Holiday"}],
+        }
+    ]
     without = computed_schedule_to_dict(compute_schedule(work, CALENDAR))
-    with_coverage = computed_schedule_to_dict(
-        compute_schedule({**work, "coverage": coverage}, CALENDAR)
+    with_context = computed_schedule_to_dict(
+        compute_schedule({**work, "people": people, "events": events}, CALENDAR)
     )
 
-    # Far-future coverage must not push project finish, and must round-trip verbatim.
-    assert with_coverage["project_finish"] == without["project_finish"]
-    assert with_coverage["coverage"] == coverage
-    assert without["coverage"] == []
+    # Far-future context bands must not push project finish, and must round-trip verbatim.
+    assert with_context["project_finish"] == without["project_finish"]
+    assert with_context["people"] == people
+    assert with_context["events"] == events
+    assert without["people"] == []
+    assert without["events"] == []
 
 
 def _deadline_schedule(deadline: str) -> dict:

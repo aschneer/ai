@@ -59,16 +59,22 @@ Read `context/glossary.md` before editing — it defines domain terms. Read `con
 
 Edit YAML directly. Rules that matter most:
 
-**File section order** — keep top-level keys in this order: `calendar`, then `coverage` (if present), then `items`. Coverage must be authored **above** `items`; it renders as a band at the top of the Gantt.
+**File section order** — keep top-level keys in this order: `calendar`, then `people` and `events` (if present), then `items`. Both context bands must be authored **above** `items`; they render as bands at the top of the Gantt (people first, then events).
 
-**Coverage (optional)** — decorative availability bands, one per person, drawn above the schedule. Pure annotation: no IDs, no predecessors, never affects scheduling, the critical path, or project finish. Each entry has a `name` and `segments`; each segment is `{start, finish, label}` (all required). Segments use **any calendar day** (weekends allowed), `finish` is inclusive, and segments for one person **must not overlap** (hard error). Use it for "out of office", "on vacation", "traveling", etc.
+**People and events (optional)** — two decorative context bands, same shape, drawn above the schedule. Pure annotation: no IDs, no predecessors, never affects scheduling, the critical path, or project finish. Each entry has a `name` and `segments`; each segment is `{start, finish, label}` (all required). Segments use **any calendar day** (weekends allowed), `finish` is inclusive, and segments within one band **must not overlap** (hard error).
+- **`people`** — one row per person: "out of office", "on vacation", "traveling", work location.
+- **`events`** — calendar context not tied to a person: company events, holidays of note, external dates.
 
 ```yaml
-coverage:
+people:
 - name: Maria
   segments:
   - {start: 2026-05-11, finish: 2026-05-15, label: Out of office}
   - {start: 2026-06-15, finish: 2026-06-26, label: On vacation}
+events:
+- name: Company
+  segments:
+  - {start: 2026-07-04, finish: 2026-07-04, label: Independence Day}
 ```
 
 **Three kinds** — `kind` is always the **first field** on every item:
