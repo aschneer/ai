@@ -44,6 +44,10 @@
 
   /* Layout (non-color) */
   --label-width: 16rem;
-  --day-col-min: 1.1rem;
+  /* Width of a single day column. Master grid: header day columns, task bars,
+     coverage bars, and milestones are all positioned against this one value,
+     so they always align. Future horizontal zoom / fit-to-viewport works by
+     changing this variable alone. */
+  --day-w: 1.15rem;
   --timeline-gutter: 0.5rem;
 }

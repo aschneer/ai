@@ -71,6 +71,20 @@ Algorithm detail: `scheduling_algorithm.md`.
 
 **Rendering:** item labels and the week header are HTML; the timeline column is a **single SVG** (`.timeline-svg`) holding task bars, group bracket paths, milestone markers, and dependency links in one coordinate system — required for faithful browser print. See **`decisions.md` ADR-002** (single SVG) and **ADR-001** (Python server, no Vite).
 
+### Timeline positioning: the master grid
+
+Every horizontal position in the timeline — task bar, group bracket, milestone marker, coverage segment — derives from **one source of truth: the rendered day columns of the HTML week header.** Bars never compute their own scale; they read where the header already painted each day. This is why bars stay aligned with their dates at any width. See **`decisions.md` ADR-004**.
+
+**The one knob — `--day-w`.** The theme sets a single CSS variable for the width of one day column. The header grid is `grid-template-columns: repeat(--day-count, var(--day-w))`; the whole timeline width and `.gantt-inner` width derive from it. Changing `--day-w` (and re-rendering) rescales the entire chart — the intended hook for a future horizontal zoom / fit-to-viewport control.
+
+**Day-index metrics, not pixels or percentages.** `spanMetrics()` converts a start/finish date to integer `{offsetDays, spanDays}` relative to the range start. No percentage-of-width, no per-item pixel math. These integers are unit-free and survive any `--day-w`.
+
+**Edge measurement — `dayColumnEdges()`.** After the header is in the DOM, this reads each day column's actual painted left edge (plus the final right edge) into an array `edges[0..N]`, relative to the timeline origin. Because it measures what the browser rendered, it captures the browser's own sub-pixel rounding of fractional-rem columns — so bars snap to the *real* columns, not an idealized grid. The array is built **once per render** in `renderGantt()` and passed to both the coverage band and the SVG; nothing re-measures.
+
+**Placement.** Every graphic is `edges[offsetDays]` to `edges[offsetDays + spanDays]` (clamped to the last edge). Task/group/milestone geometry (`barGeometry()`) and coverage segments (`renderCoverageSegment()`) use the identical lookup; the SVG's own width is `edges[last]`. One array, one formula, zero independent scales.
+
+**Why this shape.** The prior viewer positioned bars as a percentage of a *measured* timeline width while the header used a CSS grid with a `minmax()` floor. When the floor clamped, the two widths diverged and bars drifted from their dates — the error accumulating rightward. Collapsing everything onto the header grid removes the second scale entirely. Full history and rejected alternatives: **`decisions.md` ADR-004**.
+
 ---
 
 ## Module layout

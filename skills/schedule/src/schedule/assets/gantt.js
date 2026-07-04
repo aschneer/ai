@@ -178,7 +178,6 @@ function buildTimelineHeader(rangeStart, rangeEnd) {
   const header = document.createElement("div");
   header.className = "timeline-header";
   const days = eachDay(rangeStart, rangeEnd);
-  header.style.setProperty("--day-count", String(days.length));
 
   let col = 1;
   for (const span of headerSpans(
@@ -238,12 +237,38 @@ function buildTimelineHeader(rangeStart, rangeEnd) {
   return header;
 }
 
+/**
+ * Master grid: the rendered header day columns are the single source of truth
+ * for horizontal position. Return the left edge (px, relative to the timeline
+ * origin) of every day plus the right edge of the final day, so any bar can be
+ * placed by day index and land exactly on its column — for any column width,
+ * including fractional widths from a future horizontal zoom.
+ */
+function dayColumnEdges(headerTimelineEl) {
+  const cells = headerTimelineEl.querySelectorAll(
+    ".timeline-header .day-cell",
+  );
+  if (!cells.length) {
+    return [];
+  }
+  const originLeft = headerTimelineEl.getBoundingClientRect().left;
+  const edges = [];
+  for (const cell of cells) {
+    edges.push(cell.getBoundingClientRect().left - originLeft);
+  }
+  const last = cells[cells.length - 1].getBoundingClientRect();
+  edges.push(last.right - originLeft);
+  return edges;
+}
+
 function remPx() {
   return parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
 }
 
-function timelineGutterPx() {
-  const raw = getComputedStyle(document.documentElement).getPropertyValue("--timeline-gutter").trim();
+function cssLengthPx(name) {
+  const raw = getComputedStyle(document.documentElement)
+    .getPropertyValue(name)
+    .trim();
   if (!raw) {
     return 0;
   }
@@ -254,6 +279,10 @@ function timelineGutterPx() {
     return parseFloat(raw);
   }
   return parseFloat(raw) || 0;
+}
+
+function timelineGutterPx() {
+  return cssLengthPx("--timeline-gutter");
 }
 
 function chartColors() {
@@ -279,10 +308,7 @@ function spanMetrics(startValue, finishValue, rangeStart, totalDays) {
     Math.round((finish - start) / (1000 * 60 * 60 * 24)) + 1,
     1,
   );
-  return {
-    leftPct: (offsetDays / totalDays) * 100,
-    widthPct: (spanDays / totalDays) * 100,
-  };
+  return { offsetDays, spanDays };
 }
 
 function itemMetrics(item, rangeStart, totalDays) {
@@ -303,16 +329,17 @@ function timelineBox(rowEl, containerTop) {
   };
 }
 
-function barGeometry(entry, box, timelineWidth) {
+function barGeometry(entry, box, edges) {
   const { metrics, item } = entry;
   if (!metrics) {
     return null;
   }
   const rem = remPx();
-  const gutter = timelineGutterPx();
-  const plotWidth = Math.max(timelineWidth - gutter, 1);
-  const left = gutter + (metrics.leftPct / 100) * plotWidth;
-  const width = Math.max((metrics.widthPct / 100) * plotWidth, 2);
+  const lastEdge = edges.length - 1;
+  const startIdx = Math.min(metrics.offsetDays, lastEdge);
+  const endIdx = Math.min(metrics.offsetDays + metrics.spanDays, lastEdge);
+  const left = edges[startIdx];
+  const width = Math.max(edges[endIdx] - left, 2);
 
   if (item.kind === "milestone") {
     return {
@@ -453,14 +480,14 @@ function appendBarShape(layer, geom, colors) {
   layer.appendChild(rect);
 }
 
-function renderTimelineSvg(items, rowEntries, container) {
+function renderTimelineSvg(items, rowEntries, container, edges) {
   const drawable = rowEntries.filter((entry) => entry.metrics);
   if (!drawable.length) {
     return;
   }
 
   const containerRect = container.getBoundingClientRect();
-  const timelineWidth = timelineBox(drawable[0].row, containerRect.top).width;
+  const timelineWidth = edges.length ? edges[edges.length - 1] : 0;
   const containerHeight = containerRect.height;
   if (!timelineWidth || !containerHeight) {
     return;
@@ -486,7 +513,7 @@ function renderTimelineSvg(items, rowEntries, container) {
   const geometryById = new Map();
   for (const entry of drawable) {
     const box = timelineBox(entry.row, containerRect.top);
-    const geom = barGeometry(entry, box, timelineWidth);
+    const geom = barGeometry(entry, box, edges);
     if (!geom) {
       continue;
     }
@@ -590,21 +617,25 @@ function renderRow(item, byId, rangeStart, totalDays, collapsible) {
   return { row, metrics, item };
 }
 
-function renderCoverageSegment(segment, rangeStart, totalDays) {
+function renderCoverageSegment(segment, rangeStart, totalDays, edges) {
   const metrics = spanMetrics(segment.start, segment.finish, rangeStart, totalDays);
   if (!metrics) {
     return null;
   }
+  const gutter = timelineGutterPx();
+  const lastEdge = edges.length - 1;
+  const startIdx = Math.min(metrics.offsetDays, lastEdge);
+  const endIdx = Math.min(metrics.offsetDays + metrics.spanDays, lastEdge);
   const box = document.createElement("div");
   box.className = "coverage-segment";
-  box.style.left = `${metrics.leftPct}%`;
-  box.style.width = `${metrics.widthPct}%`;
+  box.style.left = `${edges[startIdx] - gutter}px`;
+  box.style.width = `${edges[endIdx] - edges[startIdx]}px`;
   box.textContent = segment.label;
   box.title = segment.label;
   return box;
 }
 
-function renderCoverageRow(entry, rangeStart, totalDays) {
+function renderCoverageRow(entry, rangeStart, totalDays, edges) {
   const row = document.createElement("div");
   row.className = "row coverage";
 
@@ -622,7 +653,7 @@ function renderCoverageRow(entry, rangeStart, totalDays) {
   const track = document.createElement("div");
   track.className = "coverage-track";
   for (const segment of entry.segments || []) {
-    const box = renderCoverageSegment(segment, rangeStart, totalDays);
+    const box = renderCoverageSegment(segment, rangeStart, totalDays, edges);
     if (box) {
       track.appendChild(box);
     }
@@ -652,10 +683,10 @@ function coverageLockToggle() {
   return button;
 }
 
-function renderCoverageBand(coverage, root, rangeStart, totalDays) {
+function renderCoverageBand(coverage, root, rangeStart, totalDays, edges) {
   const entries = coverage || [];
   const rows = entries.map((entry, index) => {
-    const row = renderCoverageRow(entry, rangeStart, totalDays);
+    const row = renderCoverageRow(entry, rangeStart, totalDays, edges);
     if (coverageLocked) {
       row.classList.add("coverage-locked");
     }
@@ -703,7 +734,7 @@ function renderGantt(data) {
 
   const totalDays =
     Math.round((range.end - range.start) / (1000 * 60 * 60 * 24)) + 1;
-  document.documentElement.style.setProperty("--timeline-min-width", `${totalDays * 1.15}rem`);
+  document.documentElement.style.setProperty("--day-count", String(totalDays));
   const byId = new Map(items.map((item) => [item.id, item]));
   const collapsible = collapsibleIds(items);
   const visibleItems = items.filter((item) => !isHidden(item, byId));
@@ -719,7 +750,9 @@ function renderGantt(data) {
   header.append(headerLabel, headerTimeline);
   root.appendChild(header);
 
-  renderCoverageBand(coverage, root, range.start, totalDays);
+  const edges = dayColumnEdges(headerTimeline);
+
+  renderCoverageBand(coverage, root, range.start, totalDays, edges);
 
   const rowEntries = [];
   visibleItems.forEach((item) => {
@@ -729,7 +762,7 @@ function renderGantt(data) {
   });
 
   updateCollapseAllButton(collapsible);
-  renderTimelineSvg(visibleItems, rowEntries, root);
+  renderTimelineSvg(visibleItems, rowEntries, root, edges);
   appendLabelColumnResizer(root);
 
   if (ganttScroller) {

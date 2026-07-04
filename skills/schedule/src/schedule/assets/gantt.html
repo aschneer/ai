@@ -105,7 +105,11 @@
       padding: 0 0 1rem;
     }
     .gantt-inner {
-      min-width: max(48rem, var(--timeline-min-width, 48rem));
+      width: calc(
+        var(--label-width) + var(--timeline-gutter) +
+          var(--day-count) * var(--day-w)
+      );
+      min-width: 100%;
       position: relative;
     }
     .row {
@@ -210,7 +214,7 @@
     }
     .timeline-header {
       display: grid;
-      grid-template-columns: repeat(var(--day-count), minmax(var(--day-col-min), 1fr));
+      grid-template-columns: repeat(var(--day-count), var(--day-w));
       grid-template-rows: auto auto auto auto;
       width: 100%;
       line-height: 1.2;

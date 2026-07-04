@@ -26,6 +26,7 @@ Historical checklist — decisions now reflected in `prd.md`, `data_model.md`, o
 | Task timing modes | Implemented — R19–R23; `timing` required on every task |
 | Gantt output | Static HTML/JS/CSS + JSON in **`site/`** via `compute` |
 | Gantt timeline rendering | Single SVG layer for bars + dependency links (print fidelity; ADR-002) |
+| Gantt timeline positioning | Master grid — all graphics snap to measured header day columns; one `--day-w` knob (ADR-004) |
 | Gantt charting library | Plain HTML/CSS/JS + SVG — no D3 (ADR-003) |
 | Gantt viewing | HTTP URLs printed; user opens manually; network-reachable when remote |
 | Critical path | Per-item marking in computed output and Gantt styling |
@@ -149,3 +150,48 @@ Freeze-pane scrolling and panning on the static Gantt viewer work acceptably wit
 ### Revisit if
 
 Interactive zoom/pan beyond native scroll, drag-to-reschedule, or a rich in-browser editing surface becomes in scope — then evaluate D3 or a focused timeline library behind the same static deploy model.
+
+---
+
+## ADR-004 — Master grid: all timeline graphics snap to measured header day columns
+
+**Date:** 2026-07-03  
+**Status:** Accepted
+
+### Context
+
+Task bars were misaligned with their dates in the week header, and the error grew worse toward the right of the chart. Two independent horizontal scales had drifted apart:
+
+- The **header** used a CSS grid, `repeat(N, minmax(1.1rem, 1fr))`. On any realistic width the `minmax` **floor** clamped each column to `1.1rem`, so the header laid out at its floored total (e.g. 3167px for 180 days).
+- The **bars** were positioned as a **percentage** of a *measured* `.timeline` width sampled early (e.g. 3056px), placed into a single SVG whose `viewBox` used that same measured width.
+
+`3056 ≠ 3167`, so bar day *d* landed at `(d/N)·3056` while header day *d* sat at `d·17.6px`. The per-day gap accumulated linearly — imperceptible at day 0, ~150px by day 180. Browser-zoom-invariant (both scales are rem/px and zoom together), which is why zooming did not change the misalignment. Measured with Playwright: 152px drift at day 179; 0px after the fix.
+
+### Decision
+
+Position **everything from one source of truth: the rendered header day columns.**
+
+- **One knob — `--day-w`.** A single CSS variable defines a day column's width. Header grid is `repeat(--day-count, var(--day-w))` — **no `minmax` floor**. Timeline and `.gantt-inner` width derive from it.
+- **Day-index metrics.** `spanMetrics()` returns integer `{offsetDays, spanDays}`; no percentages, no per-item pixels.
+- **Measured edges.** `dayColumnEdges()` reads each painted column's actual left edge (plus final right) into `edges[0..N]` once per render, after the header is in the DOM.
+- **One placement formula.** Bars, group brackets, milestones (`barGeometry()`), and coverage segments (`renderCoverageSegment()`) all map `offsetDays…offsetDays+spanDays` through `edges`. The SVG width is `edges[last]`. No graphic computes its own scale.
+
+### Rationale
+
+| Factor | Percentage-of-measured-width (old) | Master grid (edges) |
+|--------|-----------------------------------|---------------------|
+| Sources of truth | Two (header grid + bar %); drift when they disagree | One (header columns) |
+| The bug | Floor clamp desyncs the two widths → rightward drift | Structurally impossible — bars read the header |
+| Fractional widths | Percentage vs floored grid rounds differently | Edges capture the browser's own rounding; 0px residual |
+| Future horizontal zoom | Every scale must be kept in sync by hand | Change `--day-w`, re-render; alignment holds |
+
+Measuring the *rendered* edges (rather than recomputing `offsetDays·day-w` in JS) is deliberate: fractional-rem columns are pixel-snapped unevenly by the browser, so a recomputed grid re-introduces sub-pixel drift. Reading the painted edges inherits the exact rounding. Verified 0px residual at `--day-w` of 0.7rem, 3.3rem, and 41px.
+
+### Trade-offs
+
+**Pros:** One scale eliminates the whole class of drift bugs; correct at any (including fractional) day width; `--day-w` is a ready-made zoom hook.  
+**Cons:** Bars depend on a layout read (`getBoundingClientRect`) of the header, so the header must be in the DOM before the SVG renders (it is — `renderGantt()` builds the header, then the edges, then the band and SVG). One forced layout per render; negligible at these sizes.
+
+### Revisit if
+
+A horizontal zoom / fit-to-viewport control is built — it should drive `--day-w` (and re-render) rather than introduce any second positioning path. If rendering ever moves off a live DOM (e.g. server-side SVG), replace the measured-edge read with an explicit integer-px `--day-w` so columns land on whole pixels without measurement.
