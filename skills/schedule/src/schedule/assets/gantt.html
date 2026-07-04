@@ -305,9 +305,19 @@
       padding-left: 0.35rem;
       white-space: nowrap;
     }
-    .month-cell {
+    .header-span.month-cell {
       grid-row: 2;
       font-weight: 500;
+      justify-content: flex-start;
+      overflow: visible;
+    }
+    /* Slides to stay visible as you scroll within a wide month span, so the
+       current month is always on screen; hands off at the month boundary. */
+    .month-label {
+      position: sticky;
+      left: var(--label-width);
+      padding-left: 0.35rem;
+      white-space: nowrap;
     }
     .day-cell {
       grid-row: 3;

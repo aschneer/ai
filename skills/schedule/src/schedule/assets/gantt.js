@@ -178,6 +178,13 @@ function appendGridSpan(header, className, gridRow, col, spanCount, label, start
     sticky.className = "year-label";
     sticky.textContent = label;
     cell.appendChild(sticky);
+  } else if (className.includes("month-cell")) {
+    // Wrap the month in a sticky span so it slides to stay visible as you scroll
+    // horizontally within that month's span.
+    const sticky = document.createElement("span");
+    sticky.className = "month-label";
+    sticky.textContent = label;
+    cell.appendChild(sticky);
   } else {
     cell.textContent = label;
   }
