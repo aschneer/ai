@@ -63,6 +63,9 @@ $defs:
         minLength: 1
       date:
         $ref: '#/$defs/iso_date'
+      type:
+        type: string
+        enum: [project_finish]
       predecessors:
         $ref: '#/$defs/predecessors_optional'
 

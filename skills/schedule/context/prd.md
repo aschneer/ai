@@ -47,7 +47,8 @@ These are the product-level capabilities the data model must support, phrased as
 ### Dependencies
 
 - **DM7 — Dependencies drive work and containers; on milestones they only annotate a deadline.** Tasks and groups depend on other items and the dependency **moves** them. A milestone's date is always authoritative, so a predecessor never moves it; a milestone predecessor is **annotation only** — it declares that a chain of work culminates in that fixed deadline (see DM17). This keeps a milestone a target, not work to be scheduled.
-- **DM17 — Milestones may mark a culminating deadline.** A milestone can list a **finish-to-start predecessor** (the last task of a chain) to show that the chain leads up to that fixed date. The link is drawn in the Gantt and, when the chain finishes exactly on the date (zero slack), the milestone and its driving chain are shown on the critical path. Because the date is fixed, the predecessor never reschedules the milestone; if the chain finishes **after** the date, the deadline is unreachable and validation fails (R18). Only finish-to-start, no lag — any other link type or a lag would have no schedulable meaning against a fixed point.
+- **DM17 — Milestones may mark a culminating deadline.** A milestone can list a **finish-to-start predecessor** (the last task of a chain) to show that the chain leads up to that fixed date. The link is drawn in the Gantt. Because the date is fixed, the predecessor never reschedules the milestone; if the chain finishes **after** the date, the deadline is unreachable and validation fails (R18). Only finish-to-start, no lag — any other link type or a lag would have no schedulable meaning against a fixed point. A plain deadline milestone is an annotation only: it does **not** put its chain on the critical path (only a designated project-finish milestone does — DM18).
+- **DM18 — One milestone may be the project finish.** A milestone can be designated the project's finish (`type: project_finish`); at most one per schedule, and it must list a predecessor chain (the culminating work). Its date is the project **deadline**. The **critical path** is then the zero-slack chain feeding it: when the feeding work finishes exactly on the date, that chain (and the milestone) is critical; when the work finishes early (buffer), the critical path is empty. The reported **project finish** is when the feeding work actually completes — which may be **earlier** than the milestone's date — matching Microsoft Project, where finish is when work ends and the deadline is shown separately. With no designated milestone, project finish is the latest computed finish and the critical path is the longest path to it.
 - **DM8 — Microsoft Project link semantics.** Users express dependencies with the four standard MS Project link types (finish-to-start, start-to-start, finish-to-finish, start-to-finish) and optional lead/lag time, so the behavior matches what MS Project users expect.
 - **DM9 — Group acts as a local start.** When a group has dependencies, none of its children can start before the group does — a group behaves as a "local project start" for its subtree.
 - **DM15 — Self-anchoring items need no dependency.** A task that pins its own dates (a start, a finish, or a start-and-finish window) and a group (which derives its dates from its children) may omit predecessors; only a duration-only (`auto`) task requires a predecessor to place it. An item with no predecessors shows no dependency arrow in the Gantt, so the schedule can hold items that simply occupy space on the calendar (e.g. team availability) without visual clutter.
@@ -178,7 +179,7 @@ The system automatically calculates start and finish dates from:
 
 The user does **not** manually set start/finish on tasks in Auto Schedule mode (R14).
 
-Group dates roll up from children (R3). **Project finish** = latest finish among all items.
+Group dates roll up from children (R3). **Project finish** = latest finish among all items, unless a project-finish milestone is designated, in which case it is when that milestone's feeding chain actually completes (DM18).
 
 ### R8 — Human-readable data store
 
@@ -306,7 +307,7 @@ While the cursor is over the plot area (the bars, not the left-hand label column
 
 ### R25 — Critical path
 
-The engine identifies items on the chain that drives **project finish**. The user sees critical items in the **Gantt** and in **computed output** (for reports and agent summaries).
+The engine identifies items on the critical path. With a designated project-finish milestone (DM18) the critical path is the zero-slack chain feeding it (empty when the work has buffer); otherwise it is the longest path driving the computed **project finish**. The user sees critical items in the **Gantt** and in **computed output** (for reports and agent summaries).
 
 ### R24 — View in browser
 

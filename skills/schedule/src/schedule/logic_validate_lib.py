@@ -24,6 +24,7 @@ def validate_schedule_logic(
     errors.extend(_check_predecessor_references(items, by_id))
     errors.extend(_check_predecessor_listing(items))
     errors.extend(_check_milestone_predecessors(items))
+    errors.extend(_check_project_finish_milestone(items))
     errors.extend(_check_predecessor_format(items))
     errors.extend(_check_cyclic_dependencies(items, by_id))
     errors.extend(_check_coverage_segments(schedule_data.get("coverage", [])))
@@ -187,6 +188,35 @@ def _check_milestone_predecessors(
                     f"schedule: milestone {item_id}: predecessor cannot reference "
                     f"project start (id 0)"
                 )
+    return errors
+
+
+def _check_project_finish_milestone(
+    items: list[tuple[dict[str, Any], int | None]],
+) -> list[str]:
+    """At most one milestone may be ``type: project_finish``, and it needs a feeder chain.
+
+    The designated milestone's date is the project deadline; the critical path is the
+    zero-slack chain feeding it, so it must list at least one predecessor. FS-only/no-lag
+    is enforced by ``_check_milestone_predecessors`` for every milestone.
+    """
+    errors: list[str] = []
+    designated: list[int] = []
+    for raw, _parent_id in items:
+        if raw.get("kind") != "milestone" or raw.get("type") != "project_finish":
+            continue
+        item_id = raw.get("id")
+        designated.append(item_id)
+        if not raw.get("predecessors"):
+            errors.append(
+                f"schedule: milestone {item_id}: project_finish milestone requires "
+                f"a predecessor chain"
+            )
+
+    if len(designated) > 1:
+        ids = ", ".join(str(item_id) for item_id in designated)
+        errors.append(f"schedule: at most one project_finish milestone (found ids {ids})")
+
     return errors
 
 

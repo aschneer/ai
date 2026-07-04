@@ -29,7 +29,8 @@ Historical checklist — decisions now reflected in `prd.md`, `data_model.md`, o
 | Gantt timeline positioning | Master grid — all graphics snap to measured header day columns; one `--day-w` knob (ADR-004) |
 | Gantt charting library | Plain HTML/CSS/JS + SVG — no D3 (ADR-003) |
 | Gantt viewing | HTTP URLs printed; user opens manually; network-reachable when remote |
-| Critical path | Per-item marking in computed output and Gantt styling |
+| Critical path | Per-item marking in computed output and Gantt styling; zero-slack chain into a designated project-finish milestone, else longest path (ADR-005) |
+| Project finish | `type: project_finish` milestone (opt-in, at most one) sets the deadline; reported finish = feeder chain's actual finish (MS Project model; ADR-005) |
 | Schedule filename | Arbitrary; skill asks user for path |
 | Engine mutability | Read-only on source YAML — validate, compute, write separate outputs only |
 | Impossible schedules | **Hard errors** (R18), not warnings — no auto-fix |
@@ -195,3 +196,50 @@ Measuring the *rendered* edges (rather than recomputing `offsetDays·day-w` in J
 ### Revisit if
 
 A horizontal zoom / fit-to-viewport control is built — it should drive `--day-w` (and re-render) rather than introduce any second positioning path. If rendering ever moves off a live DOM (e.g. server-side SVG), replace the measured-edge read with an explicit integer-px `--day-w` so columns land on whole pixels without measurement.
+
+---
+
+## ADR-005 — Project-finish milestone: the Microsoft Project model
+
+**Date:** 2026-07-04  
+**Status:** Accepted
+
+### Context
+
+The critical path needs a defined terminus. Two questions were open:
+
+1. **What is "project finish"** — the latest computed finish, or a user-set deadline?
+2. **When is a schedule critical** — always (longest path), or only at zero slack against a deadline?
+
+A milestone can already carry a finish-to-start predecessor to mark a culminating deadline (DM17), but a plain deadline milestone was self-marking its chain critical whenever the chain landed on the date — conflating "there is a deadline" with "the deadline is the project finish."
+
+### Decision
+
+Adopt the Microsoft Project separation: **finish = when work ends; deadline = a separate target.**
+
+- **`type: project_finish`** designates at most one milestone as the project finish; it **must** list a predecessor chain (the culminating work). Absent = ordinary milestone.
+- **Critical path** is the zero-slack chain feeding the designated milestone: critical when the chain finishes exactly on the date, **empty** when it finishes early (buffer). With no designated milestone, fall back to the longest path to the computed finish (prior behavior).
+- **Reported project finish** = the feeding chain's **actual finish**, which may be **earlier** than the milestone's date. The milestone marker shows the deadline separately.
+- **Plain deadline milestones no longer self-mark critical** — only the designated finish milestone does. `_deadline_milestone_terminals` removed.
+
+### Rationale
+
+| Question | MS Project answer | Our implementation |
+|----------|-------------------|--------------------|
+| Project finish value | Latest task finish (when work ends) | Feeder chain's actual finish |
+| Deadline vs finish | Deadline is a separate marker, not the finish | Milestone date is the deadline; finish is the feeder finish |
+| Critical path | Zero total slack | Zero-slack chain into the designated milestone |
+| Ahead of deadline | Slack shown; no critical path forced | Empty critical path (buffer) |
+| Missed deadline | Red flag | Hard error (R18, existing reachability) |
+
+Requiring predecessors on the finish milestone matches how MS Project is used: a finish marker with nothing feeding it is meaningless (in MS Project it would float to project start). Our milestone dates are authoritative, so the marker still holds its date — but with no feeder there is no chain to be critical, so the requirement keeps it meaningful.
+
+Choosing feeder-actual-finish over the milestone date as the reported finish is the crux: it means the reported finish can precede the deadline marker on the Gantt (buffer). That is intentional and correct — the project *finishes* when the work is done; the deadline is a commitment shown alongside, not the finish itself.
+
+### Trade-offs
+
+**Pros:** One coherent model (finish = work end, deadline = target); zero-slack criticality matches true CPM; removes the `_deadline_milestone_terminals` special case (net simpler). **Cons:** A user glancing at the Gantt sees the project-finish value left of the finish-milestone marker in the buffer case — needs the mental model that finish ≠ deadline. Documented in DM18 / R25.
+
+### Revisit if
+
+Multiple project-finish milestones are ever wanted (currently capped at one), or if users need the reported finish to equal the committed deadline rather than the actual work end — that would be a different product stance (deadline-as-finish) and should be a deliberate reversal, not a drift.

@@ -34,6 +34,7 @@ class ScheduleItem:
     pinned_start: date | None = None
     pinned_finish: date | None = None
     milestone_date: date | None = None
+    milestone_type: str | None = None
     start: date | None = None
     finish: date | None = None
     is_critical: bool = False
@@ -92,8 +93,9 @@ def compute_schedule(
     # Iteratively schedule tasks and roll up groups until dates stop changing.
     _run_until_fixed_point(ctx)
 
-    project_finish = _project_finish(ctx.items)
-    _mark_critical_items(ctx, project_finish)
+    designated = _designated_finish_milestone(ctx)
+    project_finish = _project_finish_value(ctx, designated)
+    _mark_critical_items(ctx, designated, project_finish)
 
     return ComputedSchedule(
         items=ctx.items,
@@ -128,6 +130,7 @@ def computed_schedule_to_dict(result: ComputedSchedule) -> dict[str, Any]:
             "timing": item.timing if item.kind == ItemKind.TASK else None,
             "duration": item.duration,
             "milestone_date": item.milestone_date.isoformat() if item.milestone_date else None,
+            "type": item.milestone_type,
             "is_critical": item.is_critical,
             "predecessors": [
                 {
@@ -289,6 +292,7 @@ def _schedule_item_from_raw(raw: dict[str, Any], parent_id: int | None) -> Sched
     kind = ItemKind(raw["kind"])
     predecessors = parse_predecessors(raw.get("predecessors", []))
     milestone_date = date.fromisoformat(raw["date"]) if kind == ItemKind.MILESTONE else None
+    milestone_type = raw.get("type") if kind == ItemKind.MILESTONE else None
     timing = raw.get("timing", "auto") if kind == ItemKind.TASK else "auto"
     pinned_start = date.fromisoformat(raw["start"]) if kind == ItemKind.TASK and "start" in raw else None
     pinned_finish = date.fromisoformat(raw["finish"]) if kind == ItemKind.TASK and "finish" in raw else None
@@ -303,6 +307,7 @@ def _schedule_item_from_raw(raw: dict[str, Any], parent_id: int | None) -> Sched
         pinned_start=pinned_start,
         pinned_finish=pinned_finish,
         milestone_date=milestone_date,
+        milestone_type=milestone_type,
     )
 
 
@@ -351,6 +356,39 @@ def _project_finish(items: list[ScheduleItem]) -> date | None:
     """Return the latest finish date among scheduled items."""
     scheduled = [item for item in items if item.is_scheduled]
     return max((item.finish for item in scheduled if item.finish is not None), default=None)
+
+
+def _designated_finish_milestone(ctx: SchedulingContext) -> ScheduleItem | None:
+    """Return the milestone designated ``type: project_finish``, if any (0 or 1)."""
+    for milestone in ctx.milestones:
+        if milestone.milestone_type == "project_finish":
+            return milestone
+    return None
+
+
+def _feeder_finishes(milestone: ScheduleItem, ctx: SchedulingContext) -> list[date]:
+    """Finish dates of the milestone's predecessor feeders that are scheduled."""
+    finishes: list[date] = []
+    for link in milestone.predecessors:
+        pred = ctx.by_id.get(link.task_id)
+        if pred is not None and pred.finish is not None:
+            finishes.append(pred.finish)
+    return finishes
+
+
+def _project_finish_value(ctx: SchedulingContext, designated: ScheduleItem | None) -> date | None:
+    """Project finish = feeder chain's actual finish when a finish milestone is designated.
+
+    The designated milestone's date is the deadline (shown separately); the project
+    finishes when the feeding work actually completes, which may be earlier (buffer).
+    Falls back to the latest computed finish when nothing is designated or the feeder
+    is unscheduled.
+    """
+    if designated is not None:
+        finishes = _feeder_finishes(designated, ctx)
+        if finishes:
+            return max(finishes)
+    return _project_finish(ctx.items)
 
 
 def _index_items(items: list[ScheduleItem]) -> dict[int, ScheduleItem]:
@@ -718,45 +756,46 @@ def _start_for_finish(required_finish: date, duration: str, calendar: WorkingCal
     return calendar.add_working_days(required_finish, -(working_days - 1))
 
 
-def _mark_critical_items(ctx: SchedulingContext, project_finish: date | None) -> None:
+def _mark_critical_items(
+    ctx: SchedulingContext,
+    designated: ScheduleItem | None,
+    project_finish: date | None,
+) -> None:
     """Set ``is_critical`` on items that drive project finish."""
-    critical_ids = _compute_critical_item_ids(ctx, project_finish)
+    critical_ids = _compute_critical_item_ids(ctx, designated, project_finish)
     for item in ctx.items:
         item.is_critical = item.id in critical_ids
 
 
 def _compute_critical_item_ids(
     ctx: SchedulingContext,
+    designated: ScheduleItem | None,
     project_finish: date | None,
 ) -> frozenset[int]:
-    """Return IDs on the chain that sets project finish."""
+    """Return IDs on the critical path.
+
+    With a designated project-finish milestone, the critical path is the zero-slack
+    chain feeding it: the milestone's driving-predecessor walk only adds a feeder whose
+    finish lands exactly on the milestone date, so a chain finishing early (buffer)
+    yields an empty critical path. Without a designated milestone, fall back to the
+    longest-path chain that sets the computed project finish.
+    """
+    critical_ids: set[int] = set()
+
+    if designated is not None:
+        # Only zero-slack: a feeder must land exactly on the milestone date. If the
+        # chain finishes early (buffer), there is no driving predecessor and the
+        # critical path is empty -- the milestone itself is not marked either.
+        if _driving_predecessor_ids(designated, ctx):
+            _collect_critical_chain(designated, ctx, set(), critical_ids)
+        return frozenset(critical_ids)
+
     if project_finish is None:
         return frozenset()
 
-    critical_ids: set[int] = set()
     for terminal in _critical_terminal_items(ctx, project_finish):
         _collect_critical_chain(terminal, ctx, set(), critical_ids)
-    for milestone in _deadline_milestone_terminals(ctx):
-        _collect_critical_chain(milestone, ctx, set(), critical_ids)
     return frozenset(critical_ids)
-
-
-def _deadline_milestone_terminals(ctx: SchedulingContext) -> list[ScheduleItem]:
-    """Deadline milestones whose feeding chain lands exactly on the date (zero slack).
-
-    Such a milestone and its driving chain are critical for that deadline, even
-    when the chain does not set overall project finish.
-    """
-    return [
-        milestone
-        for milestone in ctx.milestones
-        if milestone.milestone_date is not None
-        and any(
-            (pred := ctx.by_id.get(link.task_id)) is not None
-            and pred.finish == milestone.milestone_date
-            for link in milestone.predecessors
-        )
-    ]
 
 
 def _critical_terminal_items(
@@ -812,7 +851,7 @@ def _driving_predecessor_ids(item: ScheduleItem, ctx: SchedulingContext) -> list
     by_id = ctx.by_id
     ids: list[int] = []
 
-    if item.predecessors and item.start is not None:
+    if item.kind != ItemKind.MILESTONE and item.predecessors and item.start is not None:
         duration = item.duration or "1d"
         constraints: list[tuple[int, date]] = []
         for link in item.predecessors:

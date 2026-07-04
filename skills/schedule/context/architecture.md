@@ -27,7 +27,7 @@ The agent/library responsibility split is defined in **`prd.md`** § Agent vs de
 | Layer | Module | Purpose | On failure |
 |-------|--------|---------|------------|
 | **Structural** | `validate_lib.py` | JSON Schema — shape, required/forbidden fields, kinds | List every schema error; stop |
-| **Logical** | `logic_validate_lib.py` | IDs, predecessor refs, cycles, listing rules, milestone working days, milestone deadline predecessors (FS-only) + deadline reachability, pinned bounds, milestone reachability | List every logic error; stop |
+| **Logical** | `logic_validate_lib.py` | IDs, predecessor refs, cycles, listing rules, milestone working days, milestone deadline predecessors (FS-only) + deadline reachability, project-finish milestone (at most one, predecessors required), pinned bounds, milestone reachability | List every logic error; stop |
 | **Compute** | `compute_lib.py` | CPM forward pass | Assumes valid input; no warnings channel |
 
 Compute does not paper over bad data. Collect **all** validation errors before returning.
@@ -59,7 +59,7 @@ Schemas live in `schemas/*.schema.yaml` (JSON Schema authored in YAML). Same sch
 ## Scheduling pipeline
 
 1. `load_schedule_project()` — load YAML, run schema + logic validation
-2. `compute_schedule()` — CPM forward pass, critical path, project finish
+2. `compute_schedule()` — CPM forward pass, critical path, project finish. When a milestone is designated `type: project_finish`, the critical path is the zero-slack chain feeding it (empty on buffer) and project finish is that chain's actual finish; otherwise the longest path to the latest computed finish. See `decisions.md` ADR-005.
 3. `computed_schedule_to_dict()` — JSON for stdout and Gantt
 
 Algorithm detail: `scheduling_algorithm.md`.

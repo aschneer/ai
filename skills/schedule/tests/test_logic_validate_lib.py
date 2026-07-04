@@ -445,3 +445,38 @@ def test_milestone_predecessor_rejects_lag() -> None:
 def test_milestone_valid_fs_predecessor_passes() -> None:
     errors = validate_schedule_logic({"items": _deadline_items("1FS")}, CALENDAR)
     assert errors == []
+
+
+def test_single_project_finish_milestone_valid() -> None:
+    items = _deadline_items("1FS")
+    items[2]["type"] = "project_finish"
+    errors = validate_schedule_logic({"items": items}, CALENDAR)
+    assert errors == []
+
+
+def test_project_finish_milestone_without_predecessors_error() -> None:
+    items = _deadline_items("1FS")
+    items[2]["type"] = "project_finish"
+    del items[2]["predecessors"]
+    errors = validate_schedule_logic({"items": items}, CALENDAR)
+    assert any(
+        "milestone 9" in error and "requires a predecessor chain" in error
+        for error in errors
+    )
+
+
+def test_two_project_finish_milestones_error() -> None:
+    items = _deadline_items("1FS")
+    items[2]["type"] = "project_finish"
+    items.append(
+        {
+            "kind": "milestone",
+            "id": 10,
+            "name": "Also finish",
+            "date": "2026-06-19",
+            "type": "project_finish",
+            "predecessors": ["1FS"],
+        }
+    )
+    errors = validate_schedule_logic({"items": items}, CALENDAR)
+    assert any("at most one project_finish milestone" in error for error in errors)

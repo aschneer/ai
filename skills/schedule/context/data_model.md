@@ -43,6 +43,7 @@ items:
 | `id` | required | required | required |
 | `name` | required | required | required |
 | `date` | required | forbidden | forbidden |
+| `type` | optional (`project_finish`) | forbidden | forbidden |
 | `timing` | forbidden | required | forbidden |
 | `duration` | forbidden | conditional | forbidden |
 | `start` / `finish` | forbidden | conditional | forbidden |
@@ -122,6 +123,26 @@ A milestone may list a predecessor to mark that a chain of work **culminates in 
 - **Never `0FS`, never self-referential.**
 - **Annotation only** — the predecessor never moves the milestone. It draws the dependency link in the Gantt and, when the chain finishes exactly on the date (zero slack), puts the milestone and its driving chain on the critical path.
 - **Deadline enforcement** — if the predecessor chain finishes **after** the milestone date, the deadline is unreachable and validation fails (a hard error; see `prd.md` R18 / DM17).
+- **Not critical on its own** — a plain deadline milestone never marks its chain critical. Only a designated **project-finish** milestone does (see below).
+
+### Project-finish milestone
+
+One milestone may be designated the project's finish with `type: project_finish`:
+
+- **At most one** per schedule (two = a hard error).
+- **Predecessors required** — it must list the culminating chain (FS only, no lag, like any milestone deadline).
+- Its `date` is the project **deadline**. The **critical path** is the zero-slack chain feeding it: critical when the chain finishes exactly on the date, **empty** when the chain finishes early (buffer).
+- The reported **project finish** is when the feeding work actually completes — possibly **earlier** than the milestone date (the deadline is shown separately as the milestone marker). This matches Microsoft Project.
+- With no designated milestone, project finish is the latest computed finish and the critical path is the longest path to it (unchanged default).
+
+```yaml
+- kind: milestone
+  id: 50
+  name: Launch
+  date: 2026-06-19
+  type: project_finish
+  predecessors: ["42FS"]
+```
 
 ### Link types
 

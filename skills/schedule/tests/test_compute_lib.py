@@ -67,6 +67,7 @@ def test_computed_output_dict_contract() -> None:
         "timing",
         "duration",
         "milestone_date",
+        "type",
         "is_critical",
         "predecessors",
     }
@@ -465,15 +466,39 @@ def test_milestone_predecessor_does_not_move_milestone() -> None:
     assert by_id[9].finish == date(2026, 6, 19)
 
 
-def test_zero_slack_deadline_marks_milestone_and_chain_critical() -> None:
-    # Task finishes exactly on the deadline date -> both critical.
+def test_plain_deadline_milestone_is_not_critical() -> None:
+    # A plain (non-designated) deadline milestone never marks its chain critical,
+    # even at zero slack -- only a designated project_finish milestone does.
     result = compute_schedule(_deadline_schedule("2026-06-10"), CALENDAR)
+    assert critical_ids(result) == {0, 1}
+
+
+def _finish_milestone_schedule(deadline: str) -> dict:
+    """A two-day task feeding a designated project_finish milestone."""
+    schedule = _deadline_schedule(deadline)
+    finish = next(item for item in schedule["items"] if item["id"] == 9)
+    finish["type"] = "project_finish"
+    return schedule
+
+
+def test_project_finish_milestone_zero_slack_marks_chain_critical() -> None:
+    # Feeder lands exactly on the finish date -> milestone and its chain critical.
+    result = compute_schedule(_finish_milestone_schedule("2026-06-10"), CALENDAR)
     assert critical_ids(result) == {0, 1, 9}
 
 
-def test_deadline_with_slack_is_not_critical() -> None:
-    # Chain finishes 2026-06-10, deadline nine days later -> nothing critical.
+def test_project_finish_milestone_with_buffer_empty_critical() -> None:
+    # Feeder finishes 2026-06-10, finish milestone nine days later (buffer) ->
+    # nothing critical, and project finish is the feeder's actual finish, not the date.
+    result = compute_schedule(_finish_milestone_schedule("2026-06-19"), CALENDAR)
+    assert critical_ids(result) == set()
+    assert result.project_finish == date(2026, 6, 10)
+
+
+def test_no_designated_finish_falls_back_to_longest_path() -> None:
+    # Without a designated finish milestone, the computed latest finish drives it.
     result = compute_schedule(_deadline_schedule("2026-06-19"), CALENDAR)
+    assert result.project_finish == date(2026, 6, 19)
     assert critical_ids(result) == set()
 
 
