@@ -1040,4 +1040,7 @@ items:
 - kind: milestone
   id: 105
   name: Season close
-  date: 2026-10-26
+  date: 2026-10-30
+  type: project_finish
+  predecessors:
+  - 195FS
