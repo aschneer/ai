@@ -657,43 +657,63 @@ function renderTimelineSvg(items, rowEntries, container, edges, range) {
     }
   }
 
-  const headerRow = container.querySelector(".row.header");
-  const plotTop = headerRow
-    ? headerRow.getBoundingClientRect().bottom - containerRect.top
-    : 0;
-
-  const todayLayer = document.createElementNS("http://www.w3.org/2000/svg", "g");
-  todayLayer.setAttribute("class", "today");
-  appendTodayLine(todayLayer, range, edges, plotTop, containerHeight, colors);
-
-  svg.append(todayLayer, barLayer, linkLayer);
+  svg.append(barLayer, linkLayer);
   container.appendChild(svg);
 }
 
-function appendTodayLine(layer, range, edges, plotTop, height, colors) {
+function renderTodayOverlay(container, range, edges, colors) {
+  // The today line lives in its own overlay SVG (not the timeline SVG) so it
+  // can sit above every row — including a locked coverage band — rather than
+  // being painted over. It spans from the gutter bottom down through the plot.
+  const offsetDays = todayColumnOffset(range.start, range.end);
+  if (offsetDays == null || !edges.length) {
+    return;
+  }
+  const containerRect = container.getBoundingClientRect();
+  const timelineWidth = edges[edges.length - 1];
+  const containerHeight = containerRect.height;
+  if (!timelineWidth || !containerHeight) {
+    return;
+  }
+
+  const gutterRow = container.querySelector(".row.gutter");
+  const gutterBottom = gutterRow
+    ? gutterRow.getBoundingClientRect().bottom - containerRect.top
+    : 0;
+
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("class", "today-overlay");
+  svg.setAttribute("width", String(timelineWidth));
+  svg.setAttribute("height", String(containerHeight));
+  svg.setAttribute("viewBox", `0 0 ${timelineWidth} ${containerHeight}`);
+  svg.setAttribute("preserveAspectRatio", "none");
+
+  const x = edges[Math.min(offsetDays, edges.length - 1)];
+  const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  line.setAttribute("class", "today-line");
+  line.setAttribute("x1", String(x));
+  line.setAttribute("x2", String(x));
+  line.setAttribute("y1", String(gutterBottom));
+  line.setAttribute("y2", String(containerHeight));
+  line.setAttribute("stroke", colors.today);
+  svg.appendChild(line);
+  container.appendChild(svg);
+}
+
+function renderTodayTag(gutterTimeline, range, edges) {
   const offsetDays = todayColumnOffset(range.start, range.end);
   if (offsetDays == null || !edges.length) {
     return;
   }
   const x = edges[Math.min(offsetDays, edges.length - 1)];
 
-  // Draw only below the header row; the header is opaque and would hide the tag.
-  const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-  line.setAttribute("class", "today-line");
-  line.setAttribute("x1", String(x));
-  line.setAttribute("x2", String(x));
-  line.setAttribute("y1", String(plotTop));
-  line.setAttribute("y2", String(height));
-  line.setAttribute("stroke", colors.today);
-  layer.appendChild(line);
-
-  const tag = document.createElementNS("http://www.w3.org/2000/svg", "text");
-  tag.setAttribute("class", "today-tag");
-  tag.setAttribute("x", String(x + 4));
-  tag.setAttribute("y", String(plotTop + 12));
-  tag.setAttribute("fill", colors.today);
+  // Centered over the line's x: the line does not enter the gutter, so the tag
+  // is not offset to one side.
+  const tag = document.createElement("div");
+  tag.className = "today-tag";
   tag.textContent = "Today";
-  layer.appendChild(tag);
+  tag.style.left = `${x}px`;
+  gutterTimeline.appendChild(tag);
 }
 
 function renderRow(item, byId, rangeStart, totalDays, collapsible) {
@@ -845,10 +865,12 @@ function renderCoverageBand(coverage, root, rangeStart, totalDays, edges) {
   }
 }
 
-/** Pin locked coverage rows in a stack directly below the sticky header. */
+/** Pin locked coverage rows in a stack below the sticky header and gutter lane. */
 function stickCoverageRows(rows) {
   const header = document.querySelector(".row.header");
+  const gutter = document.querySelector(".row.gutter");
   let offset = header ? header.getBoundingClientRect().height : 0;
+  offset += gutter ? gutter.getBoundingClientRect().height : 0;
   for (const row of rows) {
     row.style.top = `${offset}px`;
     offset += row.getBoundingClientRect().height;
@@ -893,7 +915,24 @@ function renderGantt(data) {
   header.append(headerLabel, headerTimeline);
   root.appendChild(header);
 
+  // Thin annotation lane under the date header — a reserved strip where
+  // timeline labels (the "Today" tag now, others later) can sit without
+  // overlapping the first content row.
+  const gutter = document.createElement("div");
+  gutter.className = "row gutter";
+  const gutterLabel = document.createElement("div");
+  gutterLabel.className = "label";
+  const gutterTimeline = document.createElement("div");
+  gutterTimeline.className = "timeline";
+  gutter.append(gutterLabel, gutterTimeline);
+  root.appendChild(gutter);
+
+  const headerHeight = header.getBoundingClientRect().height;
+  gutter.style.top = `${headerHeight}px`;
+
   const edges = dayColumnEdges(headerTimeline);
+
+  renderTodayTag(gutterTimeline, range, edges);
 
   renderCoverageBand(coverage, root, range.start, totalDays, edges);
 
@@ -906,6 +945,7 @@ function renderGantt(data) {
 
   updateCollapseAllButton(collapsible);
   renderTimelineSvg(visibleItems, rowEntries, root, edges, range);
+  renderTodayOverlay(root, range, edges, chartColors());
   appendLabelColumnResizer(root);
 
   if (ganttScroller) {

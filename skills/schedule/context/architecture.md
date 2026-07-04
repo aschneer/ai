@@ -102,6 +102,8 @@ A subtle vertical line (`.gantt-crosshair`, PRD **R30**) follows the cursor acro
 
 An amber vertical line labeled "Today" (`.today-line` / `.today-tag`, PRD **R31**) marks the current date. It is drawn **inside the timeline SVG** (its own `<g class="today">` layer, under the bars) at `edges[todayOffset]` — the same master-grid lookup as every bar, so it aligns with the date header and scrolls with the content. `todayColumnOffset()` computes today from `new Date()` **at render time** (today is a property of *when the chart is viewed*, not a compute-time value, so it is never baked into `gantt_data.json`) and returns `null` when today falls outside `[range.start, range.end]`. Because `dateRange()` derives the axis only from item and coverage dates, today never extends the range — an out-of-range today simply draws nothing, and a schedule opened long after it ended keeps its own width.
 
+**Annotation lane.** A thin empty row (`.row.gutter`) sits between the date header and the first content row — a reserved strip where timeline labels can live without overlapping content. The "Today" tag is drawn into this lane (its `<text>` centered in the band between the header bottom and the lane bottom, while the line itself starts at the lane bottom); the lane is general-purpose, available to future timeline annotations, not tied to the current-date indicator.
+
 ---
 
 ## Module layout

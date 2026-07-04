@@ -122,11 +122,46 @@
     .row.header {
       position: sticky;
       top: 0;
-      z-index: 13;
+      z-index: 16;
       background: var(--color-surface-muted);
       font-size: 0.75rem;
       color: var(--color-text-muted);
       box-shadow: 0 1px 0 var(--color-border);
+    }
+    /* Annotation lane under the date header: a reserved strip for timeline
+       labels (e.g. the "Today" tag) so they never overlap content rows. It is
+       sticky (its `top` is set to the header height in JS) so labels stay
+       pinned under the date scale on vertical scroll. */
+    .row.gutter {
+      min-height: 0;
+      height: 1.1rem;
+      border-bottom: none;
+      position: sticky;
+      z-index: 15;
+      background: var(--color-surface);
+    }
+    .row.gutter .timeline {
+      position: relative;
+    }
+    .row.gutter .today-tag {
+      position: absolute;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 0.65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--color-today);
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    .row.gutter .label,
+    .row.gutter .timeline {
+      min-height: 0;
+      padding: 0;
+    }
+    .row.gutter .label {
+      border-right-color: transparent;
     }
     .row.header .label {
       position: sticky;
@@ -380,14 +415,20 @@
     .timeline-svg .finish-flag-square {
       fill: var(--color-text);
     }
-    .timeline-svg .today-line {
-      stroke-width: 1.5;
+    /* Today line overlay: its own SVG above every row (incl. a locked coverage
+       band) so the line is never painted over. Below the crosshair/tooltip. */
+    .today-overlay {
+      position: absolute;
+      top: 0;
+      left: var(--label-width);
+      right: 0;
+      height: 100%;
+      pointer-events: none;
+      z-index: 13;
+      overflow: visible;
     }
-    .timeline-svg .today-tag {
-      font-size: 0.65rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
+    .today-overlay .today-line {
+      stroke-width: 1.5;
     }
     .dates {
       font-size: 0.7rem;
