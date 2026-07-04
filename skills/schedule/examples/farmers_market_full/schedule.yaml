@@ -1080,7 +1080,7 @@ items:
 - kind: milestone
   id: 105
   name: Next season ready
-  date: 2027-01-22
+  date: 2027-06-22
   type: project_finish
   predecessors:
   - 224FS
