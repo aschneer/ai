@@ -985,6 +985,46 @@ function setupTooltip() {
   });
 }
 
+/**
+ * A subtle full-height vertical line that tracks the cursor across the plot
+ * area (like a stock chart), so the user can line a bar up with the date
+ * header. Fixed-position and driven by clientX, so it needs no scroll math;
+ * hidden over the sticky label column and whenever the cursor leaves the plot.
+ */
+function setupCrosshair() {
+  const gantt = document.querySelector(".gantt");
+  if (!gantt) {
+    return;
+  }
+  const line = document.createElement("div");
+  line.className = "gantt-crosshair";
+  line.hidden = true;
+  document.body.appendChild(line);
+
+  const update = (event) => {
+    const rect = gantt.getBoundingClientRect();
+    const labelWidth = cssLengthPx("--label-width");
+    const inPlot =
+      event.clientX >= rect.left + labelWidth &&
+      event.clientX <= rect.right &&
+      event.clientY >= rect.top &&
+      event.clientY <= rect.bottom;
+    if (!inPlot) {
+      line.hidden = true;
+      return;
+    }
+    line.style.left = `${event.clientX}px`;
+    line.style.top = `${rect.top}px`;
+    line.style.height = `${rect.height}px`;
+    line.hidden = false;
+  };
+
+  gantt.addEventListener("mousemove", update);
+  gantt.addEventListener("mouseleave", () => {
+    line.hidden = true;
+  });
+}
+
 async function init() {
   try {
     const response = await fetch(DATA_URL);
@@ -993,6 +1033,7 @@ async function init() {
     }
     chartData = await response.json();
     setupTooltip();
+    setupCrosshair();
     bindCollapseAllButton();
     renderGantt(chartData);
     window.addEventListener("resize", () => {

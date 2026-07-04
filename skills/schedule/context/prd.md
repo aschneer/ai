@@ -299,6 +299,10 @@ Hovering any bar, milestone, or coverage segment in the Gantt shows a tooltip. C
 - Task and group tooltips show **both** the working-day and calendar-day count (they differ when a bar spans weekends or holidays); working days exclude non-working days per the calendar.
 - Day counts are **computed by the engine** and carried in the computed output, not derived in the viewer (the browser has no holiday calendar).
 
+### R30 — Cursor crosshair
+
+While the cursor is over the plot area (the bars, not the left-hand label column), the Gantt shows a **subtle vertical line** that follows the cursor, so the user can line a bar up with the date header — as on a stock-price chart. The line spans the visible plot height and disappears when the cursor is over the label column or leaves the plot.
+
 ### R25 — Critical path
 
 The engine identifies items on the chain that drives **project finish**. The user sees critical items in the **Gantt** and in **computed output** (for reports and agent summaries).

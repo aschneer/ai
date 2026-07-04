@@ -93,6 +93,10 @@ Every bar, milestone, and coverage segment shows a hover tooltip. Content by kin
 
 **Mechanism.** One floating `.gantt-tooltip` element, bound once on the document; any element carrying a `data-tip` attribute (newline-separated lines) triggers it. Bars are inside the SVG, which is `pointer-events: none` for scroll passthrough, so `.bar` elements re-enable `pointer-events: auto`. A group's bracket outline is too thin to hover reliably, so a transparent full-span hit rect behind it carries the tooltip.
 
+### Cursor crosshair
+
+A subtle vertical line (`.gantt-crosshair`, PRD **R30**) follows the cursor across the plot so a bar can be lined up with the date header. It is one `position: fixed` element bound once on `.gantt` and driven by `clientX` — being fixed and cursor-relative, it needs no scroll math (the line sits under the cursor regardless of scroll offset). It hides over the sticky label column (`clientX` within `--label-width` of the container's left edge) and whenever the cursor leaves the plot.
+
 ---
 
 ## Module layout
