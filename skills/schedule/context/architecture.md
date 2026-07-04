@@ -86,6 +86,8 @@ Every horizontal position in the timeline — task bar, group bracket, milestone
 
 **Why this shape.** The prior viewer positioned bars as a percentage of a *measured* timeline width while the header used a CSS grid with a `minmax()` floor. When the floor clamped, the two widths diverged and bars drifted from their dates — the error accumulating rightward. Collapsing everything onto the header grid removes the second scale entirely. Full history and rejected alternatives: **`decisions.md` ADR-004**.
 
+**Sticky year label (PRD R34).** A year spans one wide grid cell in the header's top row, so a single static label at its start scrolls out of view. The year text is wrapped in a `.year-label` span that is `position: sticky; left: var(--label-width)` — it sticks to the left of the timeline (just past the frozen label column) while its year cell is in view, then the next year's label takes over at the boundary, so the current year is always readable. Sticky positioning is broken by an `overflow: hidden` ancestor, so the year cell overrides the shared `.header-span` clip with `overflow: visible` (`.header-span.year-cell`). Month/day cells need no such treatment (a month is narrow enough, days are labeled per column).
+
 ### Hover tooltips
 
 Every bar, milestone, and context segment shows a hover tooltip. Content by kind: task/group → name, working-day count, calendar-day count (three lines); milestone → name and date (two lines); people/events segment → band name, segment label, and date range (three lines). Dates format as `mm/dd/yyyy`. Required content is specified in PRD **R29**.

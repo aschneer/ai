@@ -329,6 +329,10 @@ The lane also displays a distinct **"Context"** section label so the band reads 
 
 Each schedule row is **one line tall**: the item name and its date range share a single line (name truncates first when space is tight; the full name is available on hover), and dates use a compact **`mm/dd/yy`** form in the label. Full `mm/dd/yyyy` dates remain in the hover tooltip (R29). This keeps the maximum number of rows visible without hiding any information.
 
+### R34 — Year always visible in the header
+
+The current **year** must be readable in the date-scale header from **any horizontal scroll position** — the user never has to scroll to find which year they are looking at. Because a year spans a very wide range, a single static label at the year's start is not enough; the year label stays visible as the user scrolls within that year and updates to the correct year at each boundary. (Month and day are inherently visible — days are labeled per column and a month is narrow enough that its label stays in view.)
+
 ### R25 — Critical path
 
 The engine identifies items on the critical path. With a designated project-finish milestone (DM18) the critical path is the zero-slack chain feeding it (empty when the work has buffer); otherwise it is the longest path driving the computed **project finish**. The user sees critical items in the **Gantt** and in **computed output** (for reports and agent summaries).

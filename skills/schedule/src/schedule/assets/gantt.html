@@ -291,9 +291,18 @@
       width: 100%;
       line-height: 1.2;
     }
-    .year-cell {
+    .header-span.year-cell {
       grid-row: 1;
       font-weight: 600;
+      justify-content: flex-start;
+      overflow: visible;
+    }
+    /* Slides to stay visible as you scroll within a wide year span, so the
+       current year is always on screen; hands off at the year boundary. */
+    .year-label {
+      position: sticky;
+      left: var(--label-width);
+      white-space: nowrap;
     }
     .month-cell {
       grid-row: 2;

@@ -171,7 +171,16 @@ function appendGridSpan(header, className, gridRow, col, spanCount, label, start
   cell.className = className;
   cell.style.gridColumn = `${col} / span ${spanCount}`;
   cell.style.gridRow = String(gridRow);
-  cell.textContent = label;
+  if (className.includes("year-cell")) {
+    // Wrap the year in a sticky span so it slides to stay visible as you scroll
+    // horizontally within that year's (often very wide) span.
+    const sticky = document.createElement("span");
+    sticky.className = "year-label";
+    sticky.textContent = label;
+    cell.appendChild(sticky);
+  } else {
+    cell.textContent = label;
+  }
   if (previousDay) {
     const boundary = boundaryClass(startDay, 1, [previousDay, startDay]);
     if (boundary) {
