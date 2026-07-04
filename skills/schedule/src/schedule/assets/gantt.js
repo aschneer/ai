@@ -702,11 +702,12 @@ function renderTodayOverlay(container, range, edges, colors) {
   svg.appendChild(line);
   container.appendChild(svg);
 
-  // The overlay is drawn above every row (including a locked context band) via a
-  // high z-index, but that means it would also paint over the sticky label pane
-  // when today's column scrolls behind it. Clip away the leftmost `scrollLeft`
-  // of the overlay — exactly the region the pane covers — so the line never
-  // shows in the pane and disappears once fully behind it.
+  // The overlay's z-index sits below the sticky header/gutter (which mask the
+  // line's top structurally, so it stays behind the date scale with no scroll
+  // lag) but above the rows, including a locked context band. The sticky label
+  // column is below the overlay, so z can't mask it there — clip away the
+  // overlay's leftmost `scrollLeft` px (the strip the pane covers) on scroll, so
+  // the line never shows in the pane and disappears once fully behind it.
   const scroller = document.querySelector(".gantt");
   const clip = () => {
     const scrollLeft = scroller ? scroller.scrollLeft : 0;

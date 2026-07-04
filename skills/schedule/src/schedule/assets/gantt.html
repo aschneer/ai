@@ -454,8 +454,10 @@
       fill: var(--color-text);
     }
     /* Today line overlay: its own SVG above every row, including a locked
-       context band (z-index above it). It is clip-pathed in JS so it never
-       paints over the sticky label pane. Below the crosshair/tooltip. */
+       context band (z 13 > locked context 12), but below the sticky header (16)
+       and gutter (15) so they mask the line's top structurally — no scroll lag,
+       the line simply stays behind the date scale. A JS clip-path (horizontal
+       only) keeps it off the sticky label pane. Below the crosshair/tooltip. */
     .today-overlay {
       position: absolute;
       top: 0;
@@ -463,7 +465,7 @@
       right: 0;
       height: 100%;
       pointer-events: none;
-      z-index: 17;
+      z-index: 13;
       overflow: visible;
     }
     .today-overlay .today-line {
