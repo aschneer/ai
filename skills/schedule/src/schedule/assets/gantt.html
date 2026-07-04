@@ -134,8 +134,7 @@
        sticky (its `top` is set to the header height in JS) so labels stay
        pinned under the date scale on vertical scroll. */
     .row.gutter {
-      min-height: 0;
-      height: 1.1rem;
+      min-height: 1.1rem;
       border-bottom: none;
       position: sticky;
       z-index: 15;
@@ -163,6 +162,32 @@
     }
     .row.gutter .label {
       border-right-color: transparent;
+    }
+    /* Context section controls, hosted in the gutter's (otherwise empty) label
+       cell so they stay pinned under the header and save a whole row. */
+    .label.context-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.15rem;
+      padding: 0.15rem 0.5rem;
+    }
+    .context-controls .row-toggle {
+      position: static;
+      width: 1rem;
+      flex-shrink: 0;
+    }
+    .context-title {
+      padding: 0.05rem 0.4rem;
+      border-radius: 3px;
+      background: var(--color-context-title-bg);
+      color: var(--color-context-title-text);
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .context-controls .context-lock {
+      margin-left: 0.1rem;
     }
     .row.header .label {
       position: sticky;

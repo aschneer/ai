@@ -16,6 +16,7 @@ const LABEL_WIDTH_MAX = 720;
 let chartData = null;
 const collapsedIds = new Set();
 let contextLocked = false;
+let contextCollapsed = false;
 
 /** IDs of groups that have at least one child. */
 function collapsibleIds(items) {
@@ -846,8 +847,55 @@ function contextLockToggle() {
   return button;
 }
 
-/** Render the people band then the events band as one stack of context rows. */
-function renderContextBand(people, events, root, rangeStart, totalDays, edges) {
+function contextCollapseToggle() {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "row-toggle";
+  button.textContent = contextCollapsed ? "▶" : "▼";
+  button.setAttribute("aria-expanded", String(!contextCollapsed));
+  button.setAttribute(
+    "aria-label",
+    contextCollapsed ? "Expand people and events" : "Collapse people and events",
+  );
+  button.addEventListener("click", (event) => {
+    event.stopPropagation();
+    contextCollapsed = !contextCollapsed;
+    if (chartData) {
+      renderGantt(chartData);
+    }
+  });
+  return button;
+}
+
+/** Populate the gutter's label cell with the Context section controls. */
+function renderContextControls(gutterLabel) {
+  gutterLabel.classList.add("context-controls");
+  gutterLabel.appendChild(contextCollapseToggle());
+  const name = document.createElement("span");
+  name.className = "context-title";
+  name.textContent = "Context";
+  gutterLabel.appendChild(name);
+  if (!contextCollapsed) {
+    gutterLabel.appendChild(contextLockToggle());
+  }
+}
+
+/**
+ * Render the context section. Its collapse/lock controls live in the gutter's
+ * label cell (always visible, since the gutter is pinned under the header); when
+ * expanded, people rows and events rows follow below.
+ */
+function renderContextBand(people, events, gutterLabel, root, rangeStart, totalDays, edges) {
+  const hasBands = (people && people.length) || (events && events.length);
+  if (!hasBands) {
+    return;
+  }
+
+  renderContextControls(gutterLabel);
+  if (contextCollapsed) {
+    return;
+  }
+
   const bands = [
     ["people", people || []],
     ["events", events || []],
@@ -863,12 +911,7 @@ function renderContextBand(people, events, root, rangeStart, totalDays, edges) {
       rows.push(row);
     }
   }
-  if (!rows.length) {
-    return;
-  }
-  const last = rows[rows.length - 1];
-  last.classList.add("context-last");
-  last.querySelector(".label").appendChild(contextLockToggle());
+  rows[rows.length - 1].classList.add("context-last");
   if (contextLocked) {
     stickContextRows(rows);
   }
@@ -944,7 +987,7 @@ function renderGantt(data) {
 
   renderTodayTag(gutterTimeline, range, edges);
 
-  renderContextBand(people, events, root, range.start, totalDays, edges);
+  renderContextBand(people, events, gutterLabel, root, range.start, totalDays, edges);
 
   const rowEntries = [];
   visibleItems.forEach((item) => {

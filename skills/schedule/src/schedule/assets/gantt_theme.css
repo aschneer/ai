@@ -35,6 +35,8 @@
   --color-critical: #d84315;
   --color-people: #2a9d8f;
   --color-events: #64748b;
+  --color-context-title-bg: #1a2332;
+  --color-context-title-text: #ffffff;
   --color-today: #d97706;
 
   /* Dependencies & chrome */
