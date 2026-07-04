@@ -75,7 +75,7 @@ coverage:
 
 | Kind | Key fields | Forbidden |
 |------|------------|-----------|
-| `milestone` | `date` (user-set, must be a working day) | `duration`, `timing`, `predecessors`, `children` |
+| `milestone` | `date` (user-set, must be a working day); optional deadline `predecessors` and `type: project_finish` | `duration`, `timing`, `children` |
 | `task` | `timing`, `duration`, `predecessors` (required for `auto`; optional for pinned modes; plus `start`/`finish` when timing requires) | `date`, `children` |
 | `group` | `children` (min 1); `predecessors` optional | `date`, `duration`, `timing` |
 
@@ -97,10 +97,12 @@ Listing rules (when an item **has** predecessors):
 - Child with no other preds → `["{parentId}SS"]` only
 - Otherwise list specific preds — **never** mix in `0FS`
 - Self-anchoring item with no dependency → omit `predecessors` (do not write a placeholder `0FS`/`{parentId}SS`)
-- Milestones cannot have predecessors
+- Milestone predecessors are a deadline annotation only — **FS, no lag** (`["42FS"]`), never `0FS`, never self-referential (see below)
 - No cyclic predecessor dependencies
 
 **Durations and lag:** days and weeks only (`4d`, `2w`). No hours.
+
+**FS start day** — with zero lag, an FS successor of a **task or group** starts the **next working day** after the predecessor finishes (the predecessor occupies its finish day). An FS successor of a **milestone** — including `0FS` from project start — starts **on** the milestone date itself (a milestone is an instantaneous point). To push a milestone's successor to the next day, add lag: `13FS+1d`. This matches Microsoft Project; detail in `context/data_model.md`.
 
 **Task timing:** every task requires `timing: auto | start_duration | start_finish | finish_duration`. Use `auto` for planning (duration + predecessors → computed dates). Use pinned modes during execution when a start or finish is committed — see `context/data_model.md`. Pinned `start`/`finish` values are authoritative; predecessors and the parent group define earliest allowable bounds. A pin earlier than those bounds is a **hard validation error** (`validate_pinned_task_bounds`) — adjust the pin, predecessors, or milestone gates, never the tool.
 
@@ -119,6 +121,19 @@ Durations and lag count working days only. Milestone dates must fall on a workin
 **Task order:** controlled by user and agent — scheduling code never rewrites it. The `items` list is also the **Gantt row order** (top-to-bottom timeline), so order items as a coherent date sequence, not grouped by kind: each parent group directly above its children, top-level siblings by computed start date, and milestones inline where they fall (not stacked at the top). After changing predecessors or durations, recompute and reorder rows if unrelated work would otherwise be separated vertically.
 
 **Milestones** are the only user-defined date constraints. Their `date` is authoritative and must fall on a working day in the calendar file.
+
+**Milestone deadlines (predecessors)** — a milestone may list a predecessor to mark that a chain of work **culminates in that fixed date** (a deadline). The predecessor is **annotation only**: the milestone's `date` always prevails, the link never moves it. Rules: **finish-to-start, no lag** (`predecessors: ["42FS"]` where 42 is the last task of the chain); never `0FS`; never self-referential. It draws the dependency arrow into the milestone. If the feeding chain finishes **after** the date, the deadline is unreachable — a hard error (`validate_milestone_reachability`).
+
+**Project-finish milestone (`type: project_finish`)** — designate **at most one** milestone as the project finish by adding `type: project_finish`. It **must** list a deadline predecessor chain (the culminating work). Its `date` is the project deadline; the reported **project finish** is when that chain **actually completes**, which may be *earlier* than the date (buffer) — matching Microsoft Project (finish = work end; deadline shown separately). The **critical path** is the zero-slack chain feeding it (empty when there is buffer). With no designated milestone, project finish is the latest computed finish and the critical path is the longest path to it. A plain deadline milestone (no `type`) never marks its chain critical — only the designated one does. Full rules and examples: `context/data_model.md`.
+
+```yaml
+- kind: milestone
+  id: 50
+  name: Launch
+  date: 2026-06-19
+  type: project_finish
+  predecessors: ["42FS"]
+```
 
 ### 3. Run the toolchain (library)
 
@@ -169,6 +184,7 @@ Adjust the relative path to where the schemas live. Setup detail for the user is
 
 - `README.md` — human-facing guide (running the tool, viewing/refreshing the Gantt, editor setup)
 - `context/data_model.md` — field rules, predecessor and timing examples (read when authoring or restructuring items)
+- `context/task_timing_modes.md` — pinned-date timing modes in depth (`start_duration`, `start_finish`, `finish_duration`)
 - `context/glossary.md` — domain glossary (read before editing)
 - `schemas/schedule.schema.yaml`, `schemas/calendar.schema.yaml` — the validation contract, JSON Schema authored in YAML; same schemas run at validate time and (via Red Hat YAML) in the editor
 - `context/prd.md`, `context/architecture.md`, `context/scheduling_algorithm.md` — deeper background on requirements, design, and the CPM algorithm

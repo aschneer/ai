@@ -1,7 +1,7 @@
 # Task Timing Modes
 
 **Status:** Implemented  
-**Last updated:** 2026-06-12  
+**Last updated:** 2026-07-04  
 **Related:** `prd.md` (R19–R23), `architecture.md`, `data_model.md`, `scheduling_algorithm.md`
 
 ## Summary
@@ -44,12 +44,14 @@ Groups stay floating containers: start = `max(predecessor anchor, earliest child
 
 String enum — **must always be present**; never inferred from other fields.
 
-| Value | User specifies in file | Engine computes |
-|-------|------------------------|-----------------|
-| `auto` | `duration`, `predecessors` | `start`, `finish` |
-| `start_duration` | `start`, `duration`, `predecessors` | `finish` |
-| `start_finish` | `start`, `finish`, `predecessors` | `duration` (working days) |
-| `finish_duration` | `finish`, `duration`, `predecessors` | `start` |
+| Value | User specifies in file | Optional | Engine computes |
+|-------|------------------------|----------|-----------------|
+| `auto` | `duration`, `predecessors` | — | `start`, `finish` |
+| `start_duration` | `start`, `duration` | `predecessors` | `finish` |
+| `start_finish` | `start`, `finish` | `predecessors` | `duration` (working days) |
+| `finish_duration` | `finish`, `duration` | `predecessors` | `start` |
+
+**Only `auto` requires predecessors** (duration alone gives no anchor). A pinned mode sets its own dates, so predecessors are **optional** there — list them when a real dependency exists (they constrain earliest allowable bounds), omit them for a self-anchoring task (no dependency arrow drawn). See `data_model.md` DM15.
 
 ### Date fields on tasks
 
@@ -58,7 +60,7 @@ String enum — **must always be present**; never inferred from other fields.
 
 ### Predecessors
 
-**Required on all tasks in all timing modes.** Listing rules (`0FS`, `{parentId}SS`, etc.) unchanged.
+**Required only for `auto` tasks.** Pinned modes (`start_duration`, `start_finish`, `finish_duration`) may omit predecessors — they self-anchor via their pinned dates. When present, listing rules (`0FS`, `{parentId}SS`, etc.) are unchanged.
 
 **Conflict policy:** Fixed `start` / `finish` in the file are authoritative. Predecessors define **earliest allowable** bounds. If a pin violates those bounds, **validation fails with a hard error** — the user fixes the schedule before compute runs. Compute does not adjust pins or resolve conflicts.
 
@@ -68,12 +70,12 @@ String enum — **must always be present**; never inferred from other fields.
 
 JSON Schema uses conditional subschemas (`oneOf` / `if-then`) on the task definition:
 
-| `timing` | Required | Forbidden |
-|----------|----------|-----------|
-| `auto` | `kind`, `id`, `name`, `timing`, `duration`, `predecessors` | `start`, `finish` |
-| `start_duration` | … + `start` | `finish` |
-| `start_finish` | … + `start`, `finish` | `duration` |
-| `finish_duration` | … + `finish` | `start` |
+| `timing` | Required | Optional | Forbidden |
+|----------|----------|----------|-----------|
+| `auto` | `kind`, `id`, `name`, `timing`, `duration`, `predecessors` | — | `start`, `finish` |
+| `start_duration` | `kind`, `id`, `name`, `timing`, `start`, `duration` | `predecessors` | `finish` |
+| `start_finish` | `kind`, `id`, `name`, `timing`, `start`, `finish` | `predecessors` | `duration` |
+| `finish_duration` | `kind`, `id`, `name`, `timing`, `finish`, `duration` | `predecessors` | `start` |
 
 `kind` remains the first field and is always required (unchanged).
 
@@ -112,6 +114,8 @@ Validation only — no warnings channel, no auto-fix.
 ---
 
 ## Scope of code changes
+
+> Historical — the original implementation estimate, kept for audit. The feature shipped 2026-06-14; the tables below describe the pass as planned, not remaining work.
 
 | Area | Change size | Notes |
 |------|-------------|-------|
@@ -178,6 +182,8 @@ Validation only — no warnings channel, no auto-fix.
 ---
 
 ## Implementation order
+
+> Historical — the order the shipped pass followed.
 
 1. `prd.md` requirements R19–R23 (this document adds algorithm and validation detail)
 2. JSON Schema — required `timing`, conditional fields
