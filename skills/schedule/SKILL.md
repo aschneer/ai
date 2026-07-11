@@ -37,6 +37,7 @@ my-renovation/
   schedule.yaml    # any filename
   calendar.yaml    # path relative to schedule file
   .gitignore       # written by compute if absent — ignores site/; never overwritten
+  recompute.sh     # written by compute — run to recompute from this folder
   site/            # generated viewer — never edit; safe to delete
     gantt_data.json
     gantt.html
@@ -44,7 +45,7 @@ my-renovation/
     gantt_theme.css
 ```
 
-`compute` writes Gantt artifacts into **`site/`** under the project directory. They are **generated — never edit; safe to delete**; edit `schedule.yaml` instead. It also drops a `.gitignore` (ignoring `site/`) into the project directory when one is absent — an existing `.gitignore` is never overwritten.
+`compute` writes Gantt artifacts into **`site/`** under the project directory. They are **generated — never edit; safe to delete**; edit `schedule.yaml` instead. It also drops a `.gitignore` (ignoring `site/`) into the project directory when one is absent — an existing `.gitignore` is never overwritten — and an executable `recompute.sh` (overwritten each run) that recomputes this project from its own folder, so the user need not `cd` into the skill.
 
 The schedule filename is not fixed. Ask the user for the **schedule file path** or **project directory** if not provided.
 

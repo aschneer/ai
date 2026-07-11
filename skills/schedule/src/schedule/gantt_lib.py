@@ -18,6 +18,8 @@ GANTT_JS_FILENAME = "gantt.js"
 GANTT_THEME_FILENAME = "gantt_theme.css"
 PROJECT_GITIGNORE_ASSET = "project.gitignore"
 PROJECT_GITIGNORE_FILENAME = ".gitignore"
+RECOMPUTE_ASSET = "recompute.sh"
+RECOMPUTE_FILENAME = "recompute.sh"
 SITE_DIR = "site"
 ASSET_NAMES = (GANTT_HTML_FILENAME, GANTT_JS_FILENAME, GANTT_THEME_FILENAME)
 
@@ -67,6 +69,20 @@ def deploy_project_gitignore(project_dir: Path) -> Path | None:
     if destination.exists():
         return None
     destination.write_text(_read_asset(PROJECT_GITIGNORE_ASSET), encoding="utf-8")
+    return destination
+
+
+def deploy_recompute_script(project_dir: Path, schedule_filename: str) -> Path:
+    """Write an executable recompute.sh into the project dir, overwriting any prior copy.
+
+    The script cd's into the installed skill and runs `compute --no-serve` on this
+    project's schedule, so the user can recompute from the project folder without
+    changing directories. Regenerated on every compute to stay current.
+    """
+    script = _read_asset(RECOMPUTE_ASSET).replace("{schedule_filename}", schedule_filename)
+    destination = project_dir / RECOMPUTE_FILENAME
+    destination.write_text(script, encoding="utf-8")
+    destination.chmod(0o755)
     return destination
 
 

@@ -27,6 +27,7 @@ packages = ["src/schedule"]
 "src/schedule/assets/gantt.js" = "schedule/assets/gantt.js"
 "src/schedule/assets/gantt_theme.css" = "schedule/assets/gantt_theme.css"
 "src/schedule/assets/project.gitignore" = "schedule/assets/project.gitignore"
+"src/schedule/assets/recompute.sh" = "schedule/assets/recompute.sh"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -8,9 +8,11 @@ from schedule.gantt_lib import (
     GANTT_JS_FILENAME,
     GANTT_THEME_FILENAME,
     PROJECT_GITIGNORE_FILENAME,
+    RECOMPUTE_FILENAME,
     SITE_DIR,
     deploy_gantt_assets,
     deploy_project_gitignore,
+    deploy_recompute_script,
     schedule_payload,
     site_directory,
     write_gantt_data,
@@ -58,6 +60,22 @@ def test_deploy_project_gitignore_writes_and_preserves(tmp_path: Path) -> None:
     gitignore.write_text("custom\n", encoding="utf-8")
     assert deploy_project_gitignore(tmp_path) is None
     assert gitignore.read_text(encoding="utf-8") == "custom\n"
+
+
+def test_deploy_recompute_script_bakes_filename_and_is_executable(tmp_path: Path) -> None:
+    written = deploy_recompute_script(tmp_path, "my_plan.yaml")
+    script = tmp_path / RECOMPUTE_FILENAME
+    assert written == script
+
+    text = script.read_text(encoding="utf-8")
+    assert '"$proj/my_plan.yaml"' in text
+    assert "{schedule_filename}" not in text
+    assert '"$HOME/.aschneer/skills/personal_skills/schedule"' in text
+    assert script.stat().st_mode & 0o111  # executable
+
+    # Overwritten on rerun with a new schedule filename.
+    deploy_recompute_script(tmp_path, "other.yaml")
+    assert '"$proj/other.yaml"' in script.read_text(encoding="utf-8")
 
 
 def test_schedule_payload_adds_title() -> None:
