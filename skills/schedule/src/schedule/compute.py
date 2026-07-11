@@ -38,7 +38,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--title",
         default=None,
-        help="Schedule title for the Gantt page (default: schedule file stem)",
+        help="Override the Gantt page title (default: schedule 'title' field)",
     )
     parser.add_argument(
         "--stdout",
@@ -68,7 +68,7 @@ def main(argv: list[str] | None = None) -> int:
 
     assert project is not None and project.calendar_data is not None
     result = compute_schedule(project.schedule_data, project.calendar_data)
-    title = args.title or project.schedule_path.stem
+    title = args.title or project.schedule_data["title"]
     payload = schedule_payload(computed_schedule_to_dict(result), title=title)
 
     project_dir = project.schedule_path.parent

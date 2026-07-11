@@ -6,8 +6,13 @@ description: YAML schedule file validated by JSON Schema (authored in YAML).
 type: object
 additionalProperties: false
 required:
+  - title
   - items
 properties:
+  title:
+    type: string
+    minLength: 1
+    description: Required display title for the Gantt page.
   calendar:
     type: string
     minLength: 1

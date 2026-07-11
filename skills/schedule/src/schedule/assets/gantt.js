@@ -969,6 +969,7 @@ function renderGantt(data) {
   const scrollTop = ganttScroller?.scrollTop ?? 0;
 
   document.getElementById("title").textContent = data.title || "Schedule";
+  document.title = data.title || "Schedule";
   document.getElementById("project-finish").textContent =
     `Project finish: ${data.project_finish || "—"}`;
 

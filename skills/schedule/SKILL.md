@@ -61,7 +61,9 @@ Read `context/glossary.md` before editing — it defines domain terms. Read `con
 
 Edit YAML directly. Rules that matter most:
 
-**File section order** — keep top-level keys in this order: `calendar`, then `people` and `events` (if present), then `items`. Both context bands must be authored **above** `items`; they render as bands at the top of the Gantt (people first, then events).
+**File section order** — keep top-level keys in this order: `title`, `calendar`, then `people` and `events` (if present), then `items`. Both context bands must be authored **above** `items`; they render as bands at the top of the Gantt (people first, then events).
+
+**Project title (required)** — a top-level `title:` string sets the heading and browser-tab title of the Gantt page. It is **required** — a missing `title` is a hard validation error. Use a real project name (e.g. `title: Kitchen Remodel`). The `--title` flag on `compute` overrides it for a single run.
 
 **People and events (optional)** — two decorative context bands, same shape, drawn above the schedule. Pure annotation: no IDs, no predecessors, never affects scheduling, the critical path, or project finish. Each entry has a `name` and `segments`; each segment is `{start, finish, label}` (all required). Segments use **any calendar day** (weekends allowed), `finish` is inclusive, and segments within one band **must not overlap** (hard error).
 - **`people`** — one row per person: "out of office", "on vacation", "traveling", work location.

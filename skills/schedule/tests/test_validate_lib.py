@@ -37,7 +37,7 @@ def test_farmers_market_demo_passes_validation() -> None:
 def _schedule(*items: dict) -> dict:
     """Wrap items with a project-start milestone and calendar reference."""
     start = {"kind": "milestone", "id": 0, "name": "Start", "date": "2026-05-04"}
-    return {"calendar": "calendar.yaml", "items": [start, *items]}
+    return {"title": "Test Schedule", "calendar": "calendar.yaml", "items": [start, *items]}
 
 
 def test_pinned_task_may_omit_predecessors() -> None:

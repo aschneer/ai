@@ -36,6 +36,7 @@ The tool writes a `.gitignore` (ignoring `site/`) into your project the first ti
 A list of `items`, each one a milestone, a task, or a group:
 
 ```yaml
+title: Backyard Patio            # required; shown at the top of the Gantt page
 calendar: calendar.yaml          # relative path to your calendar file
 items:
   - kind: milestone              # a fixed date you set (e.g. a deadline or kickoff)
@@ -74,6 +75,7 @@ The order of items in the file is the **top-to-bottom row order in the Gantt cha
 **People and events (optional)** — to graph context alongside the schedule, add `people` and/or `events` keys **above** `items`. **People** is staff availability (one band per person); **events** is calendar context not tied to a person (company events, holidays). Same shape; both are pure decoration and never affect scheduling:
 
 ```yaml
+title: My Project
 calendar: calendar.yaml
 people:
   - name: Maria

@@ -1,4 +1,5 @@
 # yaml-language-server: $schema=../../schemas/schedule.schema.yaml
+title: Farmers Market Launch
 calendar: calendar.yaml
 items:
   - kind: milestone
