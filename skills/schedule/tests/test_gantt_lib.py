@@ -7,8 +7,10 @@ from schedule.gantt_lib import (
     GANTT_HTML_FILENAME,
     GANTT_JS_FILENAME,
     GANTT_THEME_FILENAME,
+    PROJECT_GITIGNORE_FILENAME,
     SITE_DIR,
     deploy_gantt_assets,
+    deploy_project_gitignore,
     schedule_payload,
     site_directory,
     write_gantt_data,
@@ -44,6 +46,18 @@ def test_write_gantt_data_and_deploy_assets(tmp_path: Path) -> None:
     assert (tmp_path / SITE_DIR / GANTT_JS_FILENAME).is_file()
     assert "fetch(" in (tmp_path / SITE_DIR / GANTT_JS_FILENAME).read_text(encoding="utf-8")
     assert GANTT_DATA_FILENAME in (tmp_path / SITE_DIR / GANTT_JS_FILENAME).read_text(encoding="utf-8")
+
+
+def test_deploy_project_gitignore_writes_and_preserves(tmp_path: Path) -> None:
+    written = deploy_project_gitignore(tmp_path)
+    gitignore = tmp_path / PROJECT_GITIGNORE_FILENAME
+    assert written == gitignore
+    assert "site/" in gitignore.read_text(encoding="utf-8")
+
+    # Existing .gitignore is never overwritten.
+    gitignore.write_text("custom\n", encoding="utf-8")
+    assert deploy_project_gitignore(tmp_path) is None
+    assert gitignore.read_text(encoding="utf-8") == "custom\n"
 
 
 def test_schedule_payload_adds_title() -> None:

@@ -36,6 +36,7 @@ Each schedule lives in one folder:
 my-renovation/
   schedule.yaml    # any filename
   calendar.yaml    # path relative to schedule file
+  .gitignore       # written by compute if absent — ignores site/; never overwritten
   site/            # generated viewer — never edit; safe to delete
     gantt_data.json
     gantt.html
@@ -43,7 +44,7 @@ my-renovation/
     gantt_theme.css
 ```
 
-`compute` writes Gantt artifacts into **`site/`** under the project directory. They are **generated — never edit; safe to delete**; edit `schedule.yaml` instead.
+`compute` writes Gantt artifacts into **`site/`** under the project directory. They are **generated — never edit; safe to delete**; edit `schedule.yaml` instead. It also drops a `.gitignore` (ignoring `site/`) into the project directory when one is absent — an existing `.gitignore` is never overwritten.
 
 The schedule filename is not fixed. Ask the user for the **schedule file path** or **project directory** if not provided.
 

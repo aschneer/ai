@@ -16,6 +16,8 @@ GANTT_DATA_FILENAME = "gantt_data.json"
 GANTT_HTML_FILENAME = "gantt.html"
 GANTT_JS_FILENAME = "gantt.js"
 GANTT_THEME_FILENAME = "gantt_theme.css"
+PROJECT_GITIGNORE_ASSET = "project.gitignore"
+PROJECT_GITIGNORE_FILENAME = ".gitignore"
 SITE_DIR = "site"
 ASSET_NAMES = (GANTT_HTML_FILENAME, GANTT_JS_FILENAME, GANTT_THEME_FILENAME)
 
@@ -53,6 +55,19 @@ def deploy_gantt_assets(site_dir: Path) -> list[Path]:
         destination.write_text(_read_asset(name), encoding="utf-8")
         written.append(destination)
     return written
+
+
+def deploy_project_gitignore(project_dir: Path) -> Path | None:
+    """Write a .gitignore that ignores site/ into the project dir if none exists.
+
+    Never overwrites a user's existing .gitignore. Returns the path when written,
+    else None.
+    """
+    destination = project_dir / PROJECT_GITIGNORE_FILENAME
+    if destination.exists():
+        return None
+    destination.write_text(_read_asset(PROJECT_GITIGNORE_ASSET), encoding="utf-8")
+    return destination
 
 
 def resolve_bind_host(host: str) -> str:
