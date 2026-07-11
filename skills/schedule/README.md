@@ -131,7 +131,7 @@ uv run compute <path-to-schedule.yaml>
 
 `compute` prints the computed schedule and **two URLs** — a **local** one (`127.0.0.1`) for the machine running the tool and a **network** one for opening from another device on your network. Open whichever applies and the Gantt chart loads in your browser.
 
-In the chart, click the ▸/▾ toggle on any group to collapse or expand its children; a collapsed group keeps its own summary bar. Use **Collapse all / Expand all** in the header to fold or unfold every group at once.
+In the chart, click the ▸/▾ toggle on any group to collapse or expand its children; a collapsed group keeps its own summary bar. Use **Collapse all / Expand all** in the header to fold or unfold every group at once. **Show bar labels** in the header draws each item's name to the right of its bar (so you needn't read across to the left column); click again to hide them.
 
 Useful flags:
 

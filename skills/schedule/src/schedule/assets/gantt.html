@@ -458,6 +458,15 @@
       stroke: var(--color-critical);
       stroke-width: 2;
     }
+    .timeline-svg .bar-label {
+      font-size: 0.7rem;
+      fill: var(--color-text);
+      white-space: pre;
+    }
+    /* Bar labels default off; the toggle removes this class to reveal them. */
+    #gantt-root.bar-labels-hidden .bar-label {
+      display: none;
+    }
     .timeline-svg .finish-flag {
       pointer-events: none;
     }
@@ -537,6 +546,7 @@
       <h1 id="title">Schedule</h1>
       <p id="project-finish">Project finish: —</p>
       <button type="button" id="collapse-all" class="collapse-all">Collapse all</button>
+      <button type="button" id="toggle-bar-labels" class="collapse-all" aria-pressed="false">Show bar labels</button>
     </div>
     <div class="legend" aria-label="Bar colors">
       <span class="legend-item"><span class="legend-swatch task"></span> Task</span>

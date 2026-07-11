@@ -644,6 +644,9 @@ function renderTimelineSvg(items, rowEntries, container, edges, range) {
   const linkLayer = document.createElementNS("http://www.w3.org/2000/svg", "g");
   linkLayer.setAttribute("class", "links");
 
+  const labelLayer = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  labelLayer.setAttribute("class", "bar-labels");
+
   const geometryById = new Map();
   for (const entry of drawable) {
     const box = timelineBox(entry.row, containerRect.top);
@@ -657,6 +660,7 @@ function renderTimelineSvg(items, rowEntries, container, edges, range) {
     if (tip) {
       shape.dataset.tip = tip;
     }
+    appendBarLabel(labelLayer, geom);
   }
 
   const byId = new Map(drawable.map((entry) => [entry.item.id, entry]));
@@ -691,8 +695,35 @@ function renderTimelineSvg(items, rowEntries, container, edges, range) {
     }
   }
 
-  svg.append(barLayer, linkLayer);
+  svg.append(barLayer, linkLayer, labelLayer);
   container.appendChild(svg);
+}
+
+function appendBarLabel(layer, geom) {
+  const name = geom.item.name;
+  if (!name) {
+    return;
+  }
+  let x;
+  let y;
+  if (geom.kind === "milestone") {
+    x = geom.cx + geom.r + 4;
+    y = geom.cy;
+  } else if (geom.kind === "group") {
+    x = geom.x + geom.width + 6;
+    y = geom.y + geom.legH / 2;
+  } else {
+    x = geom.x + geom.width + 6;
+    y = geom.y + geom.height / 2;
+  }
+  const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  text.setAttribute("class", "bar-label");
+  text.setAttribute("x", String(x));
+  text.setAttribute("y", String(y));
+  text.setAttribute("dominant-baseline", "central");
+  text.setAttribute("pointer-events", "none");
+  text.textContent = name;
+  layer.appendChild(text);
 }
 
 function renderTodayOverlay(container, range, edges, colors) {
@@ -1175,6 +1206,28 @@ function bindCollapseAllButton() {
   });
 }
 
+// Bar labels default off. The toggle flips a class on the chart root; CSS hides
+// or shows the label layer with no re-render needed.
+let barLabelsVisible = false;
+
+function bindBarLabelToggle() {
+  const button = document.getElementById("toggle-bar-labels");
+  const root = document.getElementById("gantt-root");
+  if (!button || !root) {
+    return;
+  }
+  const apply = () => {
+    root.classList.toggle("bar-labels-hidden", !barLabelsVisible);
+    button.setAttribute("aria-pressed", String(barLabelsVisible));
+    button.textContent = barLabelsVisible ? "Hide bar labels" : "Show bar labels";
+  };
+  apply();
+  button.addEventListener("click", () => {
+    barLabelsVisible = !barLabelsVisible;
+    apply();
+  });
+}
+
 function showError(message) {
   const error = document.getElementById("error");
   error.hidden = false;
@@ -1281,6 +1334,7 @@ async function init() {
     setupTooltip();
     setupCrosshair();
     bindCollapseAllButton();
+    bindBarLabelToggle();
     renderGantt(chartData);
     window.addEventListener("resize", () => {
       if (chartData) {
