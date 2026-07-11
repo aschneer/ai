@@ -52,6 +52,7 @@ items:
 | `duration` | forbidden | conditional | forbidden |
 | `start` / `finish` | forbidden | conditional | forbidden |
 | `predecessors` | optional (FS only, no lag) | conditional | optional |
+| `percent_complete` | forbidden | required (0–100) | forbidden |
 | `children` | forbidden | forbidden | required (min 1) |
 
 ### Field order
@@ -65,7 +66,12 @@ items:
   timing: auto
   duration: 2d
   predecessors: ["10SS"]
+  percent_complete: 0
 ```
+
+## Task progress (`percent_complete`)
+
+Every task carries a **required** integer `percent_complete` (0–100). It is the fraction of the task that is done and renders as a darker progress fill on the Gantt bar (Microsoft Project style); `100` fills the bar completely. It is **task-only** — forbidden on milestones and groups (groups show progress through their child bars, not a rolled-up value). Write `0` on any new or not-started task; raise it only when the user reports progress. It never affects dates, the critical path, or project finish.
 
 ## ID 0 — project start
 

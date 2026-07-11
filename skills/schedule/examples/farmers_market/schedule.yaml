@@ -18,6 +18,7 @@ items:
         timing: auto
         duration: 1w
         predecessors: ["10SS"]
+        percent_complete: 60
 
       - kind: task
         id: 12
@@ -25,6 +26,7 @@ items:
         timing: auto
         duration: 2w
         predecessors: ["11FS"]
+        percent_complete: 0
 
   - kind: milestone
     id: 15
@@ -42,6 +44,7 @@ items:
         timing: auto
         duration: 3d
         predecessors: ["20SS"]
+        percent_complete: 0
 
       - kind: task
         id: 22
@@ -50,6 +53,7 @@ items:
         start: 2026-05-18
         duration: 2w
         predecessors: ["21FS"]
+        percent_complete: 0
 
   - kind: group
     id: 30
@@ -62,6 +66,7 @@ items:
         timing: auto
         duration: 1w
         predecessors: ["30SS"]
+        percent_complete: 0
 
       - kind: task
         id: 32
@@ -69,6 +74,7 @@ items:
         timing: auto
         duration: 4d
         predecessors: ["31SS"]
+        percent_complete: 0
 
   - kind: group
     id: 40
@@ -81,6 +87,7 @@ items:
         timing: auto
         duration: 2w
         predecessors: ["40SS"]
+        percent_complete: 0
 
       - kind: task
         id: 42
@@ -88,6 +95,7 @@ items:
         timing: auto
         duration: 2d
         predecessors: ["41FS+3d"]
+        percent_complete: 0
 
   - kind: task
     id: 50
@@ -95,6 +103,7 @@ items:
     timing: auto
     duration: 1d
     predecessors: ["32FS", "42FS"]
+    percent_complete: 0
 
   - kind: milestone
     id: 60
@@ -107,3 +116,4 @@ items:
     timing: auto
     duration: 1d
     predecessors: ["60FS"]
+    percent_complete: 0

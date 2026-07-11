@@ -66,6 +66,7 @@ def test_computed_output_dict_contract() -> None:
         "working_days",
         "calendar_days",
         "timing",
+        "percent_complete",
         "duration",
         "milestone_date",
         "type",
@@ -79,10 +80,32 @@ def test_computed_output_dict_contract() -> None:
     assert task["predecessors"] == [{"task_id": 0, "link_type": "FS", "lag": "+1d"}]
     assert task["working_days"] == 2
     assert task["calendar_days"] == 2
+    assert task["percent_complete"] == 0  # coerced to 0 for a task lacking the field
 
     milestone = next(item for item in payload["items"] if item["id"] == 0)
     assert milestone["working_days"] == 1
     assert milestone["calendar_days"] == 1
+    assert milestone["percent_complete"] is None  # tasks only
+
+
+def test_percent_complete_flows_to_payload() -> None:
+    schedule_data = {
+        "items": [
+            {"kind": "milestone", "id": 0, "name": "Start", "date": "2026-06-09"},
+            {
+                "kind": "task",
+                "id": 1,
+                "name": "Work",
+                "timing": "auto",
+                "duration": "2d",
+                "predecessors": ["0FS"],
+                "percent_complete": 60,
+            },
+        ]
+    }
+    payload = computed_schedule_to_dict(compute_schedule(schedule_data, CALENDAR))
+    task = next(item for item in payload["items"] if item["id"] == 1)
+    assert task["percent_complete"] == 60
 
 
 def test_nested_groups_schedule() -> None:

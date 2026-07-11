@@ -49,6 +49,7 @@ def test_pinned_task_may_omit_predecessors() -> None:
             "timing": "start_finish",
             "start": "2026-05-04",
             "finish": "2026-05-08",
+            "percent_complete": 0,
         }
     )
     assert validate_schedule_file(Path("schedule.yaml"), schedule) == []
@@ -64,6 +65,7 @@ def test_pinned_task_may_have_empty_predecessors() -> None:
             "start": "2026-05-04",
             "duration": "3d",
             "predecessors": [],
+            "percent_complete": 0,
         }
     )
     assert validate_schedule_file(Path("schedule.yaml"), schedule) == []
@@ -83,6 +85,7 @@ def test_group_may_omit_predecessors() -> None:
                     "timing": "start_finish",
                     "start": "2026-05-04",
                     "finish": "2026-05-08",
+                    "percent_complete": 0,
                 }
             ],
         }
@@ -102,6 +105,52 @@ def test_auto_task_still_requires_predecessors() -> None:
     )
     errors = validate_schedule_file(Path("schedule.yaml"), schedule)
     assert errors, "auto task without predecessors must be rejected"
+
+
+def test_task_accepts_valid_percent_complete() -> None:
+    schedule = _schedule(
+        {
+            "kind": "task",
+            "id": 5,
+            "name": "Work",
+            "timing": "auto",
+            "duration": "3d",
+            "predecessors": ["0FS"],
+            "percent_complete": 75,
+        }
+    )
+    assert validate_schedule_file(Path("schedule.yaml"), schedule) == []
+
+
+def test_task_requires_percent_complete() -> None:
+    schedule = _schedule(
+        {
+            "kind": "task",
+            "id": 5,
+            "name": "Work",
+            "timing": "auto",
+            "duration": "3d",
+            "predecessors": ["0FS"],
+        }
+    )
+    errors = validate_schedule_file(Path("schedule.yaml"), schedule)
+    assert errors, "task without percent_complete must be rejected"
+
+
+def test_task_rejects_out_of_range_percent_complete() -> None:
+    schedule = _schedule(
+        {
+            "kind": "task",
+            "id": 5,
+            "name": "Work",
+            "timing": "auto",
+            "duration": "3d",
+            "predecessors": ["0FS"],
+            "percent_complete": 150,
+        }
+    )
+    errors = validate_schedule_file(Path("schedule.yaml"), schedule)
+    assert errors, "percent_complete > 100 must be rejected"
 
 
 def test_farmers_market_full_demo_passes_validation() -> None:
@@ -208,6 +257,7 @@ def test_schedule_without_context_is_valid() -> None:
             "timing": "auto",
             "duration": "3d",
             "predecessors": ["0FS"],
+            "percent_complete": 0,
         }
     )
     assert "people" not in schedule

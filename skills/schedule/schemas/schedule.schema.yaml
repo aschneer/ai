@@ -38,6 +38,12 @@ $defs:
     type: string
     pattern: ^\d+[dw]$
 
+  percent_complete:
+    type: integer
+    minimum: 0
+    maximum: 100
+    description: Required task progress 0-100. Renders as a progress fill on the bar. Use 0 for not-started tasks.
+
   iso_date:
     type: string
     format: date
@@ -82,7 +88,7 @@ $defs:
   task_auto:
     type: object
     additionalProperties: false
-    required: [kind, id, name, timing, duration, predecessors]
+    required: [kind, id, name, timing, duration, predecessors, percent_complete]
     properties:
       kind:
         const: task
@@ -98,11 +104,13 @@ $defs:
         $ref: '#/$defs/duration'
       predecessors:
         $ref: '#/$defs/predecessors'
+      percent_complete:
+        $ref: '#/$defs/percent_complete'
 
   task_start_duration:
     type: object
     additionalProperties: false
-    required: [kind, id, name, timing, start, duration]
+    required: [kind, id, name, timing, start, duration, percent_complete]
     properties:
       kind:
         const: task
@@ -120,11 +128,13 @@ $defs:
         $ref: '#/$defs/duration'
       predecessors:
         $ref: '#/$defs/predecessors_optional'
+      percent_complete:
+        $ref: '#/$defs/percent_complete'
 
   task_start_finish:
     type: object
     additionalProperties: false
-    required: [kind, id, name, timing, start, finish]
+    required: [kind, id, name, timing, start, finish, percent_complete]
     properties:
       kind:
         const: task
@@ -142,11 +152,13 @@ $defs:
         $ref: '#/$defs/iso_date'
       predecessors:
         $ref: '#/$defs/predecessors_optional'
+      percent_complete:
+        $ref: '#/$defs/percent_complete'
 
   task_finish_duration:
     type: object
     additionalProperties: false
-    required: [kind, id, name, timing, finish, duration]
+    required: [kind, id, name, timing, finish, duration, percent_complete]
     properties:
       kind:
         const: task
@@ -164,6 +176,8 @@ $defs:
         $ref: '#/$defs/duration'
       predecessors:
         $ref: '#/$defs/predecessors_optional'
+      percent_complete:
+        $ref: '#/$defs/percent_complete'
 
   task:
     oneOf:

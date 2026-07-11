@@ -55,6 +55,7 @@ items:
         timing: auto
         duration: 1w
         predecessors: ["10SS"]
+        percent_complete: 50      # required 0–100: draws a progress fill on the bar
 
   - kind: task
     id: 20
@@ -62,10 +63,11 @@ items:
     timing: auto
     duration: 4d
     predecessors: ["11FS"]
+    percent_complete: 0
 ```
 
 - **Milestone** — a zero-length point with a fixed `date` you choose. The only way to pin a date. The milestone at **`id: 0`** anchors the whole project; every schedule needs it.
-- **Task** — work that takes time. Has a `duration` (e.g. `4d`, `2w`) and `predecessors`.
+- **Task** — work that takes time. Has a `duration` (e.g. `4d`, `2w`), `predecessors`, and a required `percent_complete: 0–100` (use `0` until work starts) that shows a progress fill on its bar (Microsoft Project style).
 - **Group** — a heading that contains child items; its dates are derived from its children.
 
 **Predecessors** say what must happen first, in Microsoft Project notation: `"11FS"` = start after item 11 finishes. Link types are `FS` (finish→start, the default), `SS`, `FF`, `SF`, with optional lag like `"11FS+3d"`. You usually just write `["0FS"]` for the first task and chain the rest.

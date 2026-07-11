@@ -336,6 +336,7 @@ function chartColors() {
     group: token("group"),
     milestone: token("milestone"),
     critical: token("critical"),
+    progress: token("progress"),
     link: token("link"),
     today: token("today"),
   };
@@ -596,6 +597,20 @@ function appendBarShape(layer, geom, colors) {
     rect.setAttribute("stroke-width", "3");
   }
   layer.appendChild(rect);
+
+  const percent = Math.max(0, Math.min(100, item.percent_complete || 0));
+  if (percent > 0) {
+    const fill = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    fill.setAttribute("class", "bar-progress");
+    fill.setAttribute("x", String(geom.x));
+    fill.setAttribute("y", String(geom.y));
+    fill.setAttribute("width", String((geom.width * percent) / 100));
+    fill.setAttribute("height", String(geom.height));
+    fill.setAttribute("rx", "3");
+    fill.setAttribute("fill", colors.progress);
+    fill.setAttribute("pointer-events", "none");
+    layer.appendChild(fill);
+  }
   return rect;
 }
 

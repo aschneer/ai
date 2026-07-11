@@ -38,6 +38,7 @@ class ScheduleItem:
     start: date | None = None
     finish: date | None = None
     is_critical: bool = False
+    percent_complete: int = 0
 
     @property
     def is_scheduled(self) -> bool:
@@ -130,6 +131,7 @@ def computed_schedule_to_dict(result: ComputedSchedule) -> dict[str, Any]:
             "working_days": working,
             "calendar_days": calendar_days,
             "timing": item.timing if item.kind == ItemKind.TASK else None,
+            "percent_complete": item.percent_complete if item.kind == ItemKind.TASK else None,
             "duration": item.duration,
             "milestone_date": item.milestone_date.isoformat() if item.milestone_date else None,
             "type": item.milestone_type,
@@ -299,6 +301,7 @@ def _schedule_item_from_raw(raw: dict[str, Any], parent_id: int | None) -> Sched
     timing = raw.get("timing", "auto") if kind == ItemKind.TASK else "auto"
     pinned_start = date.fromisoformat(raw["start"]) if kind == ItemKind.TASK and "start" in raw else None
     pinned_finish = date.fromisoformat(raw["finish"]) if kind == ItemKind.TASK and "finish" in raw else None
+    percent_complete = int(raw.get("percent_complete", 0)) if kind == ItemKind.TASK else 0
     return ScheduleItem(
         id=raw["id"],
         kind=kind,
@@ -311,6 +314,7 @@ def _schedule_item_from_raw(raw: dict[str, Any], parent_id: int | None) -> Sched
         pinned_finish=pinned_finish,
         milestone_date=milestone_date,
         milestone_type=milestone_type,
+        percent_complete=percent_complete,
     )
 
 

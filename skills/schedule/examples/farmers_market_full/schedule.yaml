@@ -35,6 +35,7 @@ items:
     duration: 1w
     predecessors:
     - 10SS
+    percent_complete: 0
   - kind: task
     id: 12
     name: Apply for temporary food event permit
@@ -42,6 +43,7 @@ items:
     duration: 3d
     predecessors:
     - 11SS
+    percent_complete: 0
   - kind: task
     id: 13
     name: Submit city special event permit
@@ -49,6 +51,7 @@ items:
     duration: 1w
     predecessors:
     - 11SS
+    percent_complete: 0
   - kind: task
     id: 14
     name: Coordinate fire marshal pre-inspection
@@ -57,6 +60,7 @@ items:
     predecessors:
     - 12FS
     - 13FS
+    percent_complete: 0
   - kind: task
     id: 16
     name: Obtain business license
@@ -64,6 +68,7 @@ items:
     duration: 2w
     predecessors:
     - 11FS
+    percent_complete: 0
   - kind: task
     id: 17
     name: Secure liability insurance binder
@@ -71,6 +76,7 @@ items:
     duration: 1w
     predecessors:
     - 10SS
+    percent_complete: 0
 - kind: milestone
   id: 15
   name: Permit approved
@@ -88,6 +94,7 @@ items:
     duration: 3d
     predecessors:
     - 20SS
+    percent_complete: 0
   - kind: task
     id: 22
     name: Confirm anchor vendors
@@ -96,6 +103,7 @@ items:
     duration: 2w
     predecessors:
     - 21FS
+    percent_complete: 0
   - kind: group
     id: 23
     name: Producer vendors
@@ -109,6 +117,7 @@ items:
       duration: 4d
       predecessors:
       - 23SS
+      percent_complete: 0
     - kind: task
       id: 25
       name: Send producer invitation packets
@@ -116,6 +125,7 @@ items:
       duration: 3d
       predecessors:
       - 24FS
+      percent_complete: 0
     - kind: task
       id: 26
       name: Host producer info session
@@ -123,6 +133,7 @@ items:
       duration: 1d
       predecessors:
       - 25FS+2d
+      percent_complete: 0
     - kind: task
       id: 27
       name: Review producer applications
@@ -130,6 +141,7 @@ items:
       duration: 1w
       predecessors:
       - 26FS
+      percent_complete: 0
     - kind: task
       id: 28
       name: Sign producer vendor agreements
@@ -137,6 +149,7 @@ items:
       duration: 1w
       predecessors:
       - 27FS
+      percent_complete: 0
   - kind: group
     id: 29
     name: Prepared food vendors
@@ -150,6 +163,7 @@ items:
       duration: 2w
       predecessors:
       - 29SS
+      percent_complete: 0
     - kind: task
       id: 31
       name: Verify commissary kitchen letters
@@ -157,6 +171,7 @@ items:
       duration: 1w
       predecessors:
       - 30FS
+      percent_complete: 0
     - kind: task
       id: 32
       name: Collect food handler certificates
@@ -164,6 +179,7 @@ items:
       duration: 4d
       predecessors:
       - 31FS
+      percent_complete: 0
   - kind: group
     id: 33
     name: Craft & artisan vendors
@@ -177,6 +193,7 @@ items:
       duration: 1w
       predecessors:
       - 33SS
+      percent_complete: 0
     - kind: task
       id: 36
       name: Jury craft applications
@@ -184,6 +201,7 @@ items:
       duration: 4d
       predecessors:
       - 34FS
+      percent_complete: 0
     - kind: task
       id: 37
       name: Confirm craft booth assignments
@@ -191,6 +209,7 @@ items:
       duration: 3d
       predecessors:
       - 36FS
+      percent_complete: 0
   - kind: task
     id: 38
     name: Publish vendor fee schedule
@@ -200,6 +219,7 @@ items:
     - 28FS
     - 32FS
     - 37FS
+    percent_complete: 0
   - kind: task
     id: 39
     name: Finalize market layout by vendor type
@@ -207,6 +227,7 @@ items:
     duration: 1w
     predecessors:
     - 38FS
+    percent_complete: 0
 - kind: group
   id: 40
   name: Insurance & legal
@@ -220,6 +241,7 @@ items:
     duration: 1w
     predecessors:
     - 40SS
+    percent_complete: 0
   - kind: task
     id: 42
     name: Draft vendor agreement template
@@ -227,6 +249,7 @@ items:
     duration: 1w
     predecessors:
     - 41FS
+    percent_complete: 0
   - kind: task
     id: 43
     name: Establish market bank account
@@ -234,6 +257,7 @@ items:
     duration: 3d
     predecessors:
     - 40SS
+    percent_complete: 0
   - kind: task
     id: 44
     name: Set up vendor payment processing
@@ -241,6 +265,7 @@ items:
     duration: 4d
     predecessors:
     - 43FS
+    percent_complete: 0
 - kind: group
   id: 70
   name: Equipment & supplies
@@ -254,6 +279,7 @@ items:
     duration: 4d
     predecessors:
     - 70SS
+    percent_complete: 0
   - kind: task
     id: 73
     name: Purchase PPE and first aid kits
@@ -261,6 +287,7 @@ items:
     duration: 3d
     predecessors:
     - 70SS
+    percent_complete: 0
   - kind: task
     id: 74
     name: Buy cleaning and sanitizing supplies
@@ -268,6 +295,7 @@ items:
     duration: 3d
     predecessors:
     - 72FS
+    percent_complete: 0
   - kind: task
     id: 76
     name: Label and stage equipment bins
@@ -276,6 +304,7 @@ items:
     predecessors:
     - 73FS
     - 74FS
+    percent_complete: 0
 - kind: milestone
   id: 19
   name: Site lease executed
@@ -299,6 +328,7 @@ items:
       duration: 3d
       predecessors:
       - 46SS
+      percent_complete: 0
     - kind: task
       id: 48
       name: Order generator and power distro
@@ -306,6 +336,7 @@ items:
       duration: 2w
       predecessors:
       - 47FS
+      percent_complete: 0
     - kind: task
       id: 49
       name: Install temporary water hookups
@@ -313,6 +344,7 @@ items:
       duration: 1w
       predecessors:
       - 47SS
+      percent_complete: 0
     - kind: task
       id: 50
       name: Arrange portable restroom contract
@@ -320,6 +352,7 @@ items:
       duration: 4d
       predecessors:
       - 46SS
+      percent_complete: 0
   - kind: group
     id: 51
     name: Layout & signage
@@ -333,6 +366,7 @@ items:
       duration: 2d
       predecessors:
       - 51SS
+      percent_complete: 0
     - kind: task
       id: 53
       name: Mark traffic flow and pedestrian lanes
@@ -340,6 +374,7 @@ items:
       duration: 2d
       predecessors:
       - 52FS
+      percent_complete: 0
     - kind: task
       id: 54
       name: Install wayfinding signage posts
@@ -347,6 +382,7 @@ items:
       duration: 3d
       predecessors:
       - 53FS
+      percent_complete: 0
     - kind: task
       id: 58
       name: Set up info booth and welcome desk
@@ -354,6 +390,7 @@ items:
       duration: 2d
       predecessors:
       - 54FS
+      percent_complete: 0
   - kind: group
     id: 56
     name: Facilities setup
@@ -367,6 +404,7 @@ items:
       duration: 1w
       predecessors:
       - 56SS
+      percent_complete: 0
     - kind: task
       id: 59
       name: Install perimeter fencing
@@ -374,6 +412,7 @@ items:
       duration: 3d
       predecessors:
       - 56SS
+      percent_complete: 0
     - kind: task
       id: 61
       name: Set up hand-wash stations
@@ -382,6 +421,7 @@ items:
       predecessors:
       - 49FS
       - 57FS
+      percent_complete: 0
     - kind: task
       id: 62
       name: Test lighting for early season hours
@@ -389,6 +429,7 @@ items:
       duration: 2d
       predecessors:
       - 57FS
+      percent_complete: 0
   - kind: task
     id: 63
     name: Order tents and vendor signage
@@ -396,6 +437,7 @@ items:
     duration: 1w
     predecessors:
     - 45SS
+    percent_complete: 0
   - kind: task
     id: 64
     name: Arrange parking and traffic plan
@@ -403,6 +445,7 @@ items:
     duration: 4d
     predecessors:
     - 63SS
+    percent_complete: 0
   - kind: task
     id: 65
     name: Coordinate with city traffic engineering
@@ -410,6 +453,7 @@ items:
     duration: 3d
     predecessors:
     - 64FS
+    percent_complete: 0
 - kind: group
   id: 66
   name: Food safety & compliance
@@ -423,6 +467,7 @@ items:
     duration: 1w
     predecessors:
     - 66SS
+    percent_complete: 0
   - kind: task
     id: 68
     name: Schedule health department walkthrough
@@ -430,6 +475,7 @@ items:
     duration: 2d
     predecessors:
     - 67FS
+    percent_complete: 0
   - kind: task
     id: 69
     name: Train market managers on inspection protocol
@@ -437,6 +483,7 @@ items:
     duration: 1d
     predecessors:
     - 68FS
+    percent_complete: 0
   - kind: task
     id: 71
     name: Prepare opening day inspection packet
@@ -444,6 +491,7 @@ items:
     duration: 2d
     predecessors:
     - 69FS
+    percent_complete: 0
 - kind: group
   id: 80
   name: Marketing & promotion
@@ -457,6 +505,7 @@ items:
     duration: 1w
     predecessors:
     - 80SS
+    percent_complete: 0
   - kind: task
     id: 82
     name: Build market website landing page
@@ -464,6 +513,7 @@ items:
     duration: 1w
     predecessors:
     - 81FS
+    percent_complete: 0
   - kind: task
     id: 83
     name: Launch social media campaign
@@ -471,6 +521,7 @@ items:
     duration: 2w
     predecessors:
     - 82FS
+    percent_complete: 0
   - kind: task
     id: 84
     name: Design print flyers and posters
@@ -478,6 +529,7 @@ items:
     duration: 4d
     predecessors:
     - 81SS
+    percent_complete: 0
   - kind: task
     id: 85
     name: Send press release to local media
@@ -485,6 +537,7 @@ items:
     duration: 2d
     predecessors:
     - 83FS+3d
+    percent_complete: 0
   - kind: task
     id: 86
     name: Partner outreach to community orgs
@@ -492,6 +545,7 @@ items:
     duration: 1w
     predecessors:
     - 80SS
+    percent_complete: 0
   - kind: task
     id: 87
     name: Schedule opening day ribbon cutting
@@ -500,6 +554,7 @@ items:
     predecessors:
     - 85FS
     - 86FS
+    percent_complete: 0
 - kind: milestone
   id: 35
   name: Vendor roster locked
@@ -517,6 +572,7 @@ items:
     duration: 2w
     predecessors:
     - 88SS
+    percent_complete: 0
   - kind: task
     id: 91
     name: Hire setup and teardown crew
@@ -524,6 +580,7 @@ items:
     duration: 1w
     predecessors:
     - 89FS
+    percent_complete: 0
   - kind: task
     id: 92
     name: Create staff shift schedule template
@@ -531,6 +588,7 @@ items:
     duration: 3d
     predecessors:
     - 91FS
+    percent_complete: 0
   - kind: task
     id: 93
     name: Run staff orientation and safety training
@@ -539,6 +597,7 @@ items:
     predecessors:
     - 92FS
     - 71FS
+    percent_complete: 0
   - kind: task
     id: 94
     name: Write opening day runbook
@@ -546,6 +605,7 @@ items:
     duration: 1w
     predecessors:
     - 88SS
+    percent_complete: 0
   - kind: task
     id: 95
     name: Conduct tabletop emergency drill
@@ -554,6 +614,7 @@ items:
     predecessors:
     - 94FS
     - 93FS
+    percent_complete: 0
 - kind: milestone
   id: 200
   name: Site infrastructure complete
@@ -574,6 +635,7 @@ items:
     predecessors:
     - 39FS
     - 200FS
+    percent_complete: 0
   - kind: task
     id: 98
     name: Load-in dry run with anchor vendors
@@ -581,6 +643,7 @@ items:
     duration: 1d
     predecessors:
     - 97FS
+    percent_complete: 0
   - kind: task
     id: 99
     name: Opening day rehearsal
@@ -588,6 +651,7 @@ items:
     duration: 1d
     predecessors:
     - 98FS
+    percent_complete: 0
 - kind: milestone
   id: 60
   name: Opening day
@@ -605,6 +669,7 @@ items:
     duration: 1d
     predecessors:
     - 60FS
+    percent_complete: 0
   - kind: task
     id: 102
     name: Collect opening day feedback forms
@@ -612,6 +677,7 @@ items:
     duration: 1d
     predecessors:
     - 101FS
+    percent_complete: 0
   - kind: task
     id: 103
     name: Debrief with vendor leads
@@ -619,6 +685,7 @@ items:
     duration: 1d
     predecessors:
     - 102FS
+    percent_complete: 0
 - kind: milestone
   id: 75
   name: First month review
@@ -636,6 +703,7 @@ items:
     duration: 1d
     predecessors:
     - 103FS
+    percent_complete: 0
   - kind: task
     id: 112
     name: July — Week 1 market day
@@ -643,6 +711,7 @@ items:
     duration: 1d
     predecessors:
     - 111FS
+    percent_complete: 0
   - kind: task
     id: 113
     name: July — Week 1 teardown
@@ -650,6 +719,7 @@ items:
     duration: 1d
     predecessors:
     - 112FS
+    percent_complete: 0
   - kind: task
     id: 114
     name: July — Week 2 setup
@@ -657,6 +727,7 @@ items:
     duration: 1d
     predecessors:
     - 113FS
+    percent_complete: 0
   - kind: task
     id: 115
     name: July — Week 2 market day
@@ -664,6 +735,7 @@ items:
     duration: 1d
     predecessors:
     - 114FS
+    percent_complete: 0
   - kind: task
     id: 116
     name: July — Week 2 teardown
@@ -671,6 +743,7 @@ items:
     duration: 1d
     predecessors:
     - 115FS
+    percent_complete: 0
   - kind: task
     id: 117
     name: July — Week 3 setup
@@ -678,6 +751,7 @@ items:
     duration: 1d
     predecessors:
     - 116FS
+    percent_complete: 0
   - kind: task
     id: 118
     name: July — Week 3 market day
@@ -685,6 +759,7 @@ items:
     duration: 1d
     predecessors:
     - 117FS
+    percent_complete: 0
   - kind: task
     id: 119
     name: July — Week 3 teardown
@@ -692,6 +767,7 @@ items:
     duration: 1d
     predecessors:
     - 118FS
+    percent_complete: 0
   - kind: task
     id: 120
     name: July — Week 4 setup
@@ -699,6 +775,7 @@ items:
     duration: 1d
     predecessors:
     - 119FS
+    percent_complete: 0
   - kind: task
     id: 121
     name: July — Week 4 market day
@@ -706,6 +783,7 @@ items:
     duration: 1d
     predecessors:
     - 120FS
+    percent_complete: 0
   - kind: task
     id: 122
     name: July — Week 4 teardown
@@ -713,6 +791,7 @@ items:
     duration: 1d
     predecessors:
     - 121FS
+    percent_complete: 0
 - kind: group
   id: 130
   name: August market Saturdays
@@ -726,6 +805,7 @@ items:
     duration: 1d
     predecessors:
     - 122FS
+    percent_complete: 0
   - kind: task
     id: 132
     name: August — Week 1 market day
@@ -733,6 +813,7 @@ items:
     duration: 1d
     predecessors:
     - 131FS
+    percent_complete: 0
   - kind: task
     id: 133
     name: August — Week 1 teardown
@@ -740,6 +821,7 @@ items:
     duration: 1d
     predecessors:
     - 132FS
+    percent_complete: 0
   - kind: task
     id: 134
     name: August — Week 2 setup
@@ -747,6 +829,7 @@ items:
     duration: 1d
     predecessors:
     - 133FS
+    percent_complete: 0
   - kind: task
     id: 135
     name: August — Week 2 market day
@@ -754,6 +837,7 @@ items:
     duration: 1d
     predecessors:
     - 134FS
+    percent_complete: 0
   - kind: task
     id: 136
     name: August — Week 2 teardown
@@ -761,6 +845,7 @@ items:
     duration: 1d
     predecessors:
     - 135FS
+    percent_complete: 0
   - kind: task
     id: 137
     name: August — Week 3 setup
@@ -768,6 +853,7 @@ items:
     duration: 1d
     predecessors:
     - 136FS
+    percent_complete: 0
   - kind: task
     id: 138
     name: August — Week 3 market day
@@ -775,6 +861,7 @@ items:
     duration: 1d
     predecessors:
     - 137FS
+    percent_complete: 0
   - kind: task
     id: 139
     name: August — Week 3 teardown
@@ -782,6 +869,7 @@ items:
     duration: 1d
     predecessors:
     - 138FS
+    percent_complete: 0
   - kind: task
     id: 140
     name: August — Week 4 setup
@@ -789,6 +877,7 @@ items:
     duration: 1d
     predecessors:
     - 139FS
+    percent_complete: 0
   - kind: task
     id: 141
     name: August — Week 4 market day
@@ -796,6 +885,7 @@ items:
     duration: 1d
     predecessors:
     - 140FS
+    percent_complete: 0
   - kind: task
     id: 142
     name: August — Week 4 teardown
@@ -803,6 +893,7 @@ items:
     duration: 1d
     predecessors:
     - 141FS
+    percent_complete: 0
 - kind: group
   id: 150
   name: September market Saturdays
@@ -816,6 +907,7 @@ items:
     duration: 1d
     predecessors:
     - 142FS
+    percent_complete: 0
   - kind: task
     id: 152
     name: September — Week 1 market day
@@ -823,6 +915,7 @@ items:
     duration: 1d
     predecessors:
     - 151FS
+    percent_complete: 0
   - kind: task
     id: 153
     name: September — Week 1 teardown
@@ -830,6 +923,7 @@ items:
     duration: 1d
     predecessors:
     - 152FS
+    percent_complete: 0
   - kind: task
     id: 154
     name: September — Week 2 setup
@@ -837,6 +931,7 @@ items:
     duration: 1d
     predecessors:
     - 153FS
+    percent_complete: 0
   - kind: task
     id: 155
     name: September — Week 2 market day
@@ -844,6 +939,7 @@ items:
     duration: 1d
     predecessors:
     - 154FS
+    percent_complete: 0
   - kind: task
     id: 156
     name: September — Week 2 teardown
@@ -851,6 +947,7 @@ items:
     duration: 1d
     predecessors:
     - 155FS
+    percent_complete: 0
   - kind: task
     id: 157
     name: September — Week 3 setup
@@ -858,6 +955,7 @@ items:
     duration: 1d
     predecessors:
     - 156FS
+    percent_complete: 0
   - kind: task
     id: 158
     name: September — Week 3 market day
@@ -865,6 +963,7 @@ items:
     duration: 1d
     predecessors:
     - 157FS
+    percent_complete: 0
   - kind: task
     id: 159
     name: September — Week 3 teardown
@@ -872,6 +971,7 @@ items:
     duration: 1d
     predecessors:
     - 158FS
+    percent_complete: 0
   - kind: task
     id: 160
     name: September — Week 4 setup
@@ -879,6 +979,7 @@ items:
     duration: 1d
     predecessors:
     - 159FS
+    percent_complete: 0
   - kind: task
     id: 161
     name: September — Week 4 market day
@@ -886,6 +987,7 @@ items:
     duration: 1d
     predecessors:
     - 160FS
+    percent_complete: 0
   - kind: task
     id: 162
     name: September — Week 4 teardown
@@ -893,6 +995,7 @@ items:
     duration: 1d
     predecessors:
     - 161FS
+    percent_complete: 0
 - kind: milestone
   id: 90
   name: Mid-season review
@@ -910,6 +1013,7 @@ items:
     duration: 1d
     predecessors:
     - 162FS
+    percent_complete: 0
   - kind: task
     id: 172
     name: October — Week 1 market day
@@ -917,6 +1021,7 @@ items:
     duration: 1d
     predecessors:
     - 171FS
+    percent_complete: 0
   - kind: task
     id: 173
     name: October — Week 1 teardown
@@ -924,6 +1029,7 @@ items:
     duration: 1d
     predecessors:
     - 172FS
+    percent_complete: 0
   - kind: task
     id: 174
     name: October — Week 2 setup
@@ -931,6 +1037,7 @@ items:
     duration: 1d
     predecessors:
     - 173FS
+    percent_complete: 0
   - kind: task
     id: 175
     name: October — Week 2 market day
@@ -938,6 +1045,7 @@ items:
     duration: 1d
     predecessors:
     - 174FS
+    percent_complete: 0
   - kind: task
     id: 176
     name: October — Week 2 teardown
@@ -945,6 +1053,7 @@ items:
     duration: 1d
     predecessors:
     - 175FS
+    percent_complete: 0
   - kind: task
     id: 177
     name: October — Week 3 setup
@@ -952,6 +1061,7 @@ items:
     duration: 1d
     predecessors:
     - 176FS
+    percent_complete: 0
   - kind: task
     id: 178
     name: October — Week 3 market day
@@ -959,6 +1069,7 @@ items:
     duration: 1d
     predecessors:
     - 177FS
+    percent_complete: 0
   - kind: task
     id: 179
     name: October — Week 3 teardown
@@ -966,6 +1077,7 @@ items:
     duration: 1d
     predecessors:
     - 178FS
+    percent_complete: 0
   - kind: task
     id: 180
     name: October — Week 4 setup
@@ -973,6 +1085,7 @@ items:
     duration: 1d
     predecessors:
     - 179FS
+    percent_complete: 0
   - kind: task
     id: 181
     name: October — Week 4 market day
@@ -980,6 +1093,7 @@ items:
     duration: 1d
     predecessors:
     - 180FS
+    percent_complete: 0
   - kind: task
     id: 182
     name: October — Week 4 teardown
@@ -987,6 +1101,7 @@ items:
     duration: 1d
     predecessors:
     - 181FS
+    percent_complete: 0
 - kind: group
   id: 190
   name: Post-season wrap-up
@@ -1000,6 +1115,7 @@ items:
     duration: 1w
     predecessors:
     - 190SS
+    percent_complete: 0
   - kind: task
     id: 192
     name: Analyze attendance and sales trends
@@ -1007,6 +1123,7 @@ items:
     duration: 1w
     predecessors:
     - 191SS
+    percent_complete: 0
   - kind: task
     id: 193
     name: Hold board retrospective
@@ -1014,6 +1131,7 @@ items:
     duration: 1d
     predecessors:
     - 192FS
+    percent_complete: 0
   - kind: task
     id: 194
     name: Draft next season improvement plan
@@ -1021,6 +1139,7 @@ items:
     duration: 1w
     predecessors:
     - 193FS
+    percent_complete: 0
   - kind: task
     id: 195
     name: Archive vendor files and renewals list
@@ -1028,6 +1147,7 @@ items:
     duration: 3d
     predecessors:
     - 194FS
+    percent_complete: 0
 - kind: group
   id: 220
   name: Next-season planning
@@ -1041,6 +1161,7 @@ items:
     duration: 3w
     predecessors:
     - 220SS
+    percent_complete: 0
   - kind: task
     id: 222
     name: Refresh vendor prospectus and pricing
@@ -1048,6 +1169,7 @@ items:
     duration: 2w
     predecessors:
     - 221FS
+    percent_complete: 0
   - kind: task
     id: 223
     name: Open early-bird vendor applications
@@ -1055,6 +1177,7 @@ items:
     duration: 4w
     predecessors:
     - 222FS
+    percent_complete: 0
   - kind: task
     id: 224
     name: Draft next-season marketing calendar
@@ -1062,6 +1185,7 @@ items:
     duration: 3w
     predecessors:
     - 223FS
+    percent_complete: 0
 - kind: group
   id: 210
   name: Team availability
@@ -1072,12 +1196,14 @@ items:
     timing: start_finish
     start: 2026-05-11
     finish: 2026-05-15
+    percent_complete: 0
   - kind: task
     id: 212
     name: Contractor booked elsewhere
     timing: start_duration
     start: 2026-06-01
     duration: 2w
+    percent_complete: 0
 - kind: milestone
   id: 105
   name: Next season ready

@@ -23,6 +23,7 @@ items:
         timing: auto
         duration: 2d
         predecessors: ["10SS"]
+        percent_complete: 0
 
       - kind: task
         id: 12
@@ -30,6 +31,7 @@ items:
         timing: auto
         duration: 1w
         predecessors: ["11FS"]
+        percent_complete: 0
 
       - kind: group
         id: 13
@@ -42,6 +44,7 @@ items:
             timing: auto
             duration: 3d
             predecessors: ["13SS"]
+            percent_complete: 0
 
           - kind: task
             id: 15
@@ -49,6 +52,7 @@ items:
             timing: auto
             duration: 2d
             predecessors: ["14FS"]
+            percent_complete: 0
 
   - kind: milestone
     id: 20
@@ -66,6 +70,7 @@ items:
         timing: auto
         duration: 2w
         predecessors: ["30SS"]
+        percent_complete: 0
 
       - kind: task
         id: 32
@@ -73,6 +78,7 @@ items:
         timing: auto
         duration: 2w
         predecessors: ["31SS"]
+        percent_complete: 0
 
       - kind: task
         id: 33
@@ -80,6 +86,7 @@ items:
         timing: auto
         duration: 1w
         predecessors: ["31FS+3d"]
+        percent_complete: 0
 
   - kind: group
     id: 40
@@ -92,6 +99,7 @@ items:
         timing: auto
         duration: 1w
         predecessors: ["40SS"]
+        percent_complete: 0
 
       - kind: task
         id: 42
@@ -100,6 +108,7 @@ items:
         start: 2026-08-03
         duration: 3d
         predecessors: ["41FS"]
+        percent_complete: 0
 
       - kind: task
         id: 43
@@ -107,6 +116,7 @@ items:
         timing: auto
         duration: 2d
         predecessors: ["42FF"]
+        percent_complete: 0
 
       - kind: task
         id: 44
@@ -114,6 +124,7 @@ items:
         timing: auto
         duration: 1d
         predecessors: ["43FS"]
+        percent_complete: 0
 
   - kind: group
     id: 50
@@ -126,6 +137,7 @@ items:
         timing: auto
         duration: 2w
         predecessors: ["50SS"]
+        percent_complete: 0
 
       - kind: task
         id: 52
@@ -134,6 +146,7 @@ items:
         start: 2026-08-24
         finish: 2026-08-26
         predecessors: ["51FS"]
+        percent_complete: 0
 
       - kind: task
         id: 53
@@ -141,6 +154,7 @@ items:
         timing: auto
         duration: 4d
         predecessors: ["52SS+2d"]
+        percent_complete: 0
 
   - kind: task
     id: 60
@@ -149,6 +163,7 @@ items:
     finish: 2026-09-04
     duration: 2d
     predecessors: ["44FS", "53FS"]
+    percent_complete: 0
 
   - kind: milestone
     id: 70
@@ -161,3 +176,4 @@ items:
     timing: auto
     duration: 3d
     predecessors: ["70FS"]
+    percent_complete: 0

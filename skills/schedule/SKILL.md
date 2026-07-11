@@ -86,7 +86,7 @@ events:
 | Kind | Key fields | Forbidden |
 |------|------------|-----------|
 | `milestone` | `date` (user-set, must be a working day); optional deadline `predecessors` and `type: project_finish` | `duration`, `timing`, `children` |
-| `task` | `timing`, `duration`, `predecessors` (required for `auto`; optional for pinned modes; plus `start`/`finish` when timing requires) | `date`, `children` |
+| `task` | `timing`, `duration`, `predecessors` (required for `auto`; optional for pinned modes; plus `start`/`finish` when timing requires); `percent_complete` (0–100, required) | `date`, `children` |
 | `group` | `children` (min 1); `predecessors` optional | `date`, `duration`, `timing` |
 
 **ID 0** is reserved for the project start milestone. IDs are stable and **must be unique** — never renumber when reordering items.
@@ -111,6 +111,8 @@ Listing rules (when an item **has** predecessors):
 - No cyclic predecessor dependencies
 
 **Durations and lag:** days and weeks only (`4d`, `2w`). No hours.
+
+**Task progress (required)** — every task **must** carry `percent_complete: 0–100` (integer); a missing field is a hard validation error. It draws a darker progress fill spanning that fraction of the bar (Microsoft Project style); `100` = fully filled. Tasks only — never on groups or milestones. **Always write `percent_complete: 0`** on a new or not-started task; set a higher value only when the user states progress or asks for it. Update it as work advances.
 
 **FS start day** — with zero lag, an FS successor of a **task or group** starts the **next working day** after the predecessor finishes (the predecessor occupies its finish day). An FS successor of a **milestone** — including `0FS` from project start — starts **on** the milestone date itself (a milestone is an instantaneous point). To push a milestone's successor to the next day, add lag: `13FS+1d`. This matches Microsoft Project; detail in `context/data_model.md`.
 
