@@ -1,0 +1,26 @@
+{
+  "skill_name": "prd",
+  "evals": [
+    {
+      "id": 0,
+      "name": "create-fresh-webp-cli",
+      "prompt": "I'm building a small CLI tool that watches a folder and automatically converts any image dropped into it to WebP. Write me a PRD for it. Save it wherever makes sense.",
+      "expected_output": "A prd.md with hierarchical numbered sections, requirements phrased as capabilities (not implementation), concise, short overview at top.",
+      "files": []
+    },
+    {
+      "id": 1,
+      "name": "reject-impl-leak-url-shortener",
+      "prompt": "Write a PRD for a URL shortener service. It should use Postgres with a base62 encoding table and put a Redis cache in front of the lookups.",
+      "expected_output": "PRD states requirements from customer perspective; Postgres/base62/Redis kept out of requirements OR skill asks whether user wants to control those choices before including them. Does not silently bake infra choices in as requirements.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "drift-catch-mid-implementation",
+      "prompt": "Here's my existing PRD for the URL shortener (in prd.md). I'm mid-implementation. Let's make the shortened links expire after 24 hours, and also add an endpoint that returns how many times a link has been clicked. Go ahead and implement those.",
+      "expected_output": "Skill proactively flags that link-expiry changes/contradicts existing behavior and the click-count endpoint is new functionality not in the PRD, and asks whether to update the PRD to stay source of truth. Does NOT silently edit the PRD without asking.",
+      "files": ["prd.md"]
+    }
+  ]
+}
