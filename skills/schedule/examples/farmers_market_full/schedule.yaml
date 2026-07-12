@@ -35,7 +35,7 @@ items:
     duration: 1w
     predecessors:
     - 10SS
-    percent_complete: 0
+    percent_complete: 100
   - kind: task
     id: 12
     name: Apply for temporary food event permit
@@ -43,7 +43,7 @@ items:
     duration: 3d
     predecessors:
     - 11SS
-    percent_complete: 0
+    percent_complete: 100
   - kind: task
     id: 13
     name: Submit city special event permit
@@ -51,7 +51,7 @@ items:
     duration: 1w
     predecessors:
     - 11SS
-    percent_complete: 0
+    percent_complete: 100
   - kind: task
     id: 14
     name: Coordinate fire marshal pre-inspection
@@ -60,7 +60,7 @@ items:
     predecessors:
     - 12FS
     - 13FS
-    percent_complete: 0
+    percent_complete: 100
   - kind: task
     id: 16
     name: Obtain business license
@@ -68,7 +68,7 @@ items:
     duration: 2w
     predecessors:
     - 11FS
-    percent_complete: 0
+    percent_complete: 100
   - kind: task
     id: 17
     name: Secure liability insurance binder
@@ -76,7 +76,7 @@ items:
     duration: 1w
     predecessors:
     - 10SS
-    percent_complete: 0
+    percent_complete: 100
 - kind: milestone
   id: 15
   name: Permit approved
@@ -94,7 +94,7 @@ items:
     duration: 3d
     predecessors:
     - 20SS
-    percent_complete: 0
+    percent_complete: 100
   - kind: task
     id: 22
     name: Confirm anchor vendors
@@ -103,7 +103,7 @@ items:
     duration: 2w
     predecessors:
     - 21FS
-    percent_complete: 0
+    percent_complete: 100
   - kind: group
     id: 23
     name: Producer vendors
@@ -117,7 +117,7 @@ items:
       duration: 4d
       predecessors:
       - 23SS
-      percent_complete: 0
+      percent_complete: 100
     - kind: task
       id: 25
       name: Send producer invitation packets
@@ -125,7 +125,7 @@ items:
       duration: 3d
       predecessors:
       - 24FS
-      percent_complete: 0
+      percent_complete: 100
     - kind: task
       id: 26
       name: Host producer info session
@@ -133,7 +133,7 @@ items:
       duration: 1d
       predecessors:
       - 25FS+2d
-      percent_complete: 0
+      percent_complete: 100
     - kind: task
       id: 27
       name: Review producer applications
@@ -141,7 +141,7 @@ items:
       duration: 1w
       predecessors:
       - 26FS
-      percent_complete: 0
+      percent_complete: 100
     - kind: task
       id: 28
       name: Sign producer vendor agreements
@@ -149,7 +149,7 @@ items:
       duration: 1w
       predecessors:
       - 27FS
-      percent_complete: 0
+      percent_complete: 100
   - kind: group
     id: 29
     name: Prepared food vendors
@@ -163,7 +163,7 @@ items:
       duration: 2w
       predecessors:
       - 29SS
-      percent_complete: 0
+      percent_complete: 70
     - kind: task
       id: 31
       name: Verify commissary kitchen letters
@@ -171,7 +171,7 @@ items:
       duration: 1w
       predecessors:
       - 30FS
-      percent_complete: 0
+      percent_complete: 40
     - kind: task
       id: 32
       name: Collect food handler certificates
@@ -179,7 +179,7 @@ items:
       duration: 4d
       predecessors:
       - 31FS
-      percent_complete: 0
+      percent_complete: 25
   - kind: group
     id: 33
     name: Craft & artisan vendors
@@ -193,7 +193,7 @@ items:
       duration: 1w
       predecessors:
       - 33SS
-      percent_complete: 0
+      percent_complete: 80
     - kind: task
       id: 36
       name: Jury craft applications
@@ -201,7 +201,7 @@ items:
       duration: 4d
       predecessors:
       - 34FS
-      percent_complete: 0
+      percent_complete: 50
     - kind: task
       id: 37
       name: Confirm craft booth assignments
@@ -209,7 +209,7 @@ items:
       duration: 3d
       predecessors:
       - 36FS
-      percent_complete: 0
+      percent_complete: 20
   - kind: task
     id: 38
     name: Publish vendor fee schedule
@@ -219,7 +219,7 @@ items:
     - 28FS
     - 32FS
     - 37FS
-    percent_complete: 0
+    percent_complete: 15
   - kind: task
     id: 39
     name: Finalize market layout by vendor type
@@ -241,7 +241,7 @@ items:
     duration: 1w
     predecessors:
     - 40SS
-    percent_complete: 0
+    percent_complete: 100
   - kind: task
     id: 42
     name: Draft vendor agreement template
@@ -249,7 +249,7 @@ items:
     duration: 1w
     predecessors:
     - 41FS
-    percent_complete: 0
+    percent_complete: 100
   - kind: task
     id: 43
     name: Establish market bank account
@@ -257,7 +257,7 @@ items:
     duration: 3d
     predecessors:
     - 40SS
-    percent_complete: 0
+    percent_complete: 100
   - kind: task
     id: 44
     name: Set up vendor payment processing
@@ -265,7 +265,7 @@ items:
     duration: 4d
     predecessors:
     - 43FS
-    percent_complete: 0
+    percent_complete: 100
 - kind: group
   id: 70
   name: Equipment & supplies
@@ -279,7 +279,7 @@ items:
     duration: 4d
     predecessors:
     - 70SS
-    percent_complete: 0
+    percent_complete: 100
   - kind: task
     id: 73
     name: Purchase PPE and first aid kits
@@ -287,7 +287,7 @@ items:
     duration: 3d
     predecessors:
     - 70SS
-    percent_complete: 0
+    percent_complete: 100
   - kind: task
     id: 74
     name: Buy cleaning and sanitizing supplies
@@ -295,7 +295,7 @@ items:
     duration: 3d
     predecessors:
     - 72FS
-    percent_complete: 0
+    percent_complete: 100
   - kind: task
     id: 76
     name: Label and stage equipment bins
@@ -304,7 +304,7 @@ items:
     predecessors:
     - 73FS
     - 74FS
-    percent_complete: 0
+    percent_complete: 100
 - kind: milestone
   id: 19
   name: Site lease executed
@@ -328,7 +328,7 @@ items:
       duration: 3d
       predecessors:
       - 46SS
-      percent_complete: 0
+      percent_complete: 90
     - kind: task
       id: 48
       name: Order generator and power distro
@@ -336,7 +336,7 @@ items:
       duration: 2w
       predecessors:
       - 47FS
-      percent_complete: 0
+      percent_complete: 40
     - kind: task
       id: 49
       name: Install temporary water hookups
@@ -344,7 +344,7 @@ items:
       duration: 1w
       predecessors:
       - 47SS
-      percent_complete: 0
+      percent_complete: 60
     - kind: task
       id: 50
       name: Arrange portable restroom contract
@@ -352,7 +352,7 @@ items:
       duration: 4d
       predecessors:
       - 46SS
-      percent_complete: 0
+      percent_complete: 30
   - kind: group
     id: 51
     name: Layout & signage
@@ -366,7 +366,7 @@ items:
       duration: 2d
       predecessors:
       - 51SS
-      percent_complete: 0
+      percent_complete: 50
     - kind: task
       id: 53
       name: Mark traffic flow and pedestrian lanes
@@ -374,7 +374,7 @@ items:
       duration: 2d
       predecessors:
       - 52FS
-      percent_complete: 0
+      percent_complete: 20
     - kind: task
       id: 54
       name: Install wayfinding signage posts
@@ -467,7 +467,7 @@ items:
     duration: 1w
     predecessors:
     - 66SS
-    percent_complete: 0
+    percent_complete: 60
   - kind: task
     id: 68
     name: Schedule health department walkthrough
@@ -475,7 +475,7 @@ items:
     duration: 2d
     predecessors:
     - 67FS
-    percent_complete: 0
+    percent_complete: 20
   - kind: task
     id: 69
     name: Train market managers on inspection protocol
@@ -505,7 +505,7 @@ items:
     duration: 1w
     predecessors:
     - 80SS
-    percent_complete: 0
+    percent_complete: 75
   - kind: task
     id: 82
     name: Build market website landing page
@@ -513,7 +513,7 @@ items:
     duration: 1w
     predecessors:
     - 81FS
-    percent_complete: 0
+    percent_complete: 45
   - kind: task
     id: 83
     name: Launch social media campaign
@@ -529,7 +529,7 @@ items:
     duration: 4d
     predecessors:
     - 81SS
-    percent_complete: 0
+    percent_complete: 30
   - kind: task
     id: 85
     name: Send press release to local media
@@ -545,7 +545,7 @@ items:
     duration: 1w
     predecessors:
     - 80SS
-    percent_complete: 0
+    percent_complete: 55
   - kind: task
     id: 87
     name: Schedule opening day ribbon cutting
@@ -1196,14 +1196,14 @@ items:
     timing: start_finish
     start: 2026-05-11
     finish: 2026-05-15
-    percent_complete: 0
+    percent_complete: 100
   - kind: task
     id: 212
     name: Contractor booked elsewhere
     timing: start_duration
     start: 2026-06-01
     duration: 2w
-    percent_complete: 0
+    percent_complete: 100
 - kind: milestone
   id: 105
   name: Next season ready

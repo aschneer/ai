@@ -1,0 +1,5 @@
+# Repo-local: recompute.sh hardcodes a machine-specific skill path and is
+# regenerated on every `uv run compute`, so the copy compute drops into each
+# example subfolder must never be checked in. The examples are recomputed
+# straight from this repo, so they don't need it.
+**/recompute.sh
