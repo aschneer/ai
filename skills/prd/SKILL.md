@@ -56,6 +56,16 @@ actually required.
 - **Hierarchical numbering.** Requirements are numbered in a nested structure: top-level sections (`1`, `2`, `3`), then
   requirements (`1.1`, `1.2`), then sub-requirements (`1.1.1`) as needed. The numbering is the addressing system —
   design docs, tickets, and reviews cite requirements by number, so numbers must be stable and unambiguous.
+- **One requirement per number — atomicity.** Each numbered item must state exactly one requirement. The test: could you
+  drop or change this claim without affecting any other claim in the line? If a single line contains two things that
+  could be changed, removed, or satisfied independently, it's actually two requirements wearing one number, and it must
+  be split. For example, "The tool is a command-line program started with a single command that runs until stopped by the
+  user" is three independent requirements — the CLI form factor, the single-command invocation, and the run-until-stopped
+  lifecycle — each of which could change without touching the others; it should be three numbered items. This matters
+  because the number is the addressing system: a compound line can't be cited, revised, or deleted as a unit without
+  disturbing unrelated requirements bundled beside it. Split independent claims into sibling requirements; use a
+  sub-requirement (`1.1.1` under `1.1`) only when the child genuinely *elaborates or narrows* its parent, not when the two
+  are merely adjacent peers.
 - **Logical sections.** Group requirements into sections that reflect the natural structure of the product (e.g.
   Inputs, a major capability, Reporting, Output). Order sections so the document reads top to bottom as a coherent
   description of the product.
@@ -63,7 +73,8 @@ actually required.
 - **Concise and structured — not prose.** A PRD reads as a scannable, numbered list, not paragraphs of narrative. Each
   requirement is one short, self-contained statement: capture every detail that's actually necessary, and nothing beyond
   that. If a requirement is running long, it's usually either carrying implementation detail that doesn't belong or
-  should be split into sub-requirements. No filler, no restating the same requirement twice.
+  bundling several independent claims that should be split (see atomicity above). No filler, no restating the same
+  requirement twice.
 
 ## The PRD must capture the whole product — the reconstruction test
 
