@@ -1,7 +1,14 @@
 ---
 name: developer
-description: Only use when explicitly invoked as /developer. Applies clean-code standards when writing, refactoring, or reviewing code in any language, including Python, C++, and Go.
-disable-model-invocation: true
+description: >-
+  Clean-code standards for writing, refactoring, and reviewing code in any language (Python, C++, Go, TypeScript,
+  and others). Load this proactively whenever a task involves producing or reworking a non-trivial amount of code —
+  roughly multiple functions, or at least a file's worth — such as implementing a feature, writing a module or class,
+  adding a component, refactoring existing code, or reviewing a diff or PR. Trigger even when the user doesn't name a
+  style guide or say "clean code": if they ask you to build, implement, add, rewrite, or refactor something of that
+  size, load this first so the code conforms from the start. Skip it only for genuinely trivial work — a one-to-few-line
+  script, a tiny snippet, a config tweak, or a single throwaway command — where applying full standards would be noise.
+  Also skip when the user explicitly asks to ignore style or match a different guide, or for generated/vendored code.
 ---
 
 # Developer
