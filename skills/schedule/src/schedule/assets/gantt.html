@@ -73,6 +73,7 @@
       flex-shrink: 0;
     }
     .legend-swatch.task { background: var(--color-task); }
+    .legend-swatch.progress { background: var(--color-progress); }
     .legend-swatch.group {
       background: transparent;
       border-top: 2px solid var(--color-group);
@@ -549,7 +550,8 @@
       <button type="button" id="toggle-bar-labels" class="collapse-all" aria-pressed="false">Show bar labels</button>
     </div>
     <div class="legend" aria-label="Bar colors">
-      <span class="legend-item"><span class="legend-swatch task"></span> Task</span>
+      <span class="legend-item"><span class="legend-swatch task"></span> Task (incomplete)</span>
+      <span class="legend-item"><span class="legend-swatch progress"></span> Complete</span>
       <span class="legend-item"><span class="legend-swatch critical-outline"></span> Critical path</span>
       <span class="legend-item"><span class="legend-swatch group"></span> Group</span>
       <span class="legend-item"><span class="legend-swatch milestone"></span> Milestone</span>

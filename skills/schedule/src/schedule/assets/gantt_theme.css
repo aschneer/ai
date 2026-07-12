@@ -29,10 +29,11 @@
   --color-border-print: #b8c2ce;
 
   /* Schedule bar semantics */
-  --color-task: #0277bd;
-  /* Progress fill on partially/fully complete task bars — a darker shade of the
-     task hue so it reads as "done" against the lighter bar. */
-  --color-progress: color-mix(in srgb, var(--color-task) 55%, #000000);
+  --color-task: #4fc3f7;
+  /* Progress fill on partially/fully complete task bars — a deep navy that sits
+     far below the light task blue in lightness, so the "done" portion of a bar
+     is unmistakable against the unfinished remainder. */
+  --color-progress: #01344e;
   --color-group: #1a2332;
   --color-milestone: #9333ea;
   --color-critical: #d84315;

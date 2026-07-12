@@ -404,6 +404,7 @@ function barGeometry(entry, box, edges) {
       cx: left,
       cy: box.top + box.height / 2,
       r: 7,
+      rowTop: box.top,
       item,
     };
   }
@@ -416,6 +417,7 @@ function barGeometry(entry, box, edges) {
       y,
       width,
       legH: 10,
+      rowTop: box.top,
       item,
     };
   }
@@ -428,6 +430,7 @@ function barGeometry(entry, box, edges) {
     y: areaTop + 0.25 * rem,
     width,
     height: Math.max(areaHeight - 0.5 * rem, 4),
+    rowTop: box.top,
     item,
   };
 }
@@ -704,23 +707,22 @@ function appendBarLabel(layer, geom) {
   if (!name) {
     return;
   }
+  // Labels sit in the top gutter of each row rather than centered beside the
+  // bar. Predecessor arrow lines route through the middle of the row, so keeping
+  // labels along the top edge means the two never overlap regardless of how the
+  // arrows are drawn. Horizontally they stay anchored just past the bar's end.
   let x;
-  let y;
   if (geom.kind === "milestone") {
     x = geom.cx + geom.r + 4;
-    y = geom.cy;
-  } else if (geom.kind === "group") {
-    x = geom.x + geom.width + 6;
-    y = geom.y + geom.legH / 2;
   } else {
     x = geom.x + geom.width + 6;
-    y = geom.y + geom.height / 2;
   }
+  const y = geom.rowTop + 1;
   const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
   text.setAttribute("class", "bar-label");
   text.setAttribute("x", String(x));
   text.setAttribute("y", String(y));
-  text.setAttribute("dominant-baseline", "central");
+  text.setAttribute("dominant-baseline", "text-before-edge");
   text.setAttribute("pointer-events", "none");
   text.textContent = name;
   layer.appendChild(text);
