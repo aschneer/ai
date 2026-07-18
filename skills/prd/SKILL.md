@@ -56,12 +56,19 @@ actually required.
 - **Hierarchical numbering.** Requirements are numbered in a nested structure: top-level sections (`1`, `2`, `3`), then
   requirements (`1.1`, `1.2`), then sub-requirements (`1.1.1`) as needed. The numbering is the addressing system —
   design docs, tickets, and reviews cite requirements by number, so numbers must be stable and unambiguous.
-- **One requirement per line, separated by a blank line.** Write each numbered requirement on its own line, and
-  separate every requirement from the next with a blank line, so each renders as its own line in Markdown. Markdown
-  collapses single newlines: consecutive requirement lines with no blank line between them render as one run-on
-  paragraph. Do **not** rely on the `N.M` numbering to produce line breaks — `5.1.` is not a valid Markdown
-  ordered-list marker (only `1.`/`2.`-style integer markers are), so it yields no automatic line breaks. The blank
-  line is what forces each requirement onto its own rendered line.
+- **Every requirement is a bulleted-list item; nesting is by indentation.** Write each requirement as an item in a
+  Markdown bulleted list (`- ` marker), with its `N.M` number as the start of the item's text. Express nesting through
+  list indentation: a sub-requirement is a nested list item indented **four spaces** under its parent, one four-space
+  level per depth. This is what makes each requirement render on its own line and shows the hierarchy visually — do
+  **not** rely on the `N.M` numbering alone for layout, since a bare `5.1.` is not a valid Markdown list marker and a
+  plain text line would collapse into the previous one. The number still carries the stable address; the list marker
+  and indentation carry the rendering. Example:
+  ```markdown
+  - 1. Inputs
+      - 1.1. The tool accepts a target directory as its sole argument.
+          - 1.1.1. The directory is read recursively.
+      - 1.2. Non-existent paths produce an error and a non-zero exit code.
+  ```
 - **One requirement per number — atomicity.** Each numbered item must state exactly one requirement. The test: could you
   drop or change this claim without affecting any other claim in the line? If a single line contains two things that
   could be changed, removed, or satisfied independently, it's actually two requirements wearing one number, and it must
@@ -76,7 +83,7 @@ actually required.
   Inputs, a major capability, Reporting, Output). Order sections so the document reads top to bottom as a coherent
   description of the product.
 - **A short Overview** at the top: one or two sentences on what the product is.
-- **Concise and structured — not prose.** A PRD reads as a scannable, numbered list, not paragraphs of narrative. Each
+- **Concise and structured — not prose.** A PRD reads as a scannable, nested bulleted list, not paragraphs of narrative. Each
   requirement is one short, self-contained statement: capture every detail that's actually necessary, and nothing beyond
   that. If a requirement is running long, it's usually either carrying implementation detail that doesn't belong or
   bundling several independent claims that should be split (see atomicity above). No filler, no restating the same
