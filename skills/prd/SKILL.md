@@ -56,6 +56,12 @@ actually required.
 - **Hierarchical numbering.** Requirements are numbered in a nested structure: top-level sections (`1`, `2`, `3`), then
   requirements (`1.1`, `1.2`), then sub-requirements (`1.1.1`) as needed. The numbering is the addressing system —
   design docs, tickets, and reviews cite requirements by number, so numbers must be stable and unambiguous.
+- **One requirement per line, separated by a blank line.** Write each numbered requirement on its own line, and
+  separate every requirement from the next with a blank line, so each renders as its own line in Markdown. Markdown
+  collapses single newlines: consecutive requirement lines with no blank line between them render as one run-on
+  paragraph. Do **not** rely on the `N.M` numbering to produce line breaks — `5.1.` is not a valid Markdown
+  ordered-list marker (only `1.`/`2.`-style integer markers are), so it yields no automatic line breaks. The blank
+  line is what forces each requirement onto its own rendered line.
 - **One requirement per number — atomicity.** Each numbered item must state exactly one requirement. The test: could you
   drop or change this claim without affecting any other claim in the line? If a single line contains two things that
   could be changed, removed, or satisfied independently, it's actually two requirements wearing one number, and it must
