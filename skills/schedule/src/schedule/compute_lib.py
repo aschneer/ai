@@ -173,7 +173,7 @@ def validate_milestone_reachability(
     schedule_data: dict[str, Any],
     calendar_data: dict[str, Any],
 ) -> list[str]:
-    """Return logic errors when predecessor chains finish after a milestone they must reach (R18).
+    """Return logic errors when predecessor chains finish after a milestone they must reach (PRD §6.7).
 
     When item S lists milestone M among its predecessors, every other transitive predecessor
     of S must finish on or before M's authoritative date. Otherwise M's date is unreachable.
@@ -570,7 +570,7 @@ def _schedule_group(group: ScheduleItem, ctx: SchedulingContext) -> bool:
 
 
 def _parent_earliest_start(parent: ScheduleItem, ctx: SchedulingContext) -> date | None:
-    """Earliest start allowed for children under a parent (R2)."""
+    """Earliest start allowed for children under a parent (PRD §3.6)."""
     if parent.start is not None:
         return parent.start
     if parent.kind == ItemKind.GROUP:

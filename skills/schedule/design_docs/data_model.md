@@ -1,6 +1,6 @@
 # Data Model
 
-**Canonical definition of the schedule and calendar file shape** — field rules, predecessor format, listing rules, timing modes, and examples. The product requirements behind these rules are in `prd.md` (§ Product requirements — data model); the behavioral requirements that build on them are `prd.md` R0–R26. Enforced by `schemas/schedule.schema.yaml` and `schemas/calendar.schema.yaml`. Implementation: `architecture.md`. Term definitions: `glossary.md`.
+**Canonical definition of the schedule and calendar file shape** — field rules, predecessor format, listing rules, timing modes, and examples. The product requirements behind these rules are in `prd.md` (§ Requirements). Enforced by `schemas/schedule.schema.yaml` and `schemas/calendar.schema.yaml`. Implementation: `architecture.md`. Term definitions: `glossary.md`.
 
 ## Schedule file header
 
@@ -132,7 +132,7 @@ A milestone may list a predecessor to mark that a chain of work **culminates in 
 - **Finish-to-start only, no lag** — e.g. `["42FS"]`. Any other link type, or a lag, is a validation error: the milestone's `date` is authoritative, so the link has no schedulable meaning and would only mislead.
 - **Never `0FS`, never self-referential.**
 - **Annotation only** — the predecessor never moves the milestone. It draws the dependency link in the Gantt and, when the chain finishes exactly on the date (zero slack), puts the milestone and its driving chain on the critical path.
-- **Deadline enforcement** — if the predecessor chain finishes **after** the milestone date, the deadline is unreachable and validation fails (a hard error; see `prd.md` R18 / DM17).
+- **Deadline enforcement** — if the predecessor chain finishes **after** the milestone date, the deadline is unreachable and validation fails (a hard error; see `prd.md` §6.7 / §3.8).
 - **Not critical on its own** — a plain deadline milestone never marks its chain critical. Only a designated **project-finish** milestone does (see below).
 
 ### Project-finish milestone

@@ -23,7 +23,7 @@ Historical checklist — decisions now reflected in `prd.md`, `data_model.md`, o
 | Milestones | User `date` authoritative; no predecessors; only file-based date constraint |
 | Validation | JSON Schema files in YAML; same schemas in editor and runtime |
 | Holiday file location | Project directory; path relative to schedule file |
-| Task timing modes | Implemented — R19–R23; `timing` required on every task |
+| Task timing modes | Implemented — §5; `timing` required on every task |
 | Gantt output | Static HTML/JS/CSS + JSON in **`site/`** via `compute` |
 | Gantt timeline rendering | Single SVG layer for bars + dependency links (print fidelity; ADR-002) |
 | Gantt timeline positioning | Master grid — all graphics snap to measured header day columns; one `--day-w` knob (ADR-004) |
@@ -33,11 +33,11 @@ Historical checklist — decisions now reflected in `prd.md`, `data_model.md`, o
 | Project finish | `type: project_finish` milestone (opt-in, at most one) sets the deadline; reported finish = feeder chain's actual finish (MS Project model; ADR-005) |
 | Schedule filename | Arbitrary; skill asks user for path |
 | Engine mutability | Read-only on source YAML — validate, compute, write separate outputs only |
-| Impossible schedules | **Hard errors** (R18), not warnings — no auto-fix |
+| Impossible schedules | **Hard errors** (§6.7), not warnings — no auto-fix |
 | Deliverable | AI agent skill with composable libraries, not a standalone app |
-| MVP | **Complete** (2026-06-14) — see `prd.md` § MVP status; R10 live refresh shelved |
+| MVP | **Complete** (2026-06-14) — see `prd.md` status header; D1 live refresh shelved |
 
-### Group kind naming (R1 / schedule format)
+### Group kind naming (§1.1 / schedule format)
 
 Microsoft Project calls this a **summary task**. We use **`group`**: shorter, avoids confusion with report/summary language, reads naturally in YAML (`kind: group`). Rejected: `category`, `phase`, `section`, `container`, `rollup`, `block`, `package`, `summary`.
 
@@ -65,13 +65,13 @@ The Gantt viewer is static HTML/JS served over HTTP. Users run `compute` locally
 |--------|--------------|-------------------|
 | Product shape | Skill + YAML + Python CPM; browser is read-only output | Matches “file is source of truth” |
 | PRD minimal code | Second toolchain, build step, npm in a `uv` skill | One command: `uv run compute` |
-| Hot reload (R10) | HMR targets JS edits, not YAML→Python→JSON | Shelved — see `live_refresh.md` |
+| Hot reload (D1) | HMR targets JS edits, not YAML→Python→JSON | Shelved — see `live_refresh.md` |
 | Remote viewing | Vite’s win is `host: true` + URL list | Same pattern on `http.server` |
 
 ### Trade-offs
 
 **Pros:** Simple install, portable static output, agent-friendly, no build drift.  
-**Cons:** No HMR for viewer JS; manual refresh until R10; binding `0.0.0.0` exposes the chart on the network (dev-only; use `--host 127.0.0.1` on untrusted hosts).
+**Cons:** No HMR for viewer JS; manual refresh until D1; binding `0.0.0.0` exposes the chart on the network (dev-only; use `--host 127.0.0.1` on untrusted hosts).
 
 ### Viewing paths (same as a Vite dev server)
 
@@ -91,7 +91,7 @@ Interactive Gantt editing, a large SPA viewer, or a separate “schedule studio�
 
 ### Context
 
-PRD **R26** requires a printable Gantt: users must be able to print or export a faithful static copy (browser print/PDF or equivalent). The first viewer used HTML `%`-positioned bars with a separate overlay SVG for dependency links. That hybrid layout desynced under browser print preview and zoom — bars and links scaled independently.
+PRD **§9.4** requires a printable Gantt: users must be able to print or export a faithful static copy (browser print/PDF or equivalent). The first viewer used HTML `%`-positioned bars with a separate overlay SVG for dependency links. That hybrid layout desynced under browser print preview and zoom — bars and links scaled independently.
 
 ### Decision
 
@@ -104,14 +104,14 @@ PRD **R26** requires a printable Gantt: users must be able to print or export a 
 
 | Factor | Hybrid HTML + SVG overlay | Single SVG timeline |
 |--------|---------------------------|---------------------|
-| Print fidelity (R26) | Bars and links drift apart when printed | One layer scales together |
+| Print fidelity (§9.4) | Bars and links drift apart when printed | One layer scales together |
 | Complexity | Two rendering paths to keep aligned | One path for bars and links |
 | On-screen | Worked until print/zoom | Same geometry for screen and print |
 | Scope | — | Labels stay HTML; no full-page SVG rewrite |
 
 ### Trade-offs
 
-**Pros:** Satisfies R26 with browser print; simpler mental model; MS Project–style bars/links stay aligned.  
+**Pros:** Satisfies §9.4 with browser print; simpler mental model; MS Project–style bars/links stay aligned.  
 **Cons:** SVG redraw on window resize; no drag-and-drop bar editing (already out of scope); server PDF still optional later.
 
 ### Revisit if
@@ -140,7 +140,7 @@ Freeze-pane scrolling and panning on the static Gantt viewer work acceptably wit
 |--------|-------------------|------------------------|
 | Dependencies | npm bundle, build or CDN | None — matches ADR-001 |
 | Scrolling / pan | Powerful but adds API surface | CSS sticky + native scroll tested and sufficient |
-| Print (R26) | Extra integration work | Single SVG already satisfies print fidelity |
+| Print (§9.4) | Extra integration work | Single SVG already satisfies print fidelity |
 | Skill shape | Second frontend stack in a Python skill | One `compute` deploy path |
 
 ### Trade-offs
@@ -211,7 +211,7 @@ The critical path needs a defined terminus. Two questions were open:
 1. **What is "project finish"** — the latest computed finish, or a user-set deadline?
 2. **When is a schedule critical** — always (longest path), or only at zero slack against a deadline?
 
-A milestone can already carry a finish-to-start predecessor to mark a culminating deadline (DM17), but a plain deadline milestone was self-marking its chain critical whenever the chain landed on the date — conflating "there is a deadline" with "the deadline is the project finish."
+A milestone can already carry a finish-to-start predecessor to mark a culminating deadline (§3.8.1), but a plain deadline milestone was self-marking its chain critical whenever the chain landed on the date — conflating "there is a deadline" with "the deadline is the project finish."
 
 ### Decision
 
@@ -230,7 +230,7 @@ Adopt the Microsoft Project separation: **finish = when work ends; deadline = a 
 | Deadline vs finish | Deadline is a separate marker, not the finish | Milestone date is the deadline; finish is the feeder finish |
 | Critical path | Zero total slack | Zero-slack chain into the designated milestone |
 | Ahead of deadline | Slack shown; no critical path forced | Empty critical path (buffer) |
-| Missed deadline | Red flag | Hard error (R18, existing reachability) |
+| Missed deadline | Red flag | Hard error (§6.7, existing reachability) |
 
 Requiring predecessors on the finish milestone matches how MS Project is used: a finish marker with nothing feeding it is meaningless (in MS Project it would float to project start). Our milestone dates are authoritative, so the marker still holds its date — but with no feeder there is no chain to be critical, so the requirement keeps it meaningful.
 
@@ -238,7 +238,7 @@ Choosing feeder-actual-finish over the milestone date as the reported finish is 
 
 ### Trade-offs
 
-**Pros:** One coherent model (finish = work end, deadline = target); zero-slack criticality matches true CPM; removes the `_deadline_milestone_terminals` special case (net simpler). **Cons:** A user glancing at the Gantt sees the project-finish value left of the finish-milestone marker in the buffer case — needs the mental model that finish ≠ deadline. Documented in DM18 / R25.
+**Pros:** One coherent model (finish = work end, deadline = target); zero-slack criticality matches true CPM; removes the `_deadline_milestone_terminals` special case (net simpler). **Cons:** A user glancing at the Gantt sees the project-finish value left of the finish-milestone marker in the buffer case — needs the mental model that finish ≠ deadline. Documented in §3.9 / §6.8.
 
 ### Revisit if
 

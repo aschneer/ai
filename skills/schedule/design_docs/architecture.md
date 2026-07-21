@@ -68,7 +68,7 @@ Algorithm detail: `scheduling_algorithm.md`.
 
 ## Gantt output (implementation)
 
-`gantt_lib.py` writes **`site/gantt_data.json`** (the serialized computed schedule) and copies the static viewer assets (`gantt.html`, `gantt.js`, `gantt_theme.css`) into **`site/`**. The viewer fetches `gantt_data.json` over HTTP, so it must be served — `file://` does not work; the server is Python `http.server` (no Vite/Node). The output dict shape is locked by `tests/test_compute_lib.py`; user-facing CLI flags and viewing are in `README.md`; the chart's required features are PRD R9/R24/R25/R26.
+`gantt_lib.py` writes **`site/gantt_data.json`** (the serialized computed schedule) and copies the static viewer assets (`gantt.html`, `gantt.js`, `gantt_theme.css`) into **`site/`**. The viewer fetches `gantt_data.json` over HTTP, so it must be served — `file://` does not work; the server is Python `http.server` (no Vite/Node). The output dict shape is locked by `tests/test_compute_lib.py`; user-facing CLI flags and viewing are in `README.md`; the chart's required features are PRD §9.1/§9.2/§6.8/§9.4.
 
 **Rendering:** item labels and the week header are HTML; the timeline column is a **single SVG** (`.timeline-svg`) holding task bars, group bracket paths, milestone markers, and dependency links in one coordinate system — required for faithful browser print. See **`decisions.md` ADR-002** (single SVG) and **ADR-001** (Python server, no Vite).
 
@@ -86,11 +86,11 @@ Every horizontal position in the timeline — task bar, group bracket, milestone
 
 **Why this shape.** The prior viewer positioned bars as a percentage of a *measured* timeline width while the header used a CSS grid with a `minmax()` floor. When the floor clamped, the two widths diverged and bars drifted from their dates — the error accumulating rightward. Collapsing everything onto the header grid removes the second scale entirely. Full history and rejected alternatives: **`decisions.md` ADR-004**.
 
-**Sticky year label (PRD R34).** A year spans one wide grid cell in the header's top row, so a single static label at its start scrolls out of view. The year text is wrapped in a `.year-label` span that is `position: sticky; left: var(--label-width)` — it sticks to the left of the timeline (just past the frozen label column) while its year cell is in view, then the next year's label takes over at the boundary, so the current year is always readable. Sticky positioning is broken by an `overflow: hidden` ancestor, so the year cell overrides the shared `.header-span` clip with `overflow: visible` (`.header-span.year-cell`). Month/day cells need no such treatment (a month is narrow enough, days are labeled per column).
+**Sticky year label (PRD §9.6).** A year spans one wide grid cell in the header's top row, so a single static label at its start scrolls out of view. The year text is wrapped in a `.year-label` span that is `position: sticky; left: var(--label-width)` — it sticks to the left of the timeline (just past the frozen label column) while its year cell is in view, then the next year's label takes over at the boundary, so the current year is always readable. Sticky positioning is broken by an `overflow: hidden` ancestor, so the year cell overrides the shared `.header-span` clip with `overflow: visible` (`.header-span.year-cell`). Month/day cells need no such treatment (a month is narrow enough, days are labeled per column).
 
 ### Hover tooltips
 
-Every bar, milestone, and context segment shows a hover tooltip. Content by kind: task/group → name, working-day count, calendar-day count (three lines); milestone → name and date (two lines); people/events segment → band name, segment label, and date range (three lines). Dates format as `mm/dd/yyyy`. Required content is specified in PRD **R29**.
+Every bar, milestone, and context segment shows a hover tooltip. Content by kind: task/group → name, working-day count, calendar-day count (three lines); milestone → name and date (two lines); people/events segment → band name, segment label, and date range (three lines). Dates format as `mm/dd/yyyy`. Required content is specified in PRD **§9.11**.
 
 **Business logic in Python; JS only renders.** The day counts are *not* computed in the browser — the viewer has no holiday calendar, so a JS working-day count would miscount tasks spanning a holiday. Instead `computed_schedule_to_dict()` writes **`working_days`** (via `calendar.count_working_days`, excluding weekends and holidays) and **`calendar_days`** (`finish - start + 1`) onto every item. `gantt.js` reads those fields verbatim. This is the general rule for the viewer: any derived value lives in the computed JSON, never in render code.
 
@@ -98,15 +98,15 @@ Every bar, milestone, and context segment shows a hover tooltip. Content by kind
 
 ### Cursor crosshair
 
-A subtle vertical line (`.gantt-crosshair`, PRD **R30**) follows the cursor across the plot so a bar can be lined up with the date header. It is one `position: fixed` element bound once on `.gantt` and driven by `clientX` — being fixed and cursor-relative, it needs no scroll math (the line sits under the cursor regardless of scroll offset). It hides over the sticky label column (`clientX` within `--label-width` of the container's left edge) and whenever the cursor leaves the plot.
+A subtle vertical line (`.gantt-crosshair`, PRD **§9.7**) follows the cursor across the plot so a bar can be lined up with the date header. It is one `position: fixed` element bound once on `.gantt` and driven by `clientX` — being fixed and cursor-relative, it needs no scroll math (the line sits under the cursor regardless of scroll offset). It hides over the sticky label column (`clientX` within `--label-width` of the container's left edge) and whenever the cursor leaves the plot.
 
 ### Current-date indicator
 
-An amber vertical line labeled "Today" (`.today-overlay` / `.today-line`, PRD **R31**) marks the current date. The line is drawn in its **own overlay SVG** (`renderTodayOverlay`) at `edges[todayOffset]` — the same master-grid lookup as every bar, so it aligns with the date header and scrolls with the content. `todayColumnOffset()` computes today from `new Date()` **at render time** (today is a property of *when the chart is viewed*, not a compute-time value, so it is never baked into `gantt_data.json`) and returns `null` when today falls outside `[range.start, range.end]`. Because `dateRange()` derives the axis only from item, people, and events dates, today never extends the range — an out-of-range today simply draws nothing, and a schedule opened long after it ended keeps its own width.
+An amber vertical line labeled "Today" (`.today-overlay` / `.today-line`, PRD **§9.8**) marks the current date. The line is drawn in its **own overlay SVG** (`renderTodayOverlay`) at `edges[todayOffset]` — the same master-grid lookup as every bar, so it aligns with the date header and scrolls with the content. `todayColumnOffset()` computes today from `new Date()` **at render time** (today is a property of *when the chart is viewed*, not a compute-time value, so it is never baked into `gantt_data.json`) and returns `null` when today falls outside `[range.start, range.end]`. Because `dateRange()` derives the axis only from item, people, and events dates, today never extends the range — an out-of-range today simply draws nothing, and a schedule opened long after it ended keeps its own width.
 
 **Layering.** The line must sit *above the rows, including a locked context band*, yet *behind the sticky date-scale header* and *off the sticky left label column*. Two of these are handled by z-index alone: the overlay's `z-index: 13` is above the locked context band (12) but below the header (16) and gutter (15), so the header masks the line's top **structurally** — the line stays behind the date scale on vertical scroll with no lag (an earlier approach clipped the top in a scroll handler and lagged behind fast scrolls, because the SVG scrolls on the compositor while a JS clip recomputes a frame later). The label column can't be handled by z (it sits below the overlay), so a scroll-driven horizontal **`clip-path`** removes the overlay's leftmost `scrollLeft` px — exactly the strip the pane covers — so the line is clipped out of the label column and vanishes once today's column scrolls fully behind it. The "Today" **tag** is a separate HTML element in the sticky annotation lane, pinned under the date header on vertical scroll.
 
-### Compact rows (PRD R33)
+### Compact rows (PRD §9.5)
 
 Each row is one line tall. The label (`.label-text`) is a flexbox with the item name (`flex: 1`, truncates first) and the date range side by side; the dates use `mm/dd/yy` (`shortDate()`), while the hover tooltip keeps full `mm/dd/yyyy`. Row `min-height` and label padding are kept tight. Collapsing the previous two-line (name-over-dates) label to one line is the dominant vertical saving.
 
@@ -141,5 +141,5 @@ tests/
 - `data_model.md` — YAML editing reference
 - `scheduling_algorithm.md` — CPM steps
 - `decisions.md` — ADRs (Gantt stack, single SVG timeline, no Vite, etc.)
-- `task_timing_modes.md` — pinned-date feature (R19–R23)
+- `task_timing_modes.md` — pinned-date feature (§5)
 - `glossary.md` — glossary

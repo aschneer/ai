@@ -1,7 +1,7 @@
-# Live refresh (PRD R10) — shelved implementation plan
+# Live refresh (PRD D1) — shelved implementation plan
 
 **Status:** Shelved (2026-06-07)  
-**PRD:** R10 — Live refresh (nice to have)  
+**PRD:** D1 — Live refresh (deferred)  
 **Decision:** Not needed for MVP. Manual browser refresh after re-running `compute` is acceptable.
 
 ---
@@ -162,6 +162,6 @@ error: task 42: ...
 
 ## Related docs
 
-- `prd.md` — R10 requirement
+- `prd.md` — D1 requirement
 - `decisions.md` ADR-001 — Python static server vs Vite
 - `architecture.md` — Gantt output and serve flags

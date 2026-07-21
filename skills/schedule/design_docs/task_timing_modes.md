@@ -2,7 +2,7 @@
 
 **Status:** Implemented  
 **Last updated:** 2026-07-04  
-**Related:** `prd.md` (R19–R23), `architecture.md`, `data_model.md`, `scheduling_algorithm.md`
+**Related:** `prd.md` (§5), `architecture.md`, `data_model.md`, `scheduling_algorithm.md`
 
 ## Summary
 
@@ -51,7 +51,7 @@ String enum — **must always be present**; never inferred from other fields.
 | `start_finish` | `start`, `finish` | `predecessors` | `duration` (working days) |
 | `finish_duration` | `finish`, `duration` | `predecessors` | `start` |
 
-**Only `auto` requires predecessors** (duration alone gives no anchor). A pinned mode sets its own dates, so predecessors are **optional** there — list them when a real dependency exists (they constrain earliest allowable bounds), omit them for a self-anchoring task (no dependency arrow drawn). See `data_model.md` DM15.
+**Only `auto` requires predecessors** (duration alone gives no anchor). A pinned mode sets its own dates, so predecessors are **optional** there — list them when a real dependency exists (they constrain earliest allowable bounds), omit them for a self-anchoring task (no dependency arrow drawn). See `prd.md` §3.4.
 
 ### Date fields on tasks
 
@@ -185,7 +185,7 @@ Validation only — no warnings channel, no auto-fix.
 
 > Historical — the order the shipped pass followed.
 
-1. `prd.md` requirements R19–R23 (this document adds algorithm and validation detail)
+1. `prd.md` §5 requirements (this document adds algorithm and validation detail)
 2. JSON Schema — required `timing`, conditional fields
 3. Update all test fixtures and examples with explicit `timing: auto`
 4. Logic validation — predecessor bounds, parent floor, `start_finish` sanity

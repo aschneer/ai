@@ -9,7 +9,7 @@ Implementation: `src/schedule/compute_lib.py`. Calendar math: `calendar_lib.py`.
 Before compute runs, `load_schedule_project()` (or equivalent) must pass:
 
 1. **JSON Schema validation** — shape and field constraints
-2. **Logic validation** — unique IDs, valid predecessor refs, acyclic graph, listing rules, milestones on working days, pinned bounds, milestone reachability (R18)
+2. **Logic validation** — unique IDs, valid predecessor refs, acyclic graph, listing rules, milestones on working days, pinned bounds, milestone reachability (§6.7)
 
 If validation fails, compute is not run. Fix the schedule file and re-validate.
 
@@ -37,7 +37,7 @@ Repeat until no item dates change (or iteration limit reached):
 
 1. **Schedule tasks** — for each task with a duration:
    - Compute earliest start from all predecessor links (latest constraint wins)
-   - Apply parent floor: children cannot start before their parent group's anchor start (R2)
+   - Apply parent floor: children cannot start before their parent group's anchor start (§3.6)
    - Compute finish from start + duration using working-day calendar math
 2. **Roll up groups** — for each group (deepest nested groups first):
    - Wait until all children have start/finish
