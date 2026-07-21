@@ -148,6 +148,7 @@ The concrete file shape, field-by-field rules, and examples are defined canonica
 - **9.2.1.** On the same machine or remotely (SSH with port forwarding or network URL).
 - **9.2.2.** The tool prints URLs; the user opens manually — no auto-open browser.
 - **9.2.3.** The chart must be reachable on the network when working on a remote server (LAN, Tailscale, etc.).
+- **9.2.4.** After a recompute, a plain browser reload shows the fresh schedule — the viewer never serves stale computed data from a cache. This holds regardless of how the page is served (it does not depend on the serving environment's cache settings), and updated viewer code (the chart's own scripts and styles) is likewise picked up on reload when the skill changes.
 
 **9.3.** In the viewer, the user can collapse and expand nested groups to control how much hierarchy is shown.
 

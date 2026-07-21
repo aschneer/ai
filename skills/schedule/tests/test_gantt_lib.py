@@ -31,7 +31,7 @@ def test_write_gantt_data_and_deploy_assets(tmp_path: Path) -> None:
 
     data_path = site_directory(tmp_path) / GANTT_DATA_FILENAME
     write_gantt_data(data_path, payload)
-    assets = deploy_gantt_assets(site_directory(tmp_path))
+    assets = deploy_gantt_assets(site_directory(tmp_path), build_token="12345")
 
     assert data_path.is_file()
     loaded = json.loads(data_path.read_text(encoding="utf-8"))
@@ -48,6 +48,11 @@ def test_write_gantt_data_and_deploy_assets(tmp_path: Path) -> None:
     assert (tmp_path / SITE_DIR / GANTT_JS_FILENAME).is_file()
     assert "fetch(" in (tmp_path / SITE_DIR / GANTT_JS_FILENAME).read_text(encoding="utf-8")
     assert GANTT_DATA_FILENAME in (tmp_path / SITE_DIR / GANTT_JS_FILENAME).read_text(encoding="utf-8")
+
+    html = (tmp_path / SITE_DIR / GANTT_HTML_FILENAME).read_text(encoding="utf-8")
+    assert "__BUILD_TOKEN__" not in html
+    assert "gantt.js?v=12345" in html
+    assert "gantt_theme.css?v=12345" in html
 
 
 def test_deploy_project_gitignore_writes_and_preserves(tmp_path: Path) -> None:

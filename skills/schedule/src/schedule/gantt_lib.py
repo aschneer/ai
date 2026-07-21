@@ -48,13 +48,21 @@ def write_gantt_data(path: Path, payload: dict[str, Any]) -> None:
     path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
 
-def deploy_gantt_assets(site_dir: Path) -> list[Path]:
-    """Copy gantt.html, gantt.js, and gantt_theme.css into the site directory."""
+def deploy_gantt_assets(site_dir: Path, *, build_token: str) -> list[Path]:
+    """Copy gantt.html, gantt.js, and gantt_theme.css into the site directory.
+
+    Substitutes the per-compute build token into gantt.html so the asset refs
+    (gantt.js, gantt_theme.css) carry a fresh ?v= query and browsers reload them
+    when the skill's viewer code changes.
+    """
     site_dir.mkdir(parents=True, exist_ok=True)
     written: list[Path] = []
     for name in ASSET_NAMES:
+        content = _read_asset(name)
+        if name == GANTT_HTML_FILENAME:
+            content = content.replace("__BUILD_TOKEN__", build_token)
         destination = site_dir / name
-        destination.write_text(_read_asset(name), encoding="utf-8")
+        destination.write_text(content, encoding="utf-8")
         written.append(destination)
     return written
 
@@ -154,6 +162,12 @@ def serve_project_directory(
     class Handler(http.server.SimpleHTTPRequestHandler):
         def __init__(self, *args: Any, **kwargs: Any) -> None:
             super().__init__(*args, directory=str(directory), **kwargs)
+
+        def end_headers(self) -> None:
+            self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+            self.send_header("Pragma", "no-cache")
+            self.send_header("Expires", "0")
+            super().end_headers()
 
     http.server.ThreadingHTTPServer((bind_host, port), Handler).serve_forever()
 

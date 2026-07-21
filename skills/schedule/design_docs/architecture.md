@@ -70,6 +70,8 @@ Algorithm detail: `scheduling_algorithm.md`.
 
 `gantt_lib.py` writes **`site/gantt_data.json`** (the serialized computed schedule) and copies the static viewer assets (`gantt.html`, `gantt.js`, `gantt_theme.css`) into **`site/`**. The viewer fetches `gantt_data.json` over HTTP, so it must be served — `file://` does not work; the server is Python `http.server` (no Vite/Node). The output dict shape is locked by `tests/test_compute_lib.py`; user-facing CLI flags and viewing are in `README.md`; the chart's required features are PRD §9.1/§9.2/§6.8/§9.4.
 
+**Cache freshness (PRD §9.2.4).** A plain reload must always show the latest compute, independent of the serving environment, so freshness is enforced client-side rather than relying on server `Cache-Control`: (1) `gantt.js` fetches `gantt_data.json` with `cache: "no-store"` and a `?t=<epoch-ms>` query, so data is never cached; (2) `compute.py` generates a per-run `build_token` (epoch seconds) that `deploy_gantt_assets` substitutes into `gantt.html` as a `?v=<token>` query on the `gantt.js`/`gantt_theme.css` refs, busting the asset cache when the skill's viewer code changes; `gantt.html` also carries no-cache `<meta>` tags. The built-in server (`serve_project_directory`) additionally sends no-cache headers on every response as belt-and-suspenders, but correctness does not depend on it.
+
 **Rendering:** item labels and the week header are HTML; the timeline column is a **single SVG** (`.timeline-svg`) holding task bars, group bracket paths, milestone markers, and dependency links in one coordinate system — required for faithful browser print. See **`decisions.md` ADR-002** (single SVG) and **ADR-001** (Python server, no Vite).
 
 ### Timeline positioning: the master grid

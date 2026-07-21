@@ -1328,7 +1328,7 @@ function setupCrosshair() {
 
 async function init() {
   try {
-    const response = await fetch(DATA_URL);
+    const response = await fetch(`${DATA_URL}?t=${Date.now()}`, { cache: "no-store" });
     if (!response.ok) {
       throw new Error(`Could not load ${DATA_URL} (${response.status})`);
     }

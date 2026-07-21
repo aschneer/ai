@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import time
 from pathlib import Path
 
 from schedule.compute_lib import computed_schedule_to_dict, compute_schedule
@@ -75,7 +76,8 @@ def main(argv: list[str] | None = None) -> int:
     site_dir = site_directory(project_dir)
     data_path = (args.data or site_dir / GANTT_DATA_FILENAME).resolve()
     write_gantt_data(data_path, payload)
-    asset_paths = deploy_gantt_assets(site_dir)
+    build_token = str(int(time.time()))
+    asset_paths = deploy_gantt_assets(site_dir, build_token=build_token)
     gitignore_path = deploy_project_gitignore(project_dir)
     recompute_path = deploy_recompute_script(project_dir, project.schedule_path.name)
 

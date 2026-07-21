@@ -148,6 +148,8 @@ The chart does **not** auto-update. Every time you change `schedule.yaml` or `ca
 
 If you leave the server running, you can re-run `compute` in another terminal and just refresh.
 
+A plain refresh (F5) always shows the fresh chart — the viewer fetches data with caching disabled and its scripts/styles are version-tagged each compute, so you never need a hard reload, an incognito window, or a cache wipe. This works no matter how `site/` is served; the built-in server also sends no-cache headers.
+
 ### Recompute without leaving the project folder
 
 `compute` writes an executable `recompute.sh` into your project folder. It `cd`s into the installed skill, runs `compute --no-serve` on this schedule, and returns — so you can recompute from the project folder without typing the skill path:
