@@ -34,6 +34,8 @@ def test_compute_cli_writes_gantt_files(tmp_path: Path) -> None:
     assert (site / "gantt.html").is_file()
     assert (site / "gantt.js").is_file()
     assert (site / "gantt_theme.css").is_file()
+    assert (tmp_path / "recompute.sh").is_file()
+    assert (tmp_path / "serve.sh").is_file()
     payload = json.loads((site / "gantt_data.json").read_text(encoding="utf-8"))
     assert payload["project_finish"] == "2026-09-10"
     # Title comes from the schedule's required title: field.

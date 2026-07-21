@@ -9,10 +9,12 @@ from schedule.gantt_lib import (
     GANTT_THEME_FILENAME,
     PROJECT_GITIGNORE_FILENAME,
     RECOMPUTE_FILENAME,
+    SERVE_FILENAME,
     SITE_DIR,
     deploy_gantt_assets,
     deploy_project_gitignore,
     deploy_recompute_script,
+    deploy_serve_script,
     schedule_payload,
     site_directory,
     write_gantt_data,
@@ -80,6 +82,23 @@ def test_deploy_recompute_script_bakes_filename_and_is_executable(tmp_path: Path
 
     # Overwritten on rerun with a new schedule filename.
     deploy_recompute_script(tmp_path, "other.yaml")
+    assert '"$proj/other.yaml"' in script.read_text(encoding="utf-8")
+
+
+def test_deploy_serve_script_bakes_filename_and_serves(tmp_path: Path) -> None:
+    written = deploy_serve_script(tmp_path, "my_plan.yaml")
+    script = tmp_path / SERVE_FILENAME
+    assert written == script
+
+    text = script.read_text(encoding="utf-8")
+    assert '"$proj/my_plan.yaml"' in text
+    assert "{schedule_filename}" not in text
+    assert '"$HOME/.aschneer/skills/personal_skills/schedule"' in text
+    assert "--no-serve" not in text  # serve.sh serves; recompute.sh does not
+    assert script.stat().st_mode & 0o111  # executable
+
+    # Overwritten on rerun with a new schedule filename.
+    deploy_serve_script(tmp_path, "other.yaml")
     assert '"$proj/other.yaml"' in script.read_text(encoding="utf-8")
 
 

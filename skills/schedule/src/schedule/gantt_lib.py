@@ -20,6 +20,8 @@ PROJECT_GITIGNORE_ASSET = "project.gitignore"
 PROJECT_GITIGNORE_FILENAME = ".gitignore"
 RECOMPUTE_ASSET = "recompute.sh"
 RECOMPUTE_FILENAME = "recompute.sh"
+SERVE_ASSET = "serve.sh"
+SERVE_FILENAME = "serve.sh"
 SITE_DIR = "site"
 ASSET_NAMES = (GANTT_HTML_FILENAME, GANTT_JS_FILENAME, GANTT_THEME_FILENAME)
 
@@ -89,6 +91,20 @@ def deploy_recompute_script(project_dir: Path, schedule_filename: str) -> Path:
     """
     script = _read_asset(RECOMPUTE_ASSET).replace("{schedule_filename}", schedule_filename)
     destination = project_dir / RECOMPUTE_FILENAME
+    destination.write_text(script, encoding="utf-8")
+    destination.chmod(0o755)
+    return destination
+
+
+def deploy_serve_script(project_dir: Path, schedule_filename: str) -> Path:
+    """Write an executable serve.sh into the project dir, overwriting any prior copy.
+
+    Like recompute.sh but runs `compute` in serve mode, so it recomputes and then
+    serves the viewer (blocking until Ctrl+C) from the project folder without
+    changing directories. Regenerated on every compute to stay current.
+    """
+    script = _read_asset(SERVE_ASSET).replace("{schedule_filename}", schedule_filename)
+    destination = project_dir / SERVE_FILENAME
     destination.write_text(script, encoding="utf-8")
     destination.chmod(0o755)
     return destination

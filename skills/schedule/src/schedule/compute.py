@@ -19,6 +19,7 @@ from schedule.gantt_lib import (
     deploy_gantt_assets,
     deploy_project_gitignore,
     deploy_recompute_script,
+    deploy_serve_script,
     schedule_payload,
     serve_project_directory,
     site_directory,
@@ -80,6 +81,7 @@ def main(argv: list[str] | None = None) -> int:
     asset_paths = deploy_gantt_assets(site_dir, build_token=build_token)
     gitignore_path = deploy_project_gitignore(project_dir)
     recompute_path = deploy_recompute_script(project_dir, project.schedule_path.name)
+    serve_path = deploy_serve_script(project_dir, project.schedule_path.name)
 
     try:
         data_rel = data_path.relative_to(project_dir.resolve())
@@ -102,6 +104,11 @@ def main(argv: list[str] | None = None) -> int:
         rel = recompute_path.relative_to(project_dir.resolve())
     except ValueError:
         rel = recompute_path
+    print(f"ok: {rel}", file=sys.stderr)
+    try:
+        rel = serve_path.relative_to(project_dir.resolve())
+    except ValueError:
+        rel = serve_path
     print(f"ok: {rel}", file=sys.stderr)
 
     if args.stdout:

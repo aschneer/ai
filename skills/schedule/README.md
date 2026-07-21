@@ -160,6 +160,16 @@ A plain refresh (F5) always shows the fresh chart — the viewer fetches data wi
 
 It is regenerated on every `compute`, so it always points at the current skill install and schedule filename. It assumes the skill lives at `$HOME/.aschneer/skills/personal_skills/schedule`; edit that line if yours is elsewhere (the change is overwritten on the next `compute`).
 
+### Recompute and view without leaving the project folder
+
+`compute` also writes an executable `serve.sh` next to `recompute.sh`. It is the same idea but recomputes **and** serves the viewer — it runs `compute` in serve mode, so it prints the Gantt URL and blocks until you stop it with Ctrl+C:
+
+```bash
+./serve.sh
+```
+
+Use `recompute.sh` when a server is already running (just refresh after); use `serve.sh` to recompute and open the viewer in one step. Both are regenerated on every `compute`.
+
 ## When validation fails
 
 The tool reports **every** problem it finds at once, with a specific message per problem (e.g. a duplicate ID, a predecessor pointing at a task that doesn't exist, a milestone on a weekend, or a dependency cycle). Fix the YAML the messages point to and re-run. The tool will not guess or auto-fix — your file stays the source of truth.
