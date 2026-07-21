@@ -93,7 +93,7 @@ items:
 
 Segments can fall on any calendar day and must not overlap within a band. In the chart, people render on top and events below (two colors), with a single lock button to keep both pinned while scrolling.
 
-Full field rules and examples: `context/data_model.md`.
+Full field rules and examples: `design_docs/data_model.md`.
 
 ### `calendar.yaml`
 

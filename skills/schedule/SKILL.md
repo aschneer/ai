@@ -55,7 +55,7 @@ The schedule filename is not fixed. Ask the user for the **schedule file path** 
 
 If the user gives a directory, find the schedule YAML (ask if multiple). If they give a file path, use its parent as the project directory.
 
-Read `context/glossary.md` before editing — it defines domain terms. Read `context/data_model.md` when creating or structurally changing items. Read `context/architecture.md` for how validation and compute fit together.
+Read `design_docs/glossary.md` before editing — it defines domain terms. Read `design_docs/data_model.md` when creating or structurally changing items. Read `design_docs/architecture.md` for how validation and compute fit together.
 
 ### 2. Edit the schedule (agent)
 
@@ -114,9 +114,9 @@ Listing rules (when an item **has** predecessors):
 
 **Task progress (required)** — every task **must** carry `percent_complete: 0–100` (integer); a missing field is a hard validation error. It draws a darker progress fill spanning that fraction of the bar (Microsoft Project style); `100` = fully filled. Tasks only — never on groups or milestones. **Always write `percent_complete: 0`** on a new or not-started task; set a higher value only when the user states progress or asks for it. Update it as work advances.
 
-**FS start day** — with zero lag, an FS successor of a **task or group** starts the **next working day** after the predecessor finishes (the predecessor occupies its finish day). An FS successor of a **milestone** — including `0FS` from project start — starts **on** the milestone date itself (a milestone is an instantaneous point). To push a milestone's successor to the next day, add lag: `13FS+1d`. This matches Microsoft Project; detail in `context/data_model.md`.
+**FS start day** — with zero lag, an FS successor of a **task or group** starts the **next working day** after the predecessor finishes (the predecessor occupies its finish day). An FS successor of a **milestone** — including `0FS` from project start — starts **on** the milestone date itself (a milestone is an instantaneous point). To push a milestone's successor to the next day, add lag: `13FS+1d`. This matches Microsoft Project; detail in `design_docs/data_model.md`.
 
-**Task timing:** every task requires `timing: auto | start_duration | start_finish | finish_duration`. Use `auto` for planning (duration + predecessors → computed dates). Use pinned modes during execution when a start or finish is committed — see `context/data_model.md`. Pinned `start`/`finish` values are authoritative; predecessors and the parent group define earliest allowable bounds. A pin earlier than those bounds is a **hard validation error** (`validate_pinned_task_bounds`) — adjust the pin, predecessors, or milestone gates, never the tool.
+**Task timing:** every task requires `timing: auto | start_duration | start_finish | finish_duration`. Use `auto` for planning (duration + predecessors → computed dates). Use pinned modes during execution when a start or finish is committed — see `design_docs/data_model.md`. Pinned `start`/`finish` values are authoritative; predecessors and the parent group define earliest allowable bounds. A pin earlier than those bounds is a **hard validation error** (`validate_pinned_task_bounds`) — adjust the pin, predecessors, or milestone gates, never the tool.
 
 **Milestone reachability:** a milestone `date` that its own predecessor chain cannot finish by is a **hard error** (`validate_milestone_reachability`). Fix by moving the milestone date later, shortening upstream durations, or relaxing predecessors.
 
@@ -136,7 +136,7 @@ Durations and lag count working days only. Milestone dates must fall on a workin
 
 **Milestone deadlines (predecessors)** — a milestone may list a predecessor to mark that a chain of work **culminates in that fixed date** (a deadline). The predecessor is **annotation only**: the milestone's `date` always prevails, the link never moves it. Rules: **finish-to-start, no lag** (`predecessors: ["42FS"]` where 42 is the last task of the chain); never `0FS`; never self-referential. It draws the dependency arrow into the milestone. If the feeding chain finishes **after** the date, the deadline is unreachable — a hard error (`validate_milestone_reachability`).
 
-**Project-finish milestone (`type: project_finish`)** — designate **at most one** milestone as the project finish by adding `type: project_finish`. It **must** list a deadline predecessor chain (the culminating work). Its `date` is the project deadline; the reported **project finish** is when that chain **actually completes**, which may be *earlier* than the date (buffer) — matching Microsoft Project (finish = work end; deadline shown separately). The **critical path** is the zero-slack chain feeding it (empty when there is buffer). With no designated milestone, project finish is the latest computed finish and the critical path is the longest path to it. A plain deadline milestone (no `type`) never marks its chain critical — only the designated one does. Full rules and examples: `context/data_model.md`.
+**Project-finish milestone (`type: project_finish`)** — designate **at most one** milestone as the project finish by adding `type: project_finish`. It **must** list a deadline predecessor chain (the culminating work). Its `date` is the project deadline; the reported **project finish** is when that chain **actually completes**, which may be *earlier* than the date (buffer) — matching Microsoft Project (finish = work end; deadline shown separately). The **critical path** is the zero-slack chain feeding it (empty when there is buffer). With no designated milestone, project finish is the latest computed finish and the critical path is the longest path to it. A plain deadline milestone (no `type`) never marks its chain critical — only the designated one does. Full rules and examples: `design_docs/data_model.md`.
 
 ```yaml
 - kind: milestone
@@ -195,8 +195,8 @@ Adjust the relative path to where the schemas live. Setup detail for the user is
 ## References
 
 - `README.md` — human-facing guide (running the tool, viewing/refreshing the Gantt, editor setup)
-- `context/data_model.md` — field rules, predecessor and timing examples (read when authoring or restructuring items)
-- `context/task_timing_modes.md` — pinned-date timing modes in depth (`start_duration`, `start_finish`, `finish_duration`)
-- `context/glossary.md` — domain glossary (read before editing)
+- `design_docs/data_model.md` — field rules, predecessor and timing examples (read when authoring or restructuring items)
+- `design_docs/task_timing_modes.md` — pinned-date timing modes in depth (`start_duration`, `start_finish`, `finish_duration`)
+- `design_docs/glossary.md` — domain glossary (read before editing)
 - `schemas/schedule.schema.yaml`, `schemas/calendar.schema.yaml` — the validation contract, JSON Schema authored in YAML; same schemas run at validate time and (via Red Hat YAML) in the editor
-- `context/prd.md`, `context/architecture.md`, `context/scheduling_algorithm.md` — deeper background on requirements, design, and the CPM algorithm
+- `design_docs/prd.md`, `design_docs/architecture.md`, `design_docs/scheduling_algorithm.md` — deeper background on requirements, design, and the CPM algorithm
