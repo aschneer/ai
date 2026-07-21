@@ -3,3 +3,4 @@
 # example subfolder must never be checked in. The examples are recomputed
 # straight from this repo, so they don't need it.
 **/recompute.sh
+**/serve.sh
