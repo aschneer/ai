@@ -56,18 +56,39 @@ actually required.
 - **Hierarchical numbering.** Requirements are numbered in a nested structure: top-level sections (`1`, `2`, `3`), then
   requirements (`1.1`, `1.2`), then sub-requirements (`1.1.1`) as needed. The numbering is the addressing system —
   design docs, tickets, and reviews cite requirements by number, so numbers must be stable and unambiguous.
-- **Every requirement is a bulleted-list item; nesting is by indentation.** Write each requirement as an item in a
-  Markdown bulleted list (`- ` marker), with its `N.M` number as the start of the item's text. Express nesting through
-  list indentation: a sub-requirement is a nested list item indented **four spaces** under its parent, one four-space
-  level per depth. This is what makes each requirement render on its own line and shows the hierarchy visually — do
-  **not** rely on the `N.M` numbering alone for layout, since a bare `5.1.` is not a valid Markdown list marker and a
-  plain text line would collapse into the previous one. The number still carries the stable address; the list marker
-  and indentation carry the rendering. Example:
+- **Bold every requirement number below the heading.** Wherever a number begins a requirement — a level-2 plain line
+  or any bullet — write it in bold: `**1.1.**`, `**1.1.1.**`. The bold number is the address; the text follows it. The
+  level-1 heading number stays unbold (heading text is already emphasized).
+- **Level 1 is a Markdown heading, not a list item.** Write each top-level section as a heading whose text begins with
+  its single number: `## 1. Inputs`. A single integer never appears as a bulleted item. (A bullet that begins with a
+  bare integer and a dot — `- 1.` — is parsed by most renderers as a bullet *wrapping an ordered-list item*, which
+  indents far to the right and re-numbers, breaking both the layout and the addresses. Keeping the single-number level
+  as a heading sidesteps that entirely; the dot is safe in heading text.)
+- **Level 2 (`N.M`) is a plain bold-numbered line, not a bullet.** Directly under the heading, write each level-2
+  requirement as a plain line beginning with its bold number — `**1.1.** …` — with a **blank line before and after**
+  so it renders on its own line (a plain line with no list marker collapses into its neighbor otherwise). Level-2
+  requirements are not bulleted.
+- **Level 3 and deeper are bulleted; nesting is by indentation.** The first bulleted level is level 3 (`N.M.K`): a
+  Markdown bullet (`- ` marker) at column 0, `- **1.1.1.** …`. Each further level nests **four spaces** under its
+  parent bullet, one four-space level per depth (`- **1.1.1.1.** …` indented four spaces, and so on). A multi-segment
+  dotted number is never a valid ordered-list marker, so it renders as plain leading text — the layout comes from the
+  `- ` marker and indentation, the stable address from the bold number. Example:
   ```markdown
-  - 1. Inputs
-      - 1.1. The tool accepts a target directory as its sole argument.
-          - 1.1.1. The directory is read recursively.
-      - 1.2. Non-existent paths produce an error and a non-zero exit code.
+  ## 1. Inputs
+
+  **1.1.** The tool accepts a target directory as its sole argument.
+
+  **1.2.** The output directory structure:
+
+  - **1.2.1.** Data files live at the root of the output directory.
+  - **1.2.2.** A `report/` subfolder holds rendering assets.
+      - **1.2.2.1.** It can be deleted and regenerated without data loss.
+
+  **1.3.** Non-existent paths produce an error and a non-zero exit code.
+
+  ## 2. Symbol discovery
+
+  **2.1.** The tool extracts every function, method, and class using a language-aware parser.
   ```
 - **One requirement per number — atomicity.** Each numbered item must state exactly one requirement. The test: could you
   drop or change this claim without affecting any other claim in the line? If a single line contains two things that
@@ -79,11 +100,11 @@ actually required.
   disturbing unrelated requirements bundled beside it. Split independent claims into sibling requirements; use a
   sub-requirement (`1.1.1` under `1.1`) only when the child genuinely *elaborates or narrows* its parent, not when the two
   are merely adjacent peers.
-- **Logical sections.** Group requirements into sections that reflect the natural structure of the product (e.g.
-  Inputs, a major capability, Reporting, Output). Order sections so the document reads top to bottom as a coherent
-  description of the product.
+- **Logical sections.** Each top-level heading (`## N. Title`) is a section that reflects the natural structure of the
+  product (e.g. Inputs, a major capability, Reporting, Output). Order sections so the document reads top to bottom as a
+  coherent description of the product.
 - **A short Overview** at the top: one or two sentences on what the product is.
-- **Concise and structured — not prose.** A PRD reads as a scannable, nested bulleted list, not paragraphs of narrative. Each
+- **Concise and structured — not prose.** A PRD reads as a scannable, nested outline, not paragraphs of narrative. Each
   requirement is one short, self-contained statement: capture every detail that's actually necessary, and nothing beyond
   that. If a requirement is running long, it's usually either carrying implementation detail that doesn't belong or
   bundling several independent claims that should be split (see atomicity above). No filler, no restating the same

@@ -4,10 +4,10 @@
 
 This folder holds early design notes. The **canonical PRD** is:
 
-**`skills/schedule/context/prd.md`**
+**`skills/schedule/design_docs/prd.md`**
 
 **Project status:** [`status.md`](status.md)
 
-Engineering and implementation: **`skills/schedule/context/architecture.md`**
+Engineering and implementation: **`skills/schedule/design_docs/architecture.md`**
 
 Implementation code: **`skills/schedule/`**

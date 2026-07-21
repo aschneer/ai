@@ -35,7 +35,7 @@ Historical checklist — decisions now reflected in `prd.md`, `data_model.md`, o
 | Engine mutability | Read-only on source YAML — validate, compute, write separate outputs only |
 | Impossible schedules | **Hard errors** (§6.7), not warnings — no auto-fix |
 | Deliverable | AI agent skill with composable libraries, not a standalone app |
-| MVP | **Complete** (2026-06-14) — see `prd.md` status header; D1 live refresh shelved |
+| MVP | **Complete** (2026-06-14) — see `prd.md` status header; D.1 live refresh shelved |
 
 ### Group kind naming (§1.1 / schedule format)
 
@@ -65,13 +65,13 @@ The Gantt viewer is static HTML/JS served over HTTP. Users run `compute` locally
 |--------|--------------|-------------------|
 | Product shape | Skill + YAML + Python CPM; browser is read-only output | Matches “file is source of truth” |
 | PRD minimal code | Second toolchain, build step, npm in a `uv` skill | One command: `uv run compute` |
-| Hot reload (D1) | HMR targets JS edits, not YAML→Python→JSON | Shelved — see `live_refresh.md` |
+| Hot reload (D.1) | HMR targets JS edits, not YAML→Python→JSON | Shelved — see `live_refresh.md` |
 | Remote viewing | Vite’s win is `host: true` + URL list | Same pattern on `http.server` |
 
 ### Trade-offs
 
 **Pros:** Simple install, portable static output, agent-friendly, no build drift.  
-**Cons:** No HMR for viewer JS; manual refresh until D1; binding `0.0.0.0` exposes the chart on the network (dev-only; use `--host 127.0.0.1` on untrusted hosts).
+**Cons:** No HMR for viewer JS; manual refresh until D.1; binding `0.0.0.0` exposes the chart on the network (dev-only; use `--host 127.0.0.1` on untrusted hosts).
 
 ### Viewing paths (same as a Vite dev server)
 
