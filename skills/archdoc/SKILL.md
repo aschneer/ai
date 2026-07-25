@@ -107,15 +107,22 @@ here, and skip the rest; an empty heading is worse than none.
 
 ## Form follows the goal
 
-The doc is not just a list of decisions in prose. Reach for whatever conveys the architecture fastest:
+The doc is not just a list of decisions in prose. Reach for whatever conveys the architecture fastest — a table
+mapping functionality to the module that owns it, prose for reasoning and trade-offs (which need a couple of sentences
+to be intelligible, so don't compress them into telegraphic bullets), a diagram of how components connect.
 
-- A block diagram of how components connect.
-- A flow chart of a request or data path.
-- A table mapping functionality to the module that owns it, or splitting responsibilities across layers.
-- Prose, for reasoning and trade-offs — these need a couple of sentences to be intelligible, so don't compress them
-  into telegraphic bullets.
+**Keep the doc text-based, though.** Agents read text far more reliably than diagrams, and agents are a large share of
+this doc's readers. So a diagram is a supplement for human readers, never the only place something is recorded:
+whatever the diagram shows must also be stated in text.
 
-Use judgment: pick the form that gets a new engineer to understanding quickest.
+When you do include one:
+
+- Keep it simple enough to fit comfortably on screen without scrolling. A sprawling diagram is slower to read than the
+  paragraph it replaced.
+- Prefer a few of these over one that tries to show everything.
+- Mermaid handles simple graphs well and complex ones badly — if it's fighting you, that's a signal the diagram is too
+  ambitious, not that it needs more effort.
+- Skip it if it adds no real value over the text.
 
 ## Style
 
