@@ -1,0 +1,33 @@
+{
+  "skill_name": "archdoc",
+  "evals": [
+    {
+      "id": 0,
+      "name": "create-fresh-from-prd",
+      "prompt": "I've got design_docs/prd.md written for a link-in-bio page builder — users sign up, add links, get a public page at a subdomain. Now write me the architecture doc for it. I'm thinking Next.js on Vercel with Postgres.",
+      "expected_output": "architecture.md in design_docs/. Opens with one-line description plus a scope statement pointing at prd.md for requirements and README for run instructions. Stack section states each choice WITH reasoning and names rejected alternatives. Has code layout as a map (not a file inventory), component design, cross-cutting decisions. Contains NO requirements restated from the PRD, no implementation phases/plan, no deploy/run instructions.",
+      "files": ["prd.md"]
+    },
+    {
+      "id": 1,
+      "name": "reject-content-and-plan-sections",
+      "prompt": "Write the architecture doc for my conference talk deck generator. It builds HTML slides from markdown. The deck has 12 slides: title, problem, 3 demo slides, architecture diagram, benchmarks, then Q&A. Build order is: markdown parser first, then the templating, then the CSS theme, then the PDF export.",
+      "expected_output": "Architecture doc covers the engineering (markdown parsing approach, templating engine choice, HTML/CSS rendering, PDF export mechanism) with reasoning. The 12-slide list is EXCLUDED as content (would not change the architecture) and the build order is EXCLUDED as an implementation plan — ideally with a brief note to the user about where each belongs rather than silently dropping them.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "no-rationale-rewrite",
+      "prompt": "Here's my architecture doc at design_docs/architecture.md. Review it and tell me what's wrong with it.",
+      "expected_output": "Review identifies that decisions lacking a 'why' are the core defect, flags any section that merely restates what the code does, and checks the completeness invariant (a major decision in the system missing from the doc). Does not just compliment structure. Does not rewrite the whole doc unasked.",
+      "files": ["feed_reader_architecture.md"]
+    },
+    {
+      "id": 3,
+      "name": "drift-catch-queue-swap",
+      "prompt": "Reading design_docs/architecture.md now. SQS is costing us more than expected and the latency is bad — let's rip it out and use Redis Streams instead, since we're already running Redis for caching. Go ahead and make the change.",
+      "expected_output": "Proactively flags that this contradicts the Stack section of the architecture doc, offers to update that section to describe Redis Streams with its reasoning, and offers a decisions.md entry recording the pivot. Rewrites the section rather than appending a 'we used to use SQS' paragraph. Asks before editing rather than silently patching.",
+      "files": ["feed_reader_architecture.md"]
+    }
+  ]
+}
