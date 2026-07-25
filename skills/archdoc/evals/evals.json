@@ -5,7 +5,7 @@
       "id": 0,
       "name": "create-fresh-from-prd",
       "prompt": "I've got design_docs/prd.md written for a link-in-bio page builder — users sign up, add links, get a public page at a subdomain. Now write me the architecture doc for it. I'm thinking Next.js on Vercel with Postgres.",
-      "expected_output": "architecture.md in design_docs/. Opens with one-line description plus a scope statement pointing at prd.md for requirements and README for run instructions. Stack section states each choice WITH reasoning and names rejected alternatives. Has code layout as a map (not a file inventory), component design, cross-cutting decisions. Contains NO requirements restated from the PRD, no implementation phases/plan, no deploy/run instructions.",
+      "expected_output": "architecture.md in design_docs/. Opens with a short overview of what the system is. Stack section states each choice WITH reasoning and names rejected alternatives. Has code layout as a map (not a file inventory), component design, cross-cutting decisions. Contains NO requirements restated from the PRD, no implementation phases/plan, no deploy/run instructions.",
       "files": ["prd.md"]
     },
     {

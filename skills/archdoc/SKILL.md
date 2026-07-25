@@ -57,15 +57,6 @@ complements — current state here, the path taken there. When you rewrite a sec
 that's usually the moment to suggest a log entry capturing the pivot. If the project has no such log, the history is
 simply out of scope; don't smuggle it in here for lack of a better home.
 
-**Open with a scope statement.** After the one-line description of the system, say what this document covers and what
-lives elsewhere. It orients the reader in a sentence and, more usefully, it keeps you honest about the boundary while
-writing:
-
-> How the Schedule skill is **built** — engineering structure and implementation choices. What the product does and the
-> rules it enforces are in `prd.md`; how a user runs it is in `README.md`. This document covers code.
-
-Point at whatever documents the project actually has — don't invent siblings that don't exist.
-
 ## What an architecture doc captures
 
 Three kinds of thing, all at the *significant* altitude:
@@ -168,8 +159,7 @@ auth provider" is useful reasoning and stops someone from re-evaluating a non-ch
 ## Structure and style
 
 - **Plain Markdown headings.** `##` for sections, `###` for components or individual decisions where that reads better.
-- **Short overview, then the scope statement.** A line on what the system is, then what this doc covers versus what
-  lives in the project's other documents.
+- **Short overview at the top.** A line or two on what the system is and its overall shape.
 - **Numbering is optional, unlike in a PRD.** An architecture doc isn't an addressable list of atomic claims, so it
   needs no hierarchical scheme. Number sections (`## 1. Design principles`) when the doc is long enough that people
   will want to cite parts of it; leave them unnumbered when it isn't. Either is fine — be consistent within a document.
