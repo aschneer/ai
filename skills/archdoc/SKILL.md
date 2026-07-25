@@ -7,9 +7,8 @@ description: >-
   should we structure this" — even casually ("write up how this thing is put together", "document why we chose
   Postgres", "let's nail down the architecture first"). Also load it before you would otherwise start writing up a
   system's structure, stack choices, or component breakdown, so the document follows architecture-doc conventions from
-  the first line. It is the sibling of `prd.md` and `decisions.md` in a project's `design_docs/` folder. Do NOT use this
-  skill for a PRD or requirements list (use the `prd` skill), a README, deployment runbooks, or implementation/phase
-  plans — none of those are architecture.
+  the first line. Do NOT use this skill for a PRD or requirements list (use the `prd` skill), a decision log/changelog,
+  a README, deployment runbooks, or implementation/phase plans — none of those are architecture.
 ---
 
 # Writing an architecture doc
@@ -27,36 +26,45 @@ This skill loads the rules for producing a good architecture doc. It does **not*
 workflow. When the user asks to create or update an architecture doc, do that task normally, following the principles
 below. Only run a structured design exercise if the user asks for one.
 
-## Where it sits: the design_docs family
+## What it is, and what it is not
 
-The architecture doc is one of three sibling documents in a project's `design_docs/` folder, written in this order:
+Two documents get confused with the architecture doc. Naming both is the fastest way to see what this one actually is.
 
-- **`prd.md`** — *what* we want, decided first. Requirements, no implementation. Locked down once agreed (see the `prd`
-  skill).
-- **`architecture.md`** — *how* we build it, decided second, derived from the PRD. Major engineering decisions. This
-  document.
-- **`decisions.md`** — *what changed along the way*, appended during the build. A timestamped log of major decisions,
-  inflection points, and changes of approach, with reasoning.
+**It is not a requirements doc.** Requirements — what the product must do for the customer — are the PRD's job, decided
+before the architecture and independent of it. When a requirement is what motivates a decision, *reference* it rather
+than restating it: "batched because the PRD requires sub-second reads (PRD 4.1)". A pointer explains the decision and
+stays correct when the requirement is revised; a copy silently goes stale.
 
-Knowing the siblings exist is what keeps the architecture doc from bloating, because each has a job this one doesn't:
+**It is not a historical record.** This is the more common failure, so be blunt about it: the architecture doc is not a
+timeline, not a changelog, not a log of decisions made, and not a record of the order in which things were built. None
+of that is a property of the system — it's a property of the project that produced it.
 
-- A requirement showing up here belongs in `prd.md`. Reference it instead — cite the requirement number (`PRD 4.1`) to
-  explain *why* a decision was made. That's what the PRD's numbering is for, and a decision anchored to a requirement
-  is far easier to re-evaluate later.
-- The *history* of how a decision evolved belongs in `decisions.md`. This doc states the design as it stands now (see
-  "Reflect the current state" below). When you rewrite a section because the approach changed, that's often the moment
-  to suggest a `decisions.md` entry capturing the pivot and its reasoning — the two docs are complements: current state
-  here, the path and the reasoning for changes there.
+What it is instead: **a summary of the actual architectural state of the project right now.** A reader should be able
+to open it and see how the system is built today, without having to work out which parts have been superseded.
 
-**Open with a scope statement that names the siblings.** After the one-line description of the system, say explicitly
-what this document covers and what lives elsewhere. It orients the reader in a sentence and, more importantly, it keeps
-the author honest about the boundary while writing:
+The one thing that isn't "right now": **architecture that is designed but not yet implemented.** Writing the
+architecture before the code is the normal case, and the doc legitimately describes the intended design ahead of it.
+That's forward-looking, not historical — it never conflicts with the rule above.
+
+Rejected alternatives also aren't history. "Postgres over a document store, because entry de-duplication is a
+uniqueness constraint we'd otherwise hand-roll" is *reasoning for the current design*, and it belongs here. What
+doesn't belong is the narrative — that a document store was tried first, ran for two months, and got migrated away
+from.
+
+Where a project keeps a decision log (commonly a `decisions.md` alongside the architecture doc), that's where the
+narrative goes: timestamped entries recording what changed, why, and what trade-offs were weighed. The two are
+complements — current state here, the path taken there. When you rewrite a section because the approach changed,
+that's usually the moment to suggest a log entry capturing the pivot. If the project has no such log, the history is
+simply out of scope; don't smuggle it in here for lack of a better home.
+
+**Open with a scope statement.** After the one-line description of the system, say what this document covers and what
+lives elsewhere. It orients the reader in a sentence and, more usefully, it keeps you honest about the boundary while
+writing:
 
 > How the Schedule skill is **built** — engineering structure and implementation choices. What the product does and the
 > rules it enforces are in `prd.md`; how a user runs it is in `README.md`. This document covers code.
 
-If the project doesn't use this layout, the principles all still hold — just adapt the pointers to whatever documents
-actually exist, and don't invent siblings that aren't there.
+Point at whatever documents the project actually has — don't invent siblings that don't exist.
 
 ## What an architecture doc captures
 
@@ -124,7 +132,7 @@ that the decision isn't relitigated from scratch later.
 
 **Implementation plans, phases, or commit sequences.** The order in which a system was built is not a property of the
 system. A build schedule is project management; put it in a plan document. (Describing architecture that isn't built
-yet is fine — see below. Describing *when* it will be built is not.)
+yet is fine. Describing *when* it will be built is not.)
 
 **Requirements.** What the product must do for the customer is the PRD's job. The architecture doc may reference a
 requirement to explain why a decision was made, but it does not state requirements of its own.
@@ -160,8 +168,8 @@ auth provider" is useful reasoning and stops someone from re-evaluating a non-ch
 ## Structure and style
 
 - **Plain Markdown headings.** `##` for sections, `###` for components or individual decisions where that reads better.
-- **Short overview, then the scope statement.** A line on what the system is, then what this doc covers versus its
-  siblings (see the design_docs section above).
+- **Short overview, then the scope statement.** A line on what the system is, then what this doc covers versus what
+  lives in the project's other documents.
 - **Numbering is optional, unlike in a PRD.** An architecture doc isn't an addressable list of atomic claims, so it
   needs no hierarchical scheme. Number sections (`## 1. Design principles`) when the doc is long enough that people
   will want to cite parts of it; leave them unnumbered when it isn't. Either is fine — be consistent within a document.
@@ -192,23 +200,17 @@ gives the whole document its value.
 Note this runs the opposite direction from a PRD, which is deliberately a *superset* of what's built. An architecture
 doc describes the system as it is.
 
-## Reflect the current state, not the history
+## Editing: rewrite in place, never stack
 
-The doc describes how the system is built **now**. It is not a changelog, not a record of the path taken, and not a log
-of superseded decisions. When a decision is replaced, rewrite the section to describe the new design and its reasoning
-— don't stack a new paragraph on top of the old one. A doc that accumulates history becomes a doc where the reader
-can't tell which parts are still true.
+This is what "a summary of the current state" means in practice when you're editing rather than authoring.
 
-Two things that look like exceptions but aren't:
+When a decision is superseded, **rewrite the section** so it describes the new design and its reasoning. Do not append
+a new paragraph beneath the old one, do not leave the previous approach in place with a note that it changed, and do
+not add a "Previously…" or "Update:" subsection. Each of those turns one clear statement into two competing ones, and
+the reader has no way to tell which is live — which is exactly the failure that makes a doc untrustworthy.
 
-- **Architecture planned ahead of the code.** While a project is still being built, the doc may describe the intended
-  architecture before it exists. That's the normal case for a design-first project, not drift.
-- **Rejected alternatives.** Recording that Python was considered and why it lost is *reasoning for the current
-  design*, not history. Keep it. What doesn't belong is the narrative of having tried Python first and migrated.
-
-The history isn't lost — it goes in `decisions.md`, the sibling built for exactly this: timestamped entries recording
-what changed, why, and what trade-offs were weighed. That division is what lets the architecture doc stay a clean
-description of the present without anyone having to throw away the reasoning behind a pivot.
+The reasoning that motivated the change isn't lost by rewriting; it goes in the project's decision log, where it stays
+findable without clouding the description of the present.
 
 ## Notice drift and flag it — proactively
 
@@ -224,11 +226,12 @@ change a decision the architecture doc records, or add one it doesn't?* Cases wo
 - A **component whose responsibilities have shifted** away from its documented role.
 
 When you notice one, **tell the user** — something like "This swaps the queue from SQS to Redis Streams, which
-contradicts the Stack section of the architecture doc. Want me to update it, and log the switch in `decisions.md`?"
-Then let them decide. Flag and ask; the user authorizes the edit.
+contradicts the Stack section of the architecture doc. Want me to update it?" Then let them decide. Flag and ask; the
+user authorizes the edit.
 
-A change of approach mid-build usually wants both: the architecture doc rewritten to describe the new design, and a
-`decisions.md` entry recording why the approach changed. Offer both rather than silently picking one.
+Where the project keeps a decision log, a change of approach mid-build usually wants both: the architecture section
+rewritten to describe the new design, and a log entry recording why the approach changed. Offer both rather than
+silently picking one.
 
 Small, purely local changes don't need flagging. The bar is the same as for inclusion: if the architecture didn't
 change, there's nothing to sync.
